@@ -23,46 +23,24 @@ Think of it as infrastructure-as-code for your personal AI cluster.
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#666666', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#ffffff', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000', 'mainBkg': 'transparent', 'background': 'transparent'}}}%%
 flowchart TB
-    subgraph Layer5["Layer 5: User Interface"]
-        L5A["CLI commands (chat, init, cluster)"]
-        L5B["REST API with SSE streaming"]
-        L5C["Health checks and status reporting"]
-    end
+    L5["Layer 5: User Interface<br/>CLI • REST API • Status"]
+    L4["Layer 4: Agent & Memory<br/>ReAct Loop • Tools • State"]
+    L3["Layer 3: Coordination<br/>Cluster • Router • Health • Metrics"]
+    L2["Layer 2: Inference<br/>Ollama • Remote • Protocol"]
+    L1["Layer 1: Hardware<br/>Detection • VRAM • Models"]
 
-    subgraph Layer4["Layer 4: Agent & Memory"]
-        L4A["ReAct agent loop (~300 LOC)"]
-        L4B["Tool registry and execution"]
-        L4C["Conversation state management"]
-        L4D["[Future] Long-term memory with vector store"]
-    end
-
-    subgraph Layer3["Layer 3: Coordination (Multi-Machine)"]
-        L3A["Cluster manager with node registry"]
-        L3B["Smart routing based on query complexity"]
-        L3C["Health monitoring with circuit breakers"]
-        L3D["Load balancing and graceful fallback"]
-        L3E["Performance metrics collection"]
-        L3F["mDNS service discovery"]
-    end
-
-    subgraph Layer2["Layer 2: Inference Abstraction"]
-        L2A["LLM client protocol (standard interface)"]
-        L2B["Ollama backend (via OpenAI SDK)"]
-        L2C["Remote node client (HTTP proxy)"]
-        L2D["[Future] vLLM, llama.cpp, other backends"]
-    end
-
-    subgraph Layer1["Layer 1: Hardware Abstraction"]
-        L1A["Auto-detection: Apple Silicon, NVIDIA, AMD, CPU"]
-        L1B["VRAM-based model recommendation"]
-        L1C["Conservative memory allocation (85% usable)"]
-    end
-
-    Layer5 --> Layer4
-    Layer4 --> Layer3
-    Layer3 --> Layer2
-    Layer2 --> Layer1
+    L5 --> L4
+    L4 --> L3
+    L3 --> L2
+    L2 --> L1
 ```
+
+**Details:**
+- **Layer 5 (Interface):** CLI commands, REST API with SSE streaming, health checks
+- **Layer 4 (Agent):** ReAct agent loop, tool registry and execution, conversation state
+- **Layer 3 (Coordination):** Cluster manager, smart routing, health monitoring, metrics, circuit breakers, mDNS discovery
+- **Layer 2 (Inference):** LLM client protocol, Ollama backend, remote client, extensible for vLLM/llama.cpp
+- **Layer 1 (Hardware):** Auto-detection (Apple Silicon, NVIDIA, AMD, CPU), VRAM-based recommendations
 
 ---
 
