@@ -121,16 +121,84 @@ server:
 
 All fields have sensible defaults - you can run with an empty config file or no config at all!
 
+### Multi-Machine Clusters (Experimental)
+
+harombe can orchestrate inference across multiple machines with different hardware capabilities:
+
+```bash
+# Generate cluster configuration template
+harombe cluster init
+
+# Check cluster status
+harombe cluster status
+
+# Test connectivity to all nodes
+harombe cluster test
+```
+
+Example cluster configuration:
+
+```yaml
+cluster:
+  coordinator:
+    host: localhost
+
+  routing:
+    prefer_local: true          # Prefer lowest latency nodes
+    fallback_strategy: graceful # Try other tiers if preferred unavailable
+    load_balance: true          # Distribute across same-tier nodes
+
+  nodes:
+    # Fast/local node for simple queries
+    - name: laptop
+      host: localhost
+      port: 8000
+      model: qwen2.5:3b
+      tier: 0
+
+    # Balanced node for medium workloads
+    - name: workstation
+      host: 192.168.1.100
+      port: 8000
+      model: qwen2.5:14b
+      tier: 1
+
+    # Powerful node for complex tasks
+    - name: server
+      host: server.local
+      port: 8000
+      model: qwen2.5:72b
+      tier: 2
+```
+
+**Tiers are user-defined** - assign based on your judgment of hardware capabilities:
+- **Tier 0** (fast): Low latency, simple queries
+- **Tier 1** (medium): Balanced performance
+- **Tier 2** (powerful): Complex queries, large context
+
+Works with any hardware mix: Apple Silicon, NVIDIA, AMD, CPU, cloud instances.
+
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────┐
-│              CLI / API Server               │
+│           CLI / REST API Server             │
 ├─────────────────────────────────────────────┤
 │            ReAct Agent Loop                 │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
 │  │   LLM    │  │  Tools   │  │  Memory  │  │
 │  │ (Ollama) │  │ Registry │  │  (TODO)  │  │
+│  └──────────┘  └──────────┘  └──────────┘  │
+├─────────────────────────────────────────────┤
+│       Cluster Coordination (Optional)       │
+│  • Node discovery & health monitoring       │
+│  • Smart routing & load balancing           │
+│  • Graceful fallback across tiers           │
+├─────────────────────────────────────────────┤
+│      Inference Layer (Local or Remote)      │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │  Ollama  │  │  Remote  │  │  Future  │  │
+│  │  Client  │  │  Nodes   │  │  (vLLM)  │  │
 │  └──────────┘  └──────────┘  └──────────┘  │
 ├─────────────────────────────────────────────┤
 │         Hardware Abstraction Layer          │
@@ -148,10 +216,11 @@ All fields have sensible defaults - you can run with an empty config file or no 
 - Tool calling with dangerous operation confirmation
 - Configurable max steps to prevent infinite loops
 
-**LLM Client** (`src/harombe/llm/ollama.py`)
-- OpenAI SDK pointed at Ollama's OpenAI-compatible endpoint
+**LLM Clients** (`src/harombe/llm/`)
+- `ollama.py`: OpenAI SDK pointed at Ollama's OpenAI-compatible endpoint
+- `remote.py`: HTTP client for connecting to other harombe nodes
 - Supports function calling / tool use
-- Easy to swap for cloud providers
+- Easy to extend for additional backends
 
 **Tool System** (`src/harombe/tools/`)
 - Decorator-based tool registration
