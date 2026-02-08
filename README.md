@@ -178,35 +178,178 @@ cluster:
 
 Works with any hardware mix: Apple Silicon, NVIDIA, AMD, CPU, cloud instances.
 
+#### Cluster Topology
+
+```mermaid
+graph LR
+    subgraph Coordinator["Coordinator Node - any always-on machine"]
+        CM[Cluster Manager]
+        HM[Health Monitor]
+        RT[Router]
+    end
+
+    subgraph Tier0["Tier 0: Fast/Local"]
+        T0N1[Laptop<br/>qwen2.5:3b]
+        T0N2[Mac Mini<br/>llama3.2:3b]
+    end
+
+    subgraph Tier1["Tier 1: Medium/Balanced"]
+        T1N1[Workstation<br/>qwen2.5:14b]
+        T1N2[Gaming PC<br/>mixtral:8x7b]
+    end
+
+    subgraph Tier2["Tier 2: Powerful"]
+        T2N1[Server<br/>qwen2.5:72b]
+        T2N2[Cloud GPU<br/>llama3.1:70b]
+    end
+
+    CM --> HM
+    CM --> RT
+    RT -->|Simple Query| T0N1
+    RT -->|Simple Query| T0N2
+    RT -->|Medium Query| T1N1
+    RT -->|Medium Query| T1N2
+    RT -->|Complex Query| T2N1
+    RT -->|Complex Query| T2N2
+    HM -.->|Health Check| T0N1
+    HM -.->|Health Check| T0N2
+    HM -.->|Health Check| T1N1
+    HM -.->|Health Check| T1N2
+    HM -.->|Health Check| T2N1
+    HM -.->|Health Check| T2N2
+
+    style Coordinator fill:#e8f5e9
+    style Tier0 fill:#e3f2fd
+    style Tier1 fill:#fff9c4
+    style Tier2 fill:#ffebee
+```
+
+#### Setting Up Multi-Machine Clusters
+
+Each node in your cluster runs harombe in server mode. Here's how to set it up:
+
+**On each node machine:**
+
+1. Install harombe and dependencies:
+```bash
+# Install harombe
+pip install harombe
+
+# Ensure Ollama is running
+ollama serve &
+
+# Pull the model for this node
+ollama pull qwen2.5:14b  # or whichever model this node will run
+```
+
+2. Create configuration file at `~/.harombe/harombe.yaml`:
+```yaml
+model:
+  name: qwen2.5:14b  # Model for this specific node
+
+server:
+  host: 0.0.0.0  # Listen on all interfaces
+  port: 8000
+
+ollama:
+  host: http://localhost:11434
+```
+
+3. Start the harombe server:
+```bash
+harombe start
+```
+
+4. Verify it's accessible:
+```bash
+curl http://<node-ip>:8000/health
+```
+
+**On the coordinator machine:**
+
+Add the cluster configuration to your `~/.harombe/harombe.yaml`:
+
+```yaml
+cluster:
+  nodes:
+    - name: workstation
+      host: 192.168.1.100  # IP or hostname of the node
+      port: 8000
+      model: qwen2.5:14b
+      tier: 1
+
+    # Add more nodes...
+```
+
+Then check cluster status:
+```bash
+harombe cluster status
+```
+
+**Network Requirements:**
+- All nodes must be network-accessible from the coordinator
+- Port 8000 (or your configured port) must be open on each node
+- For SSH-based deployments, consider using SSH tunneling for secure connections
+
 ## Architecture
 
-```
-┌─────────────────────────────────────────────┐
-│           CLI / REST API Server             │
-├─────────────────────────────────────────────┤
-│            ReAct Agent Loop                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │   LLM    │  │  Tools   │  │  Memory  │  │
-│  │ (Ollama) │  │ Registry │  │  (TODO)  │  │
-│  └──────────┘  └──────────┘  └──────────┘  │
-├─────────────────────────────────────────────┤
-│       Cluster Coordination (Optional)       │
-│  • Node discovery & health monitoring       │
-│  • Smart routing & load balancing           │
-│  • Graceful fallback across tiers           │
-├─────────────────────────────────────────────┤
-│      Inference Layer (Local or Remote)      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │  Ollama  │  │  Remote  │  │  Future  │  │
-│  │  Client  │  │  Nodes   │  │  (vLLM)  │  │
-│  └──────────┘  └──────────┘  └──────────┘  │
-├─────────────────────────────────────────────┤
-│         Hardware Abstraction Layer          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │  Apple   │  │  NVIDIA  │  │   AMD    │  │
-│  │ Silicon  │  │   GPU    │  │   GPU    │  │
-│  └──────────┘  └──────────┘  └──────────┘  │
-└─────────────────────────────────────────────┘
+### System Overview
+
+```mermaid
+graph TB
+    subgraph UI["Layer 5: User Interface"]
+        CLI[CLI Commands]
+        API[REST API Server]
+    end
+
+    subgraph Agent["Layer 4: Agent & Memory"]
+        ReAct[ReAct Agent Loop]
+        Tools[Tool Registry]
+        Memory[Memory - Phase 2]
+    end
+
+    subgraph Coord["Layer 3: Coordination - Phase 1"]
+        ClusterMgr[Cluster Manager]
+        Health[Health Monitoring]
+        Router[Smart Routing]
+        LoadBal[Load Balancing]
+    end
+
+    subgraph Inference["Layer 2: Inference Abstraction"]
+        OllamaClient[Ollama Client]
+        RemoteClient[Remote Client]
+        FutureClient[Future: vLLM, llama.cpp]
+    end
+
+    subgraph Hardware["Layer 1: Hardware Abstraction"]
+        Apple[Apple Silicon]
+        NVIDIA[NVIDIA GPU]
+        AMD[AMD GPU]
+        CPU[CPU Fallback]
+    end
+
+    CLI --> ReAct
+    API --> ReAct
+    ReAct --> Tools
+    ReAct --> Memory
+    ReAct --> ClusterMgr
+    ClusterMgr --> Health
+    ClusterMgr --> Router
+    ClusterMgr --> LoadBal
+    Router --> OllamaClient
+    Router --> RemoteClient
+    Router --> FutureClient
+    OllamaClient --> Apple
+    OllamaClient --> NVIDIA
+    OllamaClient --> AMD
+    OllamaClient --> CPU
+    RemoteClient -.->|Network| OllamaClient
+
+    style UI fill:#e1f5ff
+    style Agent fill:#fff3e0
+    style Coord fill:#e8f5e9
+    style Inference fill:#f3e5f5
+    style Hardware fill:#fce4ec
 ```
 
 ### Key Components
@@ -231,6 +374,55 @@ Works with any hardware mix: Apple Silicon, NVIDIA, AMD, CPU, cloud instances.
 - Auto-detects Apple Silicon, NVIDIA, AMD GPUs
 - Recommends model based on available VRAM
 - Conservative memory allocation
+
+**Cluster Coordination** (`src/harombe/coordination/`)
+- Node registry and health monitoring
+- Tier-based smart routing
+- Graceful fallback and load balancing
+- Hardware-agnostic design
+
+## Roadmap
+
+### Phase 0: Weekend MVP (Complete)
+- Single-machine AI assistant with tool calling
+- ReAct agent loop
+- Hardware auto-detection
+- Interactive CLI and REST API
+
+### Phase 1: Multi-Machine Orchestration (In Progress)
+- **Phase 1.1** (Complete): Cluster foundation
+  - Cluster configuration schema
+  - Remote LLM client
+  - Health monitoring and node selection
+  - CLI commands for cluster management
+
+- **Phase 1.2** (Next): Discovery & Health
+  - mDNS auto-discovery for local networks
+  - Periodic health monitoring
+  - Circuit breaker pattern
+  - Retry logic
+
+- **Phase 1.3**: Smart Routing
+  - Task complexity classification
+  - Context-aware routing
+  - Integration with agent loop
+
+- **Phase 1.4**: Polish & Monitoring
+  - Dynamic node management
+  - Performance metrics
+  - Comprehensive documentation
+
+### Phase 2: Memory & Privacy (Future)
+- Long-term conversation memory
+- Vector store integration
+- Privacy router for PII detection
+- Knowledge base management
+
+### Phase 3: Advanced Features (Future)
+- Voice input/output (STT/TTS)
+- Web UI with real-time updates
+- Plugin system for custom tools
+- Multi-modal support (vision, audio)
 
 ## Troubleshooting
 

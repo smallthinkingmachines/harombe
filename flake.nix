@@ -18,7 +18,6 @@
             # Python and build tools
             pythonEnv
             pythonEnv.pkgs.pip
-            pythonEnv.pkgs.venv
 
             # Ollama for local inference
             ollama
