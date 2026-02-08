@@ -11,12 +11,12 @@ Run a powerful AI assistant on your own hardware—one machine or many—with ze
 **The gap harombe fills:** No other open source project combines distributed inference across mixed hardware, autonomous agent loops with tool calling, and declarative cluster configuration. Existing solutions require either cloud providers, single-machine constraints, or complex DevOps expertise.
 
 **Value proposition:**
-- 🏠 **Privacy-first:** Your data never leaves your hardware
-- 🔧 **Zero-config:** `pip install harombe && harombe init && harombe chat` works in <5 minutes
-- 🎯 **Smart routing:** Automatically sends simple queries to fast/local models, complex queries to powerful ones
-- 🛠️ **Tool-using agent:** Execute shell commands, read/write files, search the web
-- 📊 **Observable:** Built-in metrics, health monitoring, and failure recovery
-- 🔌 **Extensible:** Add custom tools, backends, or nodes easily
+- **Privacy-first:** Your data never leaves your hardware
+- **Zero-config:** `pip install harombe && harombe init && harombe chat` works in <5 minutes
+- **Smart routing:** Automatically sends simple queries to fast/local models, complex queries to powerful ones
+- **Tool-using agent:** Execute shell commands, read/write files, search the web
+- **Observable:** Built-in metrics, health monitoring, and failure recovery
+- **Extensible:** Add custom tools, backends, or nodes easily
 
 > **⚠️ Security Notice**
 >
