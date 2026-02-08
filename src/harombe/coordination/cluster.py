@@ -12,7 +12,8 @@ import httpx
 from harombe.config.schema import ClusterConfig, NodeConfig
 from harombe.coordination.circuit_breaker import CircuitBreakerConfig, CircuitBreakerRegistry
 from harombe.coordination.discovery import ServiceDiscovery
-from harombe.llm.client import LLMClient
+from harombe.coordination.router import Router, RoutingDecision
+from harombe.llm.client import LLMClient, Message
 from harombe.llm.remote import RemoteLLMClient
 
 
@@ -77,6 +78,9 @@ class ClusterManager:
             half_open_timeout=30.0,
         )
         self._circuit_breakers = CircuitBreakerRegistry(breaker_config)
+
+        # Smart router for complexity-based routing
+        self._router = Router()
 
         # Service discovery
         self._discovery: Optional[ServiceDiscovery] = None
@@ -353,6 +357,31 @@ class ClusterManager:
 
         # Default: return first available
         return nodes[0]
+
+    def select_node_smart(
+        self,
+        query: str,
+        context: Optional[List[Message]] = None,
+        fallback: bool = True,
+    ) -> tuple[Optional[NodeConfig], RoutingDecision]:
+        """
+        Smart node selection based on query complexity analysis.
+
+        Args:
+            query: User query text
+            context: Optional conversation history
+            fallback: Whether to fallback to other tiers if preferred unavailable
+
+        Returns:
+            Tuple of (selected node, routing decision)
+        """
+        # Analyze routing requirements
+        decision = self._router.analyze_routing(query, context)
+
+        # Select node based on recommended tier
+        node = self.select_node(decision.recommended_tier, fallback=fallback)
+
+        return node, decision
 
     async def close(self) -> None:
         """Close all clients, stop monitoring, and cleanup discovery."""

@@ -1,10 +1,13 @@
 """ReAct agent loop implementation."""
 
 import asyncio
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from harombe.llm.client import CompletionResponse, LLMClient, Message, ToolCall
 from harombe.tools.base import Tool
+
+if TYPE_CHECKING:
+    from harombe.coordination.cluster import ClusterManager
 
 
 class AgentState:
@@ -71,6 +74,7 @@ class Agent:
         system_prompt: str = "You are a helpful AI assistant.",
         confirm_dangerous: bool = True,
         confirm_callback: Optional[Callable[[str, str, Dict[str, Any]], bool]] = None,
+        cluster_manager: Optional["ClusterManager"] = None,
     ):
         """Initialize the agent.
 
@@ -83,6 +87,7 @@ class Agent:
             confirm_callback: Function called for dangerous tool confirmation.
                              Takes (tool_name, description, args) -> bool.
                              If None and confirm_dangerous=True, auto-denies dangerous tools.
+            cluster_manager: Optional cluster manager for distributed routing
         """
         self.llm = llm
         self.tools = {tool.schema.name: tool for tool in tools}
@@ -90,6 +95,7 @@ class Agent:
         self.system_prompt = system_prompt
         self.confirm_dangerous = confirm_dangerous
         self.confirm_callback = confirm_callback
+        self.cluster_manager = cluster_manager
 
         # Build tool schemas for LLM
         self.tool_schemas = [
@@ -109,9 +115,12 @@ class Agent:
         state = AgentState(self.system_prompt)
         state.add_user_message(user_message)
 
+        # Use smart routing if cluster manager is available
+        llm_client = await self._get_llm_client(user_message, state.messages)
+
         for step in range(1, self.max_steps + 1):
             # Get LLM response
-            response = await self.llm.complete(
+            response = await llm_client.complete(
                 messages=state.messages,
                 tools=self.tool_schemas if step < self.max_steps else None,
             )
@@ -129,12 +138,49 @@ class Agent:
                 state.add_tool_result(tool_call.id, tool_call.name, result)
 
         # Max steps reached - force final answer
-        final_response = await self.llm.complete(
+        final_response = await llm_client.complete(
             messages=state.messages,
             tools=None,  # No tools available - must give final answer
         )
 
         return final_response.content
+
+    async def _get_llm_client(
+        self,
+        query: str,
+        messages: List[Message],
+    ) -> LLMClient:
+        """
+        Get appropriate LLM client, using smart routing if cluster is available.
+
+        Args:
+            query: User query
+            messages: Conversation history
+
+        Returns:
+            LLM client to use
+        """
+        if self.cluster_manager is None:
+            return self.llm
+
+        # Use smart routing to select appropriate node
+        node, decision = self.cluster_manager.select_node_smart(
+            query=query,
+            context=messages,
+            fallback=True,
+        )
+
+        if node is None:
+            # No nodes available, fallback to local LLM
+            return self.llm
+
+        # Get client for selected node
+        client = self.cluster_manager.get_client(node.name)
+        if client is None:
+            # Client not available, fallback to local LLM
+            return self.llm
+
+        return client
 
     async def _execute_tool_call(self, tool_call: ToolCall) -> str:
         """Execute a tool call with optional confirmation for dangerous tools.
