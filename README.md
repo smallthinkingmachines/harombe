@@ -196,7 +196,7 @@ Works with any hardware mix: Apple Silicon, NVIDIA, AMD, CPU, cloud instances.
 #### Cluster Topology
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#666666', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#ffffff', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000', 'mainBkg': 'transparent', 'background': 'transparent'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1f2937', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#4b5563', 'lineColor': '#666666', 'secondaryColor': '#374151', 'tertiaryColor': '#1f2937', 'edgeLabelBackground': 'transparent', 'clusterBkg': '#111827', 'clusterBorder': '#4b5563', 'mainBkg': 'transparent', 'background': 'transparent', 'nodeBorder': '#4b5563', 'nodeTextColor': '#ffffff'}}}%%
 flowchart LR
     subgraph Coordinator["Coordinator Node"]
         CM[Cluster Manager]
