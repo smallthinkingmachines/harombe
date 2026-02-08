@@ -181,8 +181,9 @@ Works with any hardware mix: Apple Silicon, NVIDIA, AMD, CPU, cloud instances.
 #### Cluster Topology
 
 ```mermaid
-graph LR
-    subgraph Coordinator["Coordinator Node - any always-on machine"]
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#000000', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#e0e0e0', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000'}}}%%
+flowchart LR
+    subgraph Coordinator["Coordinator Node"]
         CM[Cluster Manager]
         HM[Health Monitor]
         RT[Router]
@@ -217,11 +218,6 @@ graph LR
     HM -.->|Health Check| T1N2
     HM -.->|Health Check| T2N1
     HM -.->|Health Check| T2N2
-
-    style Coordinator fill:#e8eaf6,stroke:#5c6bc0,stroke-width:2px
-    style Tier0 fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
-    style Tier1 fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
-    style Tier2 fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
 ```
 
 #### Setting Up Multi-Machine Clusters
@@ -296,7 +292,8 @@ harombe cluster status
 ### System Overview
 
 ```mermaid
-graph TB
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#000000', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#e0e0e0', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000'}}}%%
+flowchart TB
     subgraph UI["Layer 5: User Interface"]
         CLI[CLI Commands]
         API[REST API Server]
@@ -308,7 +305,7 @@ graph TB
         Memory[Memory - Phase 2]
     end
 
-    subgraph Coord["Layer 3: Coordination - Phase 1"]
+    subgraph Coord["Layer 3: Coordination"]
         ClusterMgr[Cluster Manager]
         Health[Health Monitoring]
         Router[Smart Routing]
@@ -344,12 +341,6 @@ graph TB
     OllamaClient --> AMD
     OllamaClient --> CPU
     RemoteClient -.->|Network| OllamaClient
-
-    style UI fill:#e8eaf6,stroke:#5c6bc0,stroke-width:2px
-    style Agent fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
-    style Coord fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
-    style Inference fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
-    style Hardware fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
 ```
 
 ### Key Components
