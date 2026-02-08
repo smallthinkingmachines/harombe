@@ -380,7 +380,7 @@ flowchart TB
 - Hardware auto-detection
 - Interactive CLI and REST API
 
-### Phase 1: Multi-Machine Orchestration (In Progress)
+### Phase 1: Multi-Machine Orchestration (Complete)
 - **Phase 1.1** (Complete): Cluster foundation
   - Cluster configuration schema
   - Remote LLM client
@@ -399,10 +399,11 @@ flowchart TB
   - Automatic tier selection
   - Integration with agent loop
 
-- **Phase 1.4** (Next): Polish & Monitoring
-  - Dynamic node management
-  - Performance metrics
-  - Comprehensive documentation
+- **Phase 1.4** (Complete): Polish & Monitoring
+  - Dynamic node management (add/remove nodes at runtime)
+  - Performance metrics collection and tracking
+  - REST API metrics endpoint
+  - CLI metrics command
 
 ### Phase 2: Memory & Privacy (Future)
 - Long-term conversation memory
