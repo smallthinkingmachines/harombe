@@ -2,7 +2,7 @@
 
 **Declarative self-hosted AI assistant platform**
 
-harombe is an open source platform that orchestrates heterogeneous consumer hardware into a unified, tool-using AI system. Think "Terraform for self-hosted AI."
+harombe is an open source platform that orchestrates heterogeneous consumer hardware into a unified, tool-using AI system.
 
 > **⚠️ Security Notice**
 >
@@ -281,8 +281,6 @@ Apache 2.0 - see [LICENSE](LICENSE)
 ## Credits
 
 A Small Thinking Machines project.
-
-Born from lessons learned building Baldwin (llama.cpp + GGUF on DGX Spark).
 
 Built with:
 - [Ollama](https://ollama.ai) - Local LLM inference

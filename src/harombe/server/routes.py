@@ -1,7 +1,7 @@
 """API routes for Harombe server."""
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -9,6 +9,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from harombe.agent.loop import Agent
 from harombe.config.schema import HarombeConfig
+from harombe.llm.client import Message, ToolCall
 from harombe.llm.ollama import OllamaClient
 from harombe.tools.registry import get_enabled_tools
 
@@ -37,6 +38,21 @@ class HealthResponse(BaseModel):
     status: str
     model: str
     version: str
+
+
+class CompletionRequest(BaseModel):
+    """Request body for completion endpoint (used by RemoteLLMClient)."""
+
+    messages: List[Dict[str, Any]]
+    tools: Optional[List[Dict[str, Any]]] = None
+    temperature: float = 0.7
+
+
+class CompletionResponse(BaseModel):
+    """Response body for completion endpoint."""
+
+    content: str
+    tool_calls: Optional[List[Dict[str, Any]]] = None
 
 
 def create_router(config: HarombeConfig) -> APIRouter:
@@ -137,5 +153,66 @@ def create_router(config: HarombeConfig) -> APIRouter:
                 }
 
         return EventSourceResponse(event_generator())
+
+    @router.post("/api/complete", response_model=CompletionResponse)
+    async def complete(request: CompletionRequest):
+        """
+        Completion endpoint for remote LLM clients.
+
+        This is used by RemoteLLMClient to proxy requests to this node.
+        Implements the same interface as the LLM client protocol.
+
+        Args:
+            request: Completion request with messages and tools
+
+        Returns:
+            Completion response
+        """
+        try:
+            # Convert request messages to Message objects
+            messages = [Message(**msg) for msg in request.messages]
+
+            # Convert tools if provided
+            tools_schemas = None
+            if request.tools:
+                from harombe.tools.base import ToolSchema
+                tools_schemas = []
+                for tool_def in request.tools:
+                    func = tool_def["function"]
+                    tools_schemas.append(
+                        ToolSchema(
+                            name=func["name"],
+                            description=func["description"],
+                            parameters=func["parameters"]["properties"],
+                            dangerous=False,  # Remote calls don't check dangerous flag
+                        )
+                    )
+
+            # Call LLM
+            response = await llm.complete(
+                messages=messages,
+                tools=tools_schemas,
+                temperature=request.temperature,
+            )
+
+            # Convert tool calls to dict format
+            tool_calls_dict = None
+            if response.tool_calls:
+                tool_calls_dict = [
+                    {
+                        "id": tc.id,
+                        "name": tc.name,
+                        "arguments": tc.arguments,
+                    }
+                    for tc in response.tool_calls
+                ]
+
+            return CompletionResponse(
+                content=response.content,
+                tool_calls=tool_calls_dict,
+            )
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     return router

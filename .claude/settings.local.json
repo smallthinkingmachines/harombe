@@ -30,7 +30,8 @@
       "Bash(curl:*)",
       "Bash(harombe init --help:*)",
       "Bash(harombe doctor:*)",
-      "Bash(HOME=/tmp/test-harombe harombe init:*)"
+      "Bash(HOME=/tmp/test-harombe harombe init:*)",
+      "Bash(python -m pytest:*)"
     ]
   }
 }

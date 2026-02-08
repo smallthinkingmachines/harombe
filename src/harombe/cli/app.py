@@ -92,6 +92,49 @@ def doctor():
     doctor_command()
 
 
+# Cluster management commands (Phase 1)
+cluster_app = typer.Typer(help="Manage multi-machine cluster orchestration")
+app.add_typer(cluster_app, name="cluster")
+
+
+@cluster_app.command("init")
+def cluster_init():
+    """Generate cluster configuration template."""
+    from harombe.cli.cluster_cmd import cluster_init_command
+
+    cluster_init_command()
+
+
+@cluster_app.command("status")
+def cluster_status(
+    config_path: str = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config file",
+    ),
+):
+    """Show cluster status and node health."""
+    from harombe.cli.cluster_cmd import cluster_status_command
+
+    cluster_status_command(config_path=config_path)
+
+
+@cluster_app.command("test")
+def cluster_test(
+    config_path: str = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config file",
+    ),
+):
+    """Test connectivity to all cluster nodes."""
+    from harombe.cli.cluster_cmd import cluster_test_command
+
+    cluster_test_command(config_path=config_path)
+
+
 def main():
     """Entry point for the CLI."""
     try:
