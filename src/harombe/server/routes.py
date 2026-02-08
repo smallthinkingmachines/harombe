@@ -55,7 +55,14 @@ class CompletionResponse(BaseModel):
     tool_calls: Optional[List[Dict[str, Any]]] = None
 
 
-def create_router(config: HarombeConfig) -> APIRouter:
+class MetricsResponse(BaseModel):
+    """Response body for metrics endpoint."""
+
+    nodes: Dict[str, Dict[str, Any]]
+    cluster_summary: Dict[str, Any]
+
+
+def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
     """Create API router with configured agent.
 
     Args:
@@ -212,6 +219,29 @@ def create_router(config: HarombeConfig) -> APIRouter:
                 tool_calls=tool_calls_dict,
             )
 
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @router.get("/metrics", response_model=MetricsResponse)
+    async def get_metrics():
+        """
+        Get cluster performance metrics.
+
+        Returns metrics for all nodes including request counts, success rates,
+        latency, and throughput statistics.
+        """
+        if not cluster_manager:
+            raise HTTPException(
+                status_code=503,
+                detail="Cluster manager not available. Metrics only available in cluster mode.",
+            )
+
+        try:
+            metrics = cluster_manager.get_metrics()
+            return MetricsResponse(
+                nodes=metrics.get("nodes", {}),
+                cluster_summary=metrics.get("cluster_summary", {}),
+            )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

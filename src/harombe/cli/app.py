@@ -135,6 +135,27 @@ def cluster_test(
     cluster_test_command(config_path=config_path)
 
 
+@cluster_app.command("metrics")
+def cluster_metrics(
+    config_path: str = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config file",
+    ),
+    node: str = typer.Option(
+        None,
+        "--node",
+        "-n",
+        help="Show metrics for specific node only",
+    ),
+):
+    """Show cluster performance metrics."""
+    from harombe.cli.cluster_cmd import cluster_metrics_command
+
+    cluster_metrics_command(config_path=config_path, node=node)
+
+
 def main():
     """Entry point for the CLI."""
     try:

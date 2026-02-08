@@ -67,3 +67,12 @@ def test_chat_stream_endpoint(client):
                 events.append(line)
 
         assert len(events) > 0
+
+
+def test_metrics_endpoint_without_cluster(client):
+    """Test metrics endpoint returns 503 when cluster manager is not available."""
+    response = client.get("/metrics")
+
+    assert response.status_code == 503
+    data = response.json()
+    assert "Cluster manager not available" in data["detail"]

@@ -190,3 +190,86 @@ async def _async_test(config_path: Optional[str] = None):
 def cluster_test_command(config_path: Optional[str] = None):
     """Test connectivity to all cluster nodes."""
     asyncio.run(_async_test(config_path))
+
+
+async def _async_metrics(config_path: Optional[str] = None, node: Optional[str] = None):
+    """Async implementation of cluster metrics display."""
+    if config_path:
+        config = load_config(Path(config_path))
+    else:
+        config = load_config()
+
+    if not config.cluster or not config.cluster.nodes:
+        console.print("[yellow]No cluster configured[/yellow]")
+        console.print("\nRun [cyan]harombe cluster init[/cyan] to generate a configuration template")
+        return
+
+    console.print("[bold]Cluster Performance Metrics[/bold]\n")
+
+    # Initialize cluster manager
+    cluster = ClusterManager(config.cluster)
+
+    # Get metrics
+    metrics = cluster.get_metrics(node_name=node)
+
+    if node:
+        # Display metrics for a specific node
+        if not metrics:
+            console.print(f"[red]No metrics available for node '{node}'[/red]")
+            await cluster.close()
+            return
+
+        console.print(f"[bold cyan]{node}[/bold cyan]")
+        console.print(f"Total Requests:    {metrics['total_requests']}")
+        console.print(f"Success Rate:      {metrics['success_rate']:.1%}")
+        console.print(f"Average Latency:   {metrics['average_latency_ms']:.2f}ms")
+        console.print(f"Tokens/Second:     {metrics['tokens_per_second']:.1f}")
+        if metrics['last_request']:
+            console.print(f"Last Request:      {metrics['last_request']}")
+        else:
+            console.print("Last Request:      Never")
+    else:
+        # Display metrics for all nodes
+        if not metrics.get("nodes"):
+            console.print("[yellow]No metrics available yet[/yellow]")
+            console.print("\nMetrics will appear after cluster processes requests")
+            await cluster.close()
+            return
+
+        # Create metrics table
+        table = Table(title="Node Metrics")
+        table.add_column("Node", style="cyan")
+        table.add_column("Requests", style="white")
+        table.add_column("Success Rate", style="green")
+        table.add_column("Avg Latency", style="yellow")
+        table.add_column("Tokens/Sec", style="blue")
+        table.add_column("Last Request", style="magenta")
+
+        for node_name, node_metrics in metrics["nodes"].items():
+            table.add_row(
+                node_name,
+                str(node_metrics["total_requests"]),
+                f"{node_metrics['success_rate']:.1%}",
+                f"{node_metrics['average_latency_ms']:.2f}ms",
+                f"{node_metrics['tokens_per_second']:.1f}",
+                node_metrics['last_request'] if node_metrics['last_request'] else "Never",
+            )
+
+        console.print(table)
+
+        # Display cluster summary
+        summary = metrics["cluster_summary"]
+        console.print("\n[bold]Cluster Summary[/bold]")
+        console.print(f"Total Nodes:         {summary['total_nodes']}")
+        console.print(f"Total Requests:      {summary['total_requests']}")
+        console.print(f"Average Success:     {summary['average_success_rate']:.1%}")
+        console.print(f"Average Latency:     {summary['average_latency_ms']:.2f}ms")
+        console.print(f"Total Tokens:        {summary['total_tokens']}")
+        console.print(f"Cluster Throughput:  {summary['tokens_per_second']:.1f} tokens/sec")
+
+    await cluster.close()
+
+
+def cluster_metrics_command(config_path: Optional[str] = None, node: Optional[str] = None):
+    """Show cluster performance metrics."""
+    asyncio.run(_async_metrics(config_path, node))

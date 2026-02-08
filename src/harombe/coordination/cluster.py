@@ -12,6 +12,7 @@ import httpx
 from harombe.config.schema import ClusterConfig, NodeConfig
 from harombe.coordination.circuit_breaker import CircuitBreakerConfig, CircuitBreakerRegistry
 from harombe.coordination.discovery import ServiceDiscovery
+from harombe.coordination.metrics import MetricsCollector
 from harombe.coordination.router import Router, RoutingDecision
 from harombe.llm.client import LLMClient, Message
 from harombe.llm.remote import RemoteLLMClient
@@ -81,6 +82,9 @@ class ClusterManager:
 
         # Smart router for complexity-based routing
         self._router = Router()
+
+        # Metrics collection
+        self._metrics = MetricsCollector()
 
         # Service discovery
         self._discovery: Optional[ServiceDiscovery] = None
@@ -382,6 +386,104 @@ class ClusterManager:
         node = self.select_node(decision.recommended_tier, fallback=fallback)
 
         return node, decision
+
+    def get_metrics(self, node_name: Optional[str] = None) -> dict:
+        """
+        Get performance metrics.
+
+        Args:
+            node_name: Optional specific node name, or None for all nodes
+
+        Returns:
+            Dictionary of metrics
+        """
+        if node_name:
+            metrics = self._metrics.get_node_metrics(node_name)
+            if metrics:
+                return {
+                    "name": metrics.name,
+                    "total_requests": metrics.total_requests,
+                    "success_rate": metrics.success_rate,
+                    "average_latency_ms": metrics.average_latency_ms,
+                    "tokens_per_second": metrics.tokens_per_second,
+                    "last_request": metrics.last_request_time.isoformat() if metrics.last_request_time else None,
+                }
+            return {}
+
+        # Return all metrics
+        all_metrics = self._metrics.get_all_metrics()
+        return {
+            "nodes": {
+                name: {
+                    "total_requests": m.total_requests,
+                    "success_rate": m.success_rate,
+                    "average_latency_ms": m.average_latency_ms,
+                    "tokens_per_second": m.tokens_per_second,
+                    "last_request": m.last_request_time.isoformat() if m.last_request_time else None,
+                }
+                for name, m in all_metrics.items()
+            },
+            "cluster_summary": self._metrics.get_cluster_summary(),
+        }
+
+    async def add_node(self, node: NodeConfig) -> None:
+        """
+        Dynamically add a node to the cluster at runtime.
+
+        Args:
+            node: Node configuration
+        """
+        if node.name in self._nodes:
+            raise ValueError(f"Node {node.name} already exists")
+
+        self.register_node(node)
+
+        # Perform initial health check
+        await self.check_node_health(node.name)
+
+    async def remove_node(self, name: str, graceful: bool = True) -> None:
+        """
+        Dynamically remove a node from the cluster.
+
+        Args:
+            name: Node name
+            graceful: If True, wait for active requests to complete
+        """
+        if name not in self._nodes:
+            raise ValueError(f"Node {name} not found")
+
+        # If graceful, could wait for active requests here
+        # For now, just unregister
+        await self.unregister_node(name)
+
+        # Clean up metrics
+        self._metrics.reset_node_metrics(name)
+
+    def list_nodes(self) -> List[Dict[str, any]]:
+        """
+        List all registered nodes with their status.
+
+        Returns:
+            List of node information dictionaries
+        """
+        nodes = []
+        for name, node_config in self._nodes.items():
+            health = self._health.get(name)
+            metrics = self._metrics.get_node_metrics(name)
+
+            nodes.append({
+                "name": name,
+                "host": node_config.host,
+                "port": node_config.port,
+                "model": node_config.model,
+                "tier": node_config.tier,
+                "status": health.status.value if health else "unknown",
+                "latency_ms": health.latency_ms if health else 0,
+                "requests": metrics.total_requests if metrics else 0,
+                "success_rate": metrics.success_rate if metrics else 0.0,
+            })
+
+        return nodes
 
     async def close(self) -> None:
         """Close all clients, stop monitoring, and cleanup discovery."""
