@@ -1,10 +1,10 @@
-# Harombe
+# harombe
 
 **Declarative self-hosted AI assistant platform**
 
-Harombe is an open source platform that orchestrates heterogeneous consumer hardware into a unified, tool-using AI system. Think "Terraform for self-hosted AI."
+harombe is an open source platform that orchestrates heterogeneous consumer hardware into a unified, tool-using AI system. Think "Terraform for self-hosted AI."
 
-## Why Harombe?
+## Why harombe?
 
 Currently, there's no open source project that combines:
 
@@ -12,7 +12,7 @@ Currently, there's no open source project that combines:
 2. **Agent loop** with tool calling and memory
 3. **Declarative cluster configuration** via YAML
 
-Harombe fills this gap by providing a batteries-included AI assistant that you can run on your own hardware, with zero cloud dependencies.
+harombe fills this gap by providing a batteries-included AI assistant that you can run on your own hardware, with zero cloud dependencies.
 
 ## Phase 0: Weekend MVP ✅
 

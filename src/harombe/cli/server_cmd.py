@@ -9,7 +9,7 @@ console = Console()
 
 
 def start_command(config_path: Optional[str] = None, detach: bool = False):
-    """Start the Harombe API server.
+    """Start the harombe API server.
 
     Args:
         config_path: Optional path to config file
@@ -34,7 +34,7 @@ def start_command(config_path: Optional[str] = None, detach: bool = False):
     # Create app
     app = create_app(config)
 
-    console.print(f"[green]Starting Harombe server on {config.server.host}:{config.server.port}[/green]")
+    console.print(f"[green]Starting harombe server on {config.server.host}:{config.server.port}[/green]")
     console.print(f"Model: {config.model.name}")
     console.print("\nPress Ctrl+C to stop")
 
@@ -48,12 +48,12 @@ def start_command(config_path: Optional[str] = None, detach: bool = False):
 
 
 def stop_command():
-    """Stop the Harombe API server."""
+    """Stop the harombe API server."""
     console.print("[yellow]Server stop command not yet implemented[/yellow]")
     console.print("For now, use Ctrl+C to stop the server process")
 
 
 def status_command():
-    """Check Harombe server status."""
+    """Check harombe server status."""
     console.print("[yellow]Server status command not yet implemented[/yellow]")
     console.print("Try: [bold]curl http://localhost:8000/health[/bold]")

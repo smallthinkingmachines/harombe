@@ -19,15 +19,15 @@ console = Console()
 
 @app.command()
 def version():
-    """Show Harombe version."""
-    console.print(f"Harombe version {__version__}")
+    """Show harombe version."""
+    console.print(f"harombe version {__version__}")
 
 
 @app.command()
 def init(
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing config"),
 ):
-    """Initialize Harombe configuration with hardware detection."""
+    """Initialize harombe configuration with hardware detection."""
     from harombe.cli.init_cmd import init_command
 
     init_command(force=force)
@@ -58,7 +58,7 @@ def start(
     ),
     detach: bool = typer.Option(False, "--detach", "-d", help="Run server in background"),
 ):
-    """Start Harombe API server."""
+    """Start harombe API server."""
     from harombe.cli.server_cmd import start_command
 
     start_command(config_path=config_path, detach=detach)
@@ -66,7 +66,7 @@ def start(
 
 @app.command()
 def stop():
-    """Stop Harombe API server."""
+    """Stop harombe API server."""
     from harombe.cli.server_cmd import stop_command
 
     stop_command()
@@ -74,7 +74,7 @@ def stop():
 
 @app.command()
 def status():
-    """Check Harombe server status."""
+    """Check harombe server status."""
     from harombe.cli.server_cmd import status_command
 
     status_command()

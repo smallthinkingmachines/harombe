@@ -9,7 +9,7 @@ description = "Declarative self-hosted AI assistant platform"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
-    { name = "Harombe Contributors" }
+    { name = "harombe contributors" }
 ]
 requires-python = ">=3.11"
 keywords = ["ai", "assistant", "self-hosted", "distributed", "ollama"]

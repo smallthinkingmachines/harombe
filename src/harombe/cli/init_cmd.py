@@ -26,7 +26,7 @@ def init_command(force: bool = False):
         force: Overwrite existing config if present
     """
     console.print(Panel.fit(
-        "[bold blue]Harombe Initialization[/bold blue]\n"
+        "[bold blue]harombe initialization[/bold blue]\n"
         "Detecting hardware and configuring your AI assistant...",
         border_style="blue",
     ))

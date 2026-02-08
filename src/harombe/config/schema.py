@@ -30,7 +30,7 @@ class AgentConfig(BaseModel):
     max_steps: int = Field(default=10, description="Maximum agent reasoning steps", ge=1, le=50)
     system_prompt: str = Field(
         default=(
-            "You are Harombe, a helpful AI assistant. You have access to tools that let you "
+            "You are harombe, a helpful AI assistant. You have access to tools that let you "
             "interact with the system, search the web, and work with files. Use them to help "
             "the user accomplish their goals. Think step by step and be precise."
         ),

@@ -1,5 +1,5 @@
 {
-  description = "Harombe - Declarative self-hosted AI assistant platform";
+  description = "harombe - Declarative self-hosted AI assistant platform";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -46,7 +46,7 @@
               pip install -e ".[dev]" --quiet 2>/dev/null || true
             fi
 
-            echo "Harombe development environment ready!"
+            echo "harombe development environment ready!"
             echo "Python: $(python --version)"
             echo "Ollama: $(ollama --version 2>/dev/null || echo 'not running')"
           '';

@@ -41,7 +41,7 @@ def chat_command(config_path: Optional[str] = None):
 
     # Show welcome
     console.print(Panel.fit(
-        f"[bold blue]Harombe Chat[/bold blue]\n"
+        f"[bold blue]harombe chat[/bold blue]\n"
         f"Model: {config.model.name}\n"
         f"Type /help for commands, /exit to quit",
         border_style="blue",
@@ -111,7 +111,7 @@ async def _async_chat(config):
                 response = await agent.run(user_input)
 
             # Display response
-            console.print("\n[bold green]Harombe[/bold green]")
+            console.print("\n[bold green]harombe[/bold green]")
             console.print(Markdown(response))
 
         except KeyboardInterrupt:
