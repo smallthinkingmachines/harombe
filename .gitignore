@@ -53,6 +53,9 @@ harombe.yaml
 .harombe/
 *.log
 
+# Claude Code
+.claude/
+
 # Internal documentation (keep in Notion)
 docs/internal/
 *_INTERNAL.md

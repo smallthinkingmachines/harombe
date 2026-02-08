@@ -1,28 +1,43 @@
 # harombe
 
-**Declarative self-hosted AI assistant platform**
+> **Terraform for self-hosted AI**
 
-harombe is an open source platform that orchestrates heterogeneous consumer hardware into a unified, tool-using AI system.
+Run a powerful AI assistant on your own hardware—one machine or many—with zero cloud dependencies.
+
+## What is harombe?
+
+**harombe** orchestrates heterogeneous consumer hardware (Apple Silicon, NVIDIA, AMD, CPU) into a unified, tool-using AI system. Configure your cluster in YAML, and harombe automatically routes queries to the right machine based on complexity.
+
+**The gap harombe fills:** No other open source project combines distributed inference across mixed hardware, autonomous agent loops with tool calling, and declarative cluster configuration. Existing solutions require either cloud providers, single-machine constraints, or complex DevOps expertise.
+
+**Value proposition:**
+- 🏠 **Privacy-first:** Your data never leaves your hardware
+- 🔧 **Zero-config:** `pip install harombe && harombe init && harombe chat` works in <5 minutes
+- 🎯 **Smart routing:** Automatically sends simple queries to fast/local models, complex queries to powerful ones
+- 🛠️ **Tool-using agent:** Execute shell commands, read/write files, search the web
+- 📊 **Observable:** Built-in metrics, health monitoring, and failure recovery
+- 🔌 **Extensible:** Add custom tools, backends, or nodes easily
 
 > **⚠️ Security Notice**
 >
-> harombe can execute shell commands and modify files on your system. While dangerous operations require confirmation by default, you should:
+> harombe can execute shell commands and modify files. While dangerous operations require confirmation by default:
 > - Review what the AI plans to do before approving
-> - Run harombe in sandboxed environments (Docker, VMs) when testing
+> - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
-> - Understand that LLM outputs can be unpredictable
 >
 > See [SECURITY.md](SECURITY.md) for detailed security guidance.
 
-## Why harombe?
+## Architecture
 
-Currently, there's no open source project that combines:
+harombe is a five-layer system designed for clarity and extensibility:
 
-1. **Distributed inference** across mixed hardware (Apple Silicon, NVIDIA, AMD, CPU)
-2. **Agent loop** with tool calling and memory
-3. **Declarative cluster configuration** via YAML
+1. **Hardware Abstraction** - Auto-detects GPUs, recommends models
+2. **Inference Abstraction** - Unified interface to Ollama, remote nodes, future backends
+3. **Coordination** - Smart routing, health monitoring, metrics, load balancing
+4. **Agent & Memory** - ReAct loop with tool execution and state management
+5. **User Interface** - CLI and REST API
 
-harombe fills this gap by providing a batteries-included AI assistant that you can run on your own hardware, with zero cloud dependencies.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
 ## Phase 0: Weekend MVP ✅
 
@@ -287,90 +302,22 @@ harombe cluster status
 - Port 8000 (or your configured port) must be open on each node
 - For SSH-based deployments, consider using SSH tunneling for secure connections
 
-## Architecture
+## How It Works
 
-### System Overview
+### Single Machine
+1. `harombe init` detects your hardware and recommends a model
+2. `harombe chat` starts the agent loop locally
+3. Queries are processed with tool calling (shell, files, web search)
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#666666', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#ffffff', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000', 'mainBkg': 'transparent', 'background': 'transparent'}}}%%
-flowchart TB
-    subgraph UI["Layer 5: User Interface"]
-        CLI[CLI Commands]
-        API[REST API Server]
-    end
+### Cluster Mode
+1. Define nodes in YAML (each machine runs `harombe start`)
+2. Coordinator analyzes query complexity
+3. Routes to appropriate tier (fast/local → tier 0, complex → tier 2)
+4. Monitors health, handles failures with circuit breakers
 
-    subgraph Agent["Layer 4: Agent & Memory"]
-        ReAct[ReAct Agent Loop]
-        Tools[Tool Registry]
-        Memory[Memory - Phase 2]
-    end
+**Visual Overview:**
 
-    subgraph Coord["Layer 3: Coordination"]
-        ClusterMgr[Cluster Manager]
-        Health[Health Monitoring]
-        Router[Smart Routing]
-        LoadBal[Load Balancing]
-    end
-
-    subgraph Inference["Layer 2: Inference Abstraction"]
-        OllamaClient[Ollama Client]
-        RemoteClient[Remote Client]
-        FutureClient[Future: vLLM, llama.cpp]
-    end
-
-    subgraph Hardware["Layer 1: Hardware Abstraction"]
-        Apple[Apple Silicon]
-        NVIDIA[NVIDIA GPU]
-        AMD[AMD GPU]
-        CPU[CPU Fallback]
-    end
-
-    CLI --> ReAct
-    API --> ReAct
-    ReAct --> Tools
-    ReAct --> Memory
-    ReAct --> ClusterMgr
-    ClusterMgr --> Health
-    ClusterMgr --> Router
-    ClusterMgr --> LoadBal
-    Router --> OllamaClient
-    Router --> RemoteClient
-    Router --> FutureClient
-    OllamaClient --> Apple
-    OllamaClient --> NVIDIA
-    OllamaClient --> AMD
-    OllamaClient --> CPU
-    RemoteClient -.->|Network| OllamaClient
-```
-
-### Key Components
-
-**Agent Loop** (`src/harombe/agent/loop.py`)
-- ReAct-style reasoning loop
-- Tool calling with dangerous operation confirmation
-- Configurable max steps to prevent infinite loops
-
-**LLM Clients** (`src/harombe/llm/`)
-- `ollama.py`: OpenAI SDK pointed at Ollama's OpenAI-compatible endpoint
-- `remote.py`: HTTP client for connecting to other harombe nodes
-- Supports function calling / tool use
-- Easy to extend for additional backends
-
-**Tool System** (`src/harombe/tools/`)
-- Decorator-based tool registration
-- Automatic JSON Schema generation from type hints
-- Built-in tools: shell, filesystem, web search
-
-**Hardware Detection** (`src/harombe/hardware/detect.py`)
-- Auto-detects Apple Silicon, NVIDIA, AMD GPUs
-- Recommends model based on available VRAM
-- Conservative memory allocation
-
-**Cluster Coordination** (`src/harombe/coordination/`)
-- Node registry and health monitoring
-- Tier-based smart routing
-- Graceful fallback and load balancing
-- Hardware-agnostic design
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, component details, and design decisions.
 
 ## Roadmap
 
