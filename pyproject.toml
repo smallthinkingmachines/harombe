@@ -51,10 +51,10 @@ dev = [
 harombe = "harombe.cli.app:main"
 
 [project.urls]
-Homepage = "https://github.com/harombe/harombe"
-Documentation = "https://github.com/harombe/harombe#readme"
-Repository = "https://github.com/harombe/harombe"
-Issues = "https://github.com/harombe/harombe/issues"
+Homepage = "https://github.com/smallthinkingmachines/harombe"
+Documentation = "https://github.com/smallthinkingmachines/harombe#readme"
+Repository = "https://github.com/smallthinkingmachines/harombe"
+Issues = "https://github.com/smallthinkingmachines/harombe/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/harombe"]

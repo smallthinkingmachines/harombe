@@ -214,6 +214,8 @@ Apache 2.0 - see [LICENSE](LICENSE)
 
 ## Credits
 
+A Small Thinking Machines project.
+
 Born from lessons learned building Baldwin (llama.cpp + GGUF on DGX Spark).
 
 Built with:
@@ -226,6 +228,6 @@ Built with:
 
 ## Support
 
-- [Documentation](https://github.com/harombe/harombe#readme)
-- [Issues](https://github.com/harombe/harombe/issues)
-- [Discussions](https://github.com/harombe/harombe/discussions)
+- [Documentation](https://github.com/smallthinkingmachines/harombe#readme)
+- [Issues](https://github.com/smallthinkingmachines/harombe/issues)
+- [Discussions](https://github.com/smallthinkingmachines/harombe/discussions)
