@@ -482,58 +482,31 @@ If you get permission errors during tool execution:
 
 ## Development
 
-### With Nix (Recommended)
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed setup instructions.
 
+Quick start:
 ```bash
-# Clone the repo
-git clone https://github.com/harombe/harombe.git
+# Clone and setup
+git clone https://github.com/smallthinkingmachines/harombe.git
 cd harombe
-
-# Enter dev environment (direnv auto-activates)
-direnv allow
-
-# Run tests
-pytest
-
-# Lint
-ruff check src tests
-
-# Type check
-mypy src
-```
-
-### Without Nix
-
-```bash
-# Clone and install
-git clone https://github.com/harombe/harombe.git
-cd harombe
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 
 # Run tests
 pytest
 ```
 
-## Roadmap
-
-### Phase 1: Multi-Machine Coordination (Q1 2026)
-- mDNS service discovery
-- Distributed inference across multiple machines
-- Load balancing and failover
-
-### Phase 2: Privacy & Memory (Q2 2026)
-- Privacy router with PII detection
-- Long-term memory with vector store
-- Conversation history management
-
-### Phase 3: Voice & Multimodal (Q3 2026)
-- Speech-to-text / text-to-speech
-- Image understanding
-- Video processing
-
 ## Contributing
 
-Contributions welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Quick contribution workflow:
+1. Fork and clone the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Run `pytest` and `ruff format .`
+5. Submit a Pull Request
 
 ## License
 
