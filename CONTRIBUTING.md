@@ -1,175 +1,168 @@
 # Contributing to harombe
 
-Thank you for your interest in contributing to harombe! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to harombe!
 
-## Code of Conduct
+## Getting Started
 
-By participating in this project, you agree to maintain a respectful and inclusive environment for all contributors.
+### Prerequisites
 
-## How to Contribute
+- Python 3.11+
+- [Ollama](https://ollama.ai)
+- Git
 
-### Reporting Bugs
+### Setup
 
-Before creating a bug report:
-- Check the [issue tracker](https://github.com/smallthinkingmachines/harombe/issues) for existing reports
-- Verify you're using the latest version
-- Collect relevant information (OS, Python version, harombe version, steps to reproduce)
+```bash
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/harombe.git
+cd harombe
 
-Create a detailed bug report including:
-- Clear title and description
-- Steps to reproduce
-- Expected vs actual behavior
-- Error messages and stack traces
-- System information
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-### Suggesting Features
+# Install dependencies
+pip install -e ".[dev]"
 
-Feature suggestions are welcome! Please:
-- Check existing issues and discussions first
-- Explain the use case and motivation
-- Describe the proposed solution
-- Consider backward compatibility
+# Run tests to verify setup
+pytest
+```
 
-### Pull Requests
+## Development Process
 
-1. **Fork and clone** the repository
-2. **Set up your environment**:
-   ```bash
-   cd harombe
-   python -m venv .venv
-   source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
-   pip install -e ".[dev]"
-   ```
-
-3. **Create a branch** for your changes:
+1. **Create a feature branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-4. **Make your changes**:
-   - Write clear, self-documenting code
-   - Add type hints for all function parameters and returns
-   - Follow existing code style (ruff will check this)
-   - Add docstrings for public APIs
-
-5. **Write tests**:
+2. **Make your changes**
+   - Write clear, documented code
+   - Follow existing code style
    - Add tests for new functionality
-   - Ensure existing tests pass: `pytest`
-   - Aim for high coverage of new code
 
-6. **Run quality checks**:
+3. **Test your changes**
    ```bash
-   # Format and lint
-   ruff check src tests
-
-   # Type check
-   mypy src
-
-   # Run tests
-   pytest -v --cov=harombe
+   # Run all tests
+   pytest
+   
+   # Run specific tests
+   pytest tests/test_your_feature.py -v
+   
+   # Check coverage
+   pytest --cov=src/harombe
    ```
 
-7. **Commit your changes**:
-   - Use clear, descriptive commit messages
-   - Reference issue numbers when applicable
-   - Keep commits focused and atomic
+4. **Format and lint**
+   ```bash
+   # Auto-format code
+   ruff format .
+   
+   # Check for issues
+   ruff check .
+   ```
 
-8. **Push and create a PR**:
+5. **Commit with clear messages**
+   ```bash
+   git commit -m "feat: add new feature description"
+   ```
+
+   Use conventional commit prefixes:
+   - `feat:` - New features
+   - `fix:` - Bug fixes
+   - `docs:` - Documentation changes
+   - `test:` - Test additions or changes
+   - `refactor:` - Code refactoring
+   - `chore:` - Maintenance tasks
+
+6. **Push and create Pull Request**
    ```bash
    git push origin feature/your-feature-name
    ```
-   - Fill out the PR template
-   - Link related issues
-   - Describe your changes clearly
+   Then open a Pull Request on GitHub.
 
-## Development Guidelines
+## Code Style
 
-### Code Style
+- Follow PEP 8 guidelines
+- Use type hints where possible
+- Write docstrings for public functions and classes
+- Keep functions focused and reasonably sized
+- Use descriptive variable and function names
 
-- Follow PEP 8 (enforced by ruff)
-- Use type hints throughout
-- Maximum line length: 100 characters
-- Prefer explicit over implicit
-- Keep functions focused and small
+## Testing Guidelines
 
-### Testing
+- Write tests for new features
+- Maintain or improve test coverage
+- Use pytest fixtures for common setup
+- Mock external dependencies (Ollama, network calls)
+- Test both success and error cases
 
-- Write tests for all new features
-- Use mocks for external dependencies (Ollama, file system when appropriate)
-- Test edge cases and error conditions
-- Keep tests fast and deterministic
-
-### Documentation
-
-- Add docstrings to all public functions, classes, and modules
-- Update README.md for user-facing changes
-- Add inline comments for complex logic
-- Update type hints when changing signatures
-
-### Tool Development
-
-To add a new tool:
-
+Example test structure:
 ```python
-from harombe.tools.registry import tool
-
-@tool(description="Your tool description", dangerous=False)
-async def your_tool(param: str, optional: int = 10) -> str:
-    """Brief description.
-
-    Args:
-        param: Description of param
-        optional: Description of optional parameter
-
-    Returns:
-        Description of return value
-    """
-    # Implementation
-    return "result"
+def test_feature_name():
+    """Test that feature does what it should."""
+    # Arrange
+    input_data = ...
+    
+    # Act
+    result = your_function(input_data)
+    
+    # Assert
+    assert result == expected_value
 ```
-
-The decorator automatically:
-- Generates JSON Schema from type hints
-- Registers the tool globally
-- Extracts parameter descriptions from docstring
-
-### Commit Message Format
-
-```
-type: brief description (50 chars or less)
-
-More detailed explanation if needed (wrap at 72 chars).
-Include motivation, context, and impact.
-
-Fixes #123
-```
-
-Types: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`
 
 ## Project Structure
 
 ```
 harombe/
 ├── src/harombe/          # Main package
-│   ├── agent/           # ReAct agent loop
-│   ├── cli/             # CLI commands
-│   ├── config/          # Configuration system
-│   ├── llm/             # LLM client implementations
-│   ├── tools/           # Tool system and built-in tools
-│   ├── server/          # FastAPI server
-│   └── hardware/        # Hardware detection
-└── tests/               # Test suite
+│   ├── cli/              # CLI commands
+│   ├── agent/            # ReAct agent loop
+│   ├── llm/              # LLM clients
+│   ├── tools/            # Tool implementations
+│   ├── config/           # Configuration
+│   ├── coordination/     # Cluster management
+│   ├── server/           # REST API
+│   └── hardware/         # Hardware detection
+├── tests/                # Test suite
+│   ├── test_agent.py
+│   ├── test_cluster.py
+│   └── ...
+├── DEVELOPMENT.md        # Development guide
+└── pyproject.toml        # Package config
 ```
 
-## Getting Help
+## What to Contribute
 
-- [GitHub Discussions](https://github.com/smallthinkingmachines/harombe/discussions) - Questions and discussions
-- [GitHub Issues](https://github.com/smallthinkingmachines/harombe/issues) - Bug reports and feature requests
+### Good First Issues
 
-## Recognition
+- Documentation improvements
+- Additional tests
+- Bug fixes
+- Example configurations
+- Tool implementations
 
-Contributors are recognized in release notes and the project's contributor list. Thank you for helping make harombe better!
+### Bigger Projects
+
+- Phase 1.2: mDNS discovery implementation
+- Phase 1.3: Task complexity classification
+- New LLM backend integrations (vLLM, llama.cpp)
+- Additional tool implementations
+
+## Pull Request Guidelines
+
+- Keep PRs focused on a single feature/fix
+- Include tests for new functionality
+- Update documentation as needed
+- Ensure all tests pass
+- Add a clear description of changes
+- Reference related issues if applicable
+
+## Need Help?
+
+- Check [DEVELOPMENT.md](DEVELOPMENT.md) for setup details
+- Open a [Discussion](https://github.com/smallthinkingmachines/harombe/discussions) for questions
+- Report bugs via [Issues](https://github.com/smallthinkingmachines/harombe/issues)
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the Apache License 2.0.
+By contributing, you agree that your contributions will be licensed under the Apache 2.0 License.

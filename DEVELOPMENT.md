@@ -1,27 +1,46 @@
 # Development Guide
 
-## Development Environment
+## Prerequisites
 
-harombe uses Nix flakes for reproducible development environments.
+- Python 3.11 or higher
+- [Ollama](https://ollama.ai) installed and running
+- Git
 
-### Quick Start
+## Development Environment Setup
+
+### Standard Setup (Recommended for most users)
 
 ```bash
-# Enter development shell (with all dependencies)
-nix develop
+# Clone the repository
+git clone https://github.com/smallthinkingmachines/harombe.git
+cd harombe
 
-# This automatically:
-# - Creates a Python virtual environment in .venv
-# - Installs harombe in editable mode
-# - Installs all dev dependencies (pytest, ruff, mypy)
-# - Makes Ollama available
+# Create a virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source .venv/bin/activate
+# On Windows:
+.venv\Scripts\activate
+
+# Install in editable mode with dev dependencies
+pip install -e ".[dev]"
+
+# Verify installation
+pytest tests/test_config.py
 ```
 
-Inside the `nix develop` shell, you have:
-- Python 3.14.3 with venv activated
-- All dependencies from `pyproject.toml`
-- Development tools: pytest, ruff, mypy
-- Ollama for local inference
+### Alternative: Using Nix Flakes (Optional)
+
+If you use Nix, you can get a reproducible development environment:
+
+```bash
+# Enter development shell (automatically sets up everything)
+nix develop
+```
+
+This provides Python, Ollama, and all dev dependencies pre-configured.
 
 ### Running Tests
 
@@ -109,10 +128,59 @@ pip install -e ".[dev]"
 
 ### Troubleshooting
 
-**"Command not found"**: Make sure you're in `nix develop` shell
+**"Command not found"**: Make sure your virtual environment is activated
 
 **Import errors**: Reinstall package: `pip install -e ".[dev]"`
 
-**Ollama not found**: Make sure Ollama is running: `ollama serve`
+**Ollama not found**:
+- Install Ollama from https://ollama.ai
+- Start the server: `ollama serve`
+- Verify: `curl http://localhost:11434/api/tags`
 
-**Tests failing**: Check that Ollama has the required models: `ollama list`
+**Tests failing**:
+- Check that Ollama is running
+- Pull a test model: `ollama pull llama3.2:3b`
+- Run specific tests: `pytest tests/test_config.py -v`
+
+**Python version issues**: harombe requires Python 3.11+
+- Check version: `python --version`
+- Consider using [pyenv](https://github.com/pyenv/pyenv) to manage Python versions
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes
+4. Run tests: `pytest`
+5. Format code: `ruff format .`
+6. Lint code: `ruff check .`
+7. Commit: `git commit -m "description"`
+8. Push: `git push origin feature/your-feature`
+9. Create a Pull Request
+
+### Development Workflow
+
+**Before committing:**
+```bash
+# Run tests
+pytest
+
+# Format and lint
+ruff format .
+ruff check .
+
+# Optional: type checking
+mypy src/
+```
+
+**Running the development version:**
+```bash
+# Interactive chat
+python -m harombe chat
+
+# Start API server
+python -m harombe start
+
+# Cluster commands
+python -m harombe cluster status
+```
