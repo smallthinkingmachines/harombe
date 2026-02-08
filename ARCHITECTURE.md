@@ -20,46 +20,48 @@ Think of it as infrastructure-as-code for your personal AI cluster.
 
 ## System Layers
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 5: User Interface                                     │
-│  - CLI commands (chat, init, cluster)                        │
-│  - REST API with SSE streaming                               │
-│  - Health checks and status reporting                        │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 4: Agent & Memory                                     │
-│  - ReAct agent loop (~300 LOC)                              │
-│  - Tool registry and execution                               │
-│  - Conversation state management                             │
-│  - [Future] Long-term memory with vector store              │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 3: Coordination (Multi-Machine)                       │
-│  - Cluster manager with node registry                        │
-│  - Smart routing based on query complexity                   │
-│  - Health monitoring with circuit breakers                   │
-│  - Load balancing and graceful fallback                      │
-│  - Performance metrics collection                            │
-│  - mDNS service discovery                                    │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 2: Inference Abstraction                              │
-│  - LLM client protocol (standard interface)                  │
-│  - Ollama backend (via OpenAI SDK)                          │
-│  - Remote node client (HTTP proxy)                           │
-│  - [Future] vLLM, llama.cpp, other backends                 │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 1: Hardware Abstraction                               │
-│  - Auto-detection: Apple Silicon, NVIDIA, AMD, CPU           │
-│  - VRAM-based model recommendation                           │
-│  - Conservative memory allocation (85% usable)               │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#666666', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#ffffff', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000', 'mainBkg': 'transparent', 'background': 'transparent'}}}%%
+flowchart TB
+    subgraph Layer5["Layer 5: User Interface"]
+        L5A["CLI commands (chat, init, cluster)"]
+        L5B["REST API with SSE streaming"]
+        L5C["Health checks and status reporting"]
+    end
+
+    subgraph Layer4["Layer 4: Agent & Memory"]
+        L4A["ReAct agent loop (~300 LOC)"]
+        L4B["Tool registry and execution"]
+        L4C["Conversation state management"]
+        L4D["[Future] Long-term memory with vector store"]
+    end
+
+    subgraph Layer3["Layer 3: Coordination (Multi-Machine)"]
+        L3A["Cluster manager with node registry"]
+        L3B["Smart routing based on query complexity"]
+        L3C["Health monitoring with circuit breakers"]
+        L3D["Load balancing and graceful fallback"]
+        L3E["Performance metrics collection"]
+        L3F["mDNS service discovery"]
+    end
+
+    subgraph Layer2["Layer 2: Inference Abstraction"]
+        L2A["LLM client protocol (standard interface)"]
+        L2B["Ollama backend (via OpenAI SDK)"]
+        L2C["Remote node client (HTTP proxy)"]
+        L2D["[Future] vLLM, llama.cpp, other backends"]
+    end
+
+    subgraph Layer1["Layer 1: Hardware Abstraction"]
+        L1A["Auto-detection: Apple Silicon, NVIDIA, AMD, CPU"]
+        L1B["VRAM-based model recommendation"]
+        L1C["Conservative memory allocation (85% usable)"]
+    end
+
+    Layer5 --> Layer4
+    Layer4 --> Layer3
+    Layer3 --> Layer2
+    Layer2 --> Layer1
 ```
 
 ---
