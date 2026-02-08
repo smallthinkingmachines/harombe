@@ -387,18 +387,19 @@ flowchart TB
   - Health monitoring and node selection
   - CLI commands for cluster management
 
-- **Phase 1.2** (Next): Discovery & Health
+- **Phase 1.2** (Complete): Discovery & Health
   - mDNS auto-discovery for local networks
   - Periodic health monitoring
   - Circuit breaker pattern
-  - Retry logic
+  - Retry logic with exponential backoff
 
-- **Phase 1.3**: Smart Routing
+- **Phase 1.3** (Complete): Smart Routing
   - Task complexity classification
-  - Context-aware routing
+  - Context-aware routing decisions
+  - Automatic tier selection
   - Integration with agent loop
 
-- **Phase 1.4**: Polish & Monitoring
+- **Phase 1.4** (Next): Polish & Monitoring
   - Dynamic node management
   - Performance metrics
   - Comprehensive documentation
