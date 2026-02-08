@@ -8,6 +8,12 @@ from harombe.coordination.circuit_breaker import (
 )
 from harombe.coordination.cluster import ClusterManager, NodeHealth, NodeStatus
 from harombe.coordination.discovery import ServiceDiscovery
+from harombe.coordination.router import (
+    ComplexityClassifier,
+    Router,
+    RoutingDecision,
+    TaskComplexity,
+)
 
 __all__ = [
     "ClusterManager",
@@ -18,4 +24,8 @@ __all__ = [
     "CircuitBreakerConfig",
     "CircuitBreakerRegistry",
     "CircuitState",
+    "Router",
+    "ComplexityClassifier",
+    "RoutingDecision",
+    "TaskComplexity",
 ]
