@@ -4,6 +4,16 @@
 
 harombe is an open source platform that orchestrates heterogeneous consumer hardware into a unified, tool-using AI system. Think "Terraform for self-hosted AI."
 
+> **⚠️ Security Notice**
+>
+> harombe can execute shell commands and modify files on your system. While dangerous operations require confirmation by default, you should:
+> - Review what the AI plans to do before approving
+> - Run harombe in sandboxed environments (Docker, VMs) when testing
+> - Keep `confirm_dangerous: true` in your configuration
+> - Understand that LLM outputs can be unpredictable
+>
+> See [SECURITY.md](SECURITY.md) for detailed security guidance.
+
 ## Why harombe?
 
 Currently, there's no open source project that combines:
