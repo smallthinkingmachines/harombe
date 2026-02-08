@@ -1,6 +1,7 @@
 """Cluster management for multi-node orchestration."""
 
 import asyncio
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -9,6 +10,8 @@ from typing import Dict, List, Optional
 import httpx
 
 from harombe.config.schema import ClusterConfig, NodeConfig
+from harombe.coordination.circuit_breaker import CircuitBreakerConfig, CircuitBreakerRegistry
+from harombe.coordination.discovery import ServiceDiscovery
 from harombe.llm.client import LLMClient
 from harombe.llm.remote import RemoteLLMClient
 
@@ -45,23 +48,53 @@ class ClusterManager:
     - Load balancing across same-tier nodes
     """
 
-    def __init__(self, config: ClusterConfig):
+    def __init__(
+        self,
+        config: ClusterConfig,
+        enable_discovery: bool = False,
+        health_check_interval: int = 30,
+    ):
         """
         Initialize cluster manager.
 
         Args:
             config: Cluster configuration
+            enable_discovery: Enable mDNS service discovery
+            health_check_interval: Seconds between health checks
         """
         self.config = config
         self._nodes: Dict[str, NodeConfig] = {}
         self._health: Dict[str, NodeHealth] = {}
         self._clients: Dict[str, RemoteLLMClient] = {}
         self._monitoring_task: Optional[asyncio.Task] = None
+        self.health_check_interval = health_check_interval
+
+        # Circuit breaker for failing nodes
+        breaker_config = CircuitBreakerConfig(
+            failure_threshold=5,
+            success_threshold=2,
+            timeout=60.0,
+            half_open_timeout=30.0,
+        )
+        self._circuit_breakers = CircuitBreakerRegistry(breaker_config)
+
+        # Service discovery
+        self._discovery: Optional[ServiceDiscovery] = None
+        if enable_discovery and config.discovery.method == "mdns":
+            self._discovery = ServiceDiscovery(
+                service_type=config.discovery.mdns_service,
+                on_service_discovered=self._on_service_discovered,
+            )
 
         # Register nodes from config
         for node in config.nodes:
             if node.enabled:
                 self.register_node(node)
+
+    def _on_service_discovered(self, node: NodeConfig) -> None:
+        """Callback when a new service is discovered via mDNS."""
+        if node.name not in self._nodes:
+            self.register_node(node)
 
     def register_node(self, node: NodeConfig) -> None:
         """
@@ -160,12 +193,13 @@ class ClusterManager:
         """
         return self._clients.get(name)
 
-    async def check_node_health(self, name: str) -> NodeHealth:
+    async def check_node_health(self, name: str, max_retries: int = 3) -> NodeHealth:
         """
-        Perform health check on a single node.
+        Perform health check on a single node with retry logic.
 
         Args:
             name: Node name
+            max_retries: Maximum number of retry attempts
 
         Returns:
             Updated health information
@@ -176,26 +210,47 @@ class ClusterManager:
 
         health = self._health[name]
 
-        try:
-            # Measure latency with a simple HTTP ping
-            start = datetime.now()
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"http://{node.host}:{node.port}/health")
-                response.raise_for_status()
-
-            latency_ms = (datetime.now() - start).total_seconds() * 1000
-
-            # Update health
-            health.status = NodeStatus.AVAILABLE
-            health.latency_ms = latency_ms
-            health.last_check = datetime.now()
-            health.error_count = 0
-
-        except Exception:
-            # Node is unavailable
+        # Check circuit breaker
+        if not self._circuit_breakers.can_attempt(name):
             health.status = NodeStatus.UNAVAILABLE
             health.last_check = datetime.now()
-            health.error_count += 1
+            return health
+
+        # Retry with exponential backoff
+        for attempt in range(max_retries):
+            try:
+                # Measure latency with a simple HTTP ping
+                start = time.time()
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get(f"http://{node.host}:{node.port}/health")
+                    response.raise_for_status()
+
+                latency_ms = (time.time() - start) * 1000
+
+                # Update health
+                health.status = NodeStatus.AVAILABLE
+                health.latency_ms = latency_ms
+                health.last_check = datetime.now()
+                health.error_count = 0
+
+                # Record success in circuit breaker
+                self._circuit_breakers.record_success(name)
+
+                return health
+
+            except Exception as e:
+                # Exponential backoff
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+
+                # All retries failed
+                health.status = NodeStatus.UNAVAILABLE
+                health.last_check = datetime.now()
+                health.error_count += 1
+
+                # Record failure in circuit breaker
+                self._circuit_breakers.record_failure(name)
 
         return health
 
@@ -210,20 +265,31 @@ class ClusterManager:
         await asyncio.gather(*tasks, return_exceptions=True)
         return self._health
 
-    async def start_monitoring(self, interval: int = 30) -> None:
+    async def start(self) -> None:
+        """Start cluster manager with discovery and monitoring."""
+        # Start service discovery if configured
+        if self._discovery:
+            await self._discovery.start_discovery()
+
+        # Start periodic health monitoring
+        await self.start_monitoring()
+
+    async def start_monitoring(self, interval: Optional[int] = None) -> None:
         """
         Start periodic health monitoring.
 
         Args:
-            interval: Check interval in seconds
+            interval: Check interval in seconds (uses default if None)
         """
         if self._monitoring_task and not self._monitoring_task.done():
             return  # Already running
 
+        check_interval = interval or self.health_check_interval
+
         async def monitor():
             while True:
                 await self.check_all_health()
-                await asyncio.sleep(interval)
+                await asyncio.sleep(check_interval)
 
         self._monitoring_task = asyncio.create_task(monitor())
 
@@ -289,8 +355,11 @@ class ClusterManager:
         return nodes[0]
 
     async def close(self) -> None:
-        """Close all clients and stop monitoring."""
+        """Close all clients, stop monitoring, and cleanup discovery."""
         await self.stop_monitoring()
+
+        if self._discovery:
+            await self._discovery.stop()
 
         for client in self._clients.values():
             await client.close()

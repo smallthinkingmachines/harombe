@@ -218,10 +218,10 @@ graph LR
     HM -.->|Health Check| T2N1
     HM -.->|Health Check| T2N2
 
-    style Coordinator fill:#e8f5e9
-    style Tier0 fill:#e3f2fd
-    style Tier1 fill:#fff9c4
-    style Tier2 fill:#ffebee
+    style Coordinator fill:#e8eaf6,stroke:#5c6bc0,stroke-width:2px
+    style Tier0 fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
+    style Tier1 fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
+    style Tier2 fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
 ```
 
 #### Setting Up Multi-Machine Clusters
@@ -345,11 +345,11 @@ graph TB
     OllamaClient --> CPU
     RemoteClient -.->|Network| OllamaClient
 
-    style UI fill:#e1f5ff
-    style Agent fill:#fff3e0
-    style Coord fill:#e8f5e9
-    style Inference fill:#f3e5f5
-    style Hardware fill:#fce4ec
+    style UI fill:#e8eaf6,stroke:#5c6bc0,stroke-width:2px
+    style Agent fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
+    style Coord fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
+    style Inference fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
+    style Hardware fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px
 ```
 
 ### Key Components

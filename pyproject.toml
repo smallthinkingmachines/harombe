@@ -34,6 +34,7 @@ dependencies = [
     "rich>=13.7",
     "sse-starlette>=2.0",
     "duckduckgo-search>=6.0",
+    "zeroconf>=0.132",  # mDNS service discovery
 ]
 
 [project.optional-dependencies]
