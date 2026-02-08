@@ -21,7 +21,7 @@ Think of it as infrastructure-as-code for your personal AI cluster.
 ## System Layers
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#ffffff', 'primaryTextColor': '#000000', 'primaryBorderColor': '#000000', 'lineColor': '#666666', 'secondaryColor': '#e8e8e8', 'tertiaryColor': '#f5f5f5', 'edgeLabelBackground': '#ffffff', 'clusterBkg': '#ffffff', 'clusterBorder': '#000000', 'mainBkg': 'transparent', 'background': 'transparent'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1f2937', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#4b5563', 'lineColor': '#666666', 'secondaryColor': '#374151', 'tertiaryColor': '#1f2937', 'edgeLabelBackground': 'transparent', 'clusterBkg': 'transparent', 'clusterBorder': '#4b5563', 'mainBkg': 'transparent', 'background': 'transparent', 'nodeBorder': '#4b5563', 'nodeTextColor': '#ffffff'}}}%%
 flowchart TB
     L5["Layer 5: User Interface<br/>CLI • REST API • Status"]
     L4["Layer 4: Agent & Memory<br/>ReAct Loop • Tools • State"]
