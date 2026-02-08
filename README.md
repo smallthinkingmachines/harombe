@@ -454,7 +454,7 @@ Apache 2.0 - see [LICENSE](LICENSE)
 
 ## Credits
 
-A Small Thinking Machines project.
+A smallthinkingmachines project.
 
 Built with:
 - [Ollama](https://ollama.ai) - Local LLM inference

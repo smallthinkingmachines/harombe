@@ -530,4 +530,4 @@ A: Phase 1 (multi-machine orchestration) is complete and stable. It's suitable f
 
 Apache 2.0 - see [LICENSE](LICENSE)
 
-Built by [Small Thinking Machines](https://github.com/smallthinkingmachines)
+Built by [smallthinkingmachines](https://github.com/smallthinkingmachines)
