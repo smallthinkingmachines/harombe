@@ -19,11 +19,13 @@ from harombe.hardware.detect import (
 console = Console()
 
 
-def init_command(force: bool = False):
-    """Initialize Harombe configuration.
+def init_command(force: bool = False, non_interactive: bool = False, model: str = None):
+    """Initialize harombe configuration.
 
     Args:
         force: Overwrite existing config if present
+        non_interactive: Use defaults without prompting
+        model: Optional model name to use
     """
     console.print(Panel.fit(
         "[bold blue]harombe initialization[/bold blue]\n"
@@ -38,31 +40,44 @@ def init_command(force: bool = False):
         raise typer.Exit(0)
 
     # Run async detection
-    asyncio.run(_async_init())
+    asyncio.run(_async_init(non_interactive=non_interactive, model_override=model))
 
 
-async def _async_init():
-    """Async initialization logic."""
+async def _async_init(non_interactive: bool = False, model_override: str = None):
+    """Async initialization logic.
+
+    Args:
+        non_interactive: Use defaults without prompting
+        model_override: Optional model name to override detection
+    """
     # 1. Detect hardware
     console.print("\n[cyan]Step 1:[/cyan] Detecting hardware...")
     recommended_model, reason = recommend_model()
     console.print(f"  {reason}")
     console.print(f"  [green]Recommended model:[/green] {recommended_model}")
 
+    # Override if specified
+    if model_override:
+        recommended_model = model_override
+        console.print(f"  [cyan]Using specified model:[/cyan] {recommended_model}")
+
     # 2. Check Ollama
     console.print("\n[cyan]Step 2:[/cyan] Checking Ollama...")
     ollama_running = await check_ollama_running()
 
     if not ollama_running:
-        console.print("  [yellow]Ollama is not running or not installed[/yellow]")
-        console.print("  Install from: https://ollama.ai")
-        console.print("  After installing, run: [bold]ollama serve[/bold]")
+        console.print("  [red]✗[/red] Ollama is not running or not installed")
+        console.print("  [yellow]→[/yellow] Install from: https://ollama.ai")
+        console.print("  [yellow]→[/yellow] Start with: [bold]ollama serve[/bold]")
 
-        # Ask if user wants to continue anyway
-        if not Confirm.ask("Continue with configuration anyway?", default=False):
-            raise typer.Exit(1)
+        if non_interactive:
+            console.print("\n[yellow]Continuing in non-interactive mode...[/yellow]")
+        else:
+            # Ask if user wants to continue anyway
+            if not Confirm.ask("Continue with configuration anyway?", default=False):
+                raise typer.Exit(1)
     else:
-        console.print("  [green]Ollama is running[/green]")
+        console.print("  [green]✓[/green] Ollama is running")
 
         # Check available models
         models = await get_ollama_models()
@@ -72,8 +87,9 @@ async def _async_init():
             # Check if recommended model is available
             if recommended_model not in models:
                 console.print(f"\n  [yellow]Recommended model '{recommended_model}' not found[/yellow]")
-                if Confirm.ask(f"Pull {recommended_model} now?", default=True):
-                    console.print(f"\n  Run: [bold]ollama pull {recommended_model}[/bold]")
+                console.print(f"  [yellow]→[/yellow] Pull with: [bold]ollama pull {recommended_model}[/bold]")
+
+                if not non_interactive and Confirm.ask(f"Pull {recommended_model} now?", default=True):
                     console.print("  (This may take several minutes)")
         else:
             console.print("  [yellow]No models found. You'll need to pull one:[/yellow]")
@@ -85,8 +101,8 @@ async def _async_init():
     config = HarombeConfig()
     config.model.name = recommended_model
 
-    # Ask for customizations
-    if Confirm.ask("\nCustomize settings?", default=False):
+    # Ask for customizations (skip in non-interactive mode)
+    if not non_interactive and Confirm.ask("\nCustomize settings?", default=False):
         # Model name
         custom_model = Prompt.ask(
             "Model name",
@@ -116,7 +132,7 @@ async def _async_init():
 
     # Save config
     save_config(config)
-    console.print(f"\n[green]Configuration saved to {DEFAULT_CONFIG_PATH}[/green]")
+    console.print(f"\n[green]✓ Configuration saved to {DEFAULT_CONFIG_PATH}[/green]")
 
     # 4. Next steps
     console.print("\n[bold cyan]Setup Complete![/bold cyan]")

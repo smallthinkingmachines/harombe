@@ -1,7 +1,7 @@
 """Configuration loading and validation."""
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import yaml
 from pydantic import ValidationError
@@ -54,15 +54,17 @@ def load_config(path: Optional[Path] = None) -> HarombeConfig:
         raise ConfigError(f"Failed to load config from {path}: {e}") from e
 
 
-def save_config(config: HarombeConfig, path: Optional[Path] = None) -> None:
+def save_config(config: HarombeConfig, path: Optional[Union[str, Path]] = None) -> None:
     """Save configuration to YAML file.
 
     Args:
         config: Configuration object to save
-        path: Destination path. If None, uses default location.
+        path: Destination path (string or Path object). If None, uses default location.
     """
     if path is None:
         path = DEFAULT_CONFIG_PATH
+    elif isinstance(path, str):
+        path = Path(path)
 
     # Ensure directory exists
     path.parent.mkdir(parents=True, exist_ok=True)

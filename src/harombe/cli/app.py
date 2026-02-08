@@ -26,11 +26,15 @@ def version():
 @app.command()
 def init(
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing config"),
+    non_interactive: bool = typer.Option(
+        False, "--non-interactive", "-y", help="Use defaults without prompting"
+    ),
+    model: str = typer.Option(None, "--model", "-m", help="Specify model name"),
 ):
     """Initialize harombe configuration with hardware detection."""
     from harombe.cli.init_cmd import init_command
 
-    init_command(force=force)
+    init_command(force=force, non_interactive=non_interactive, model=model)
 
 
 @app.command()
@@ -78,6 +82,14 @@ def status():
     from harombe.cli.server_cmd import status_command
 
     status_command()
+
+
+@app.command()
+def doctor():
+    """Run system health checks and diagnostics."""
+    from harombe.cli.doctor import doctor_command
+
+    doctor_command()
 
 
 def main():

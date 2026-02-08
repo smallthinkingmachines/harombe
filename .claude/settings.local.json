@@ -19,7 +19,18 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Harombe Phase 0 MVP\n\nImplements complete weekend MVP with:\n\n- Config system with Pydantic validation and YAML support\n- Tool registration system with decorator-based schema generation\n- ReAct agent loop with tool calling and dangerous operation confirmation\n- LLM client wrapping Ollama''s OpenAI-compatible API\n- Built-in tools: shell, filesystem, web search\n- Hardware detection and model auto-selection\n- Interactive CLI chat with Rich formatting\n- REST API with FastAPI and SSE streaming\n- Comprehensive test suite \\(34 tests, 47% coverage\\)\n- CI/CD with GitHub Actions\n- Nix flake for reproducible dev environment\n\nAll 4 sprints completed:\n✅ Sprint 1: Foundation \\(config, tools, tests\\)\n✅ Sprint 2: Core Engine \\(LLM client, agent loop, built-in tools\\)\n✅ Sprint 3: CLI Interface \\(init, chat, hardware detection\\)\n✅ Sprint 4: Server + Polish \\(FastAPI, CI, README\\)\n\nQuick start: pip install harombe && harombe init && harombe chat\nEOF\n\\)\")",
       "Bash(find:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(gh:*)",
+      "Bash(ollama --version:*)",
+      "Bash(pgrep:*)",
+      "Bash(curl:*)",
+      "Bash(harombe init --help:*)",
+      "Bash(harombe doctor:*)",
+      "Bash(HOME=/tmp/test-harombe harombe init:*)"
     ]
   }
 }

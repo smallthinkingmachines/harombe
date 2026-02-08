@@ -16,7 +16,7 @@ def test_version_command():
     result = runner.invoke(app, ["version"])
 
     assert result.exit_code == 0
-    assert "Harombe version" in result.stdout
+    assert "harombe version" in result.stdout
 
 
 def test_help_command():

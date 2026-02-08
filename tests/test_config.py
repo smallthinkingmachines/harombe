@@ -23,7 +23,7 @@ def test_default_config():
     assert config.ollama.timeout == 120
 
     assert config.agent.max_steps == 10
-    assert "Harombe" in config.agent.system_prompt
+    assert "harombe" in config.agent.system_prompt
 
     assert config.tools.shell is True
     assert config.tools.filesystem is True
