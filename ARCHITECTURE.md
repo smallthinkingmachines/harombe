@@ -1,6 +1,6 @@
 # Harombe Architecture
 
-> **Terraform for self-hosted AI**
+> **Orchestrate AI across your hardware**
 
 Harombe is designed as a five-layer system that abstracts hardware complexity and provides a unified interface for distributed AI inference.
 

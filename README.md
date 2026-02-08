@@ -1,6 +1,6 @@
 # harombe
 
-> **Terraform for self-hosted AI**
+> **Orchestrate AI across your hardware**
 
 Run a powerful AI assistant on your own hardware—one machine or many—with zero cloud dependencies.
 
