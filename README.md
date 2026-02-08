@@ -482,7 +482,7 @@ If you get permission errors during tool execution:
 
 ## Development
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed setup instructions.
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed setup instructions.
 
 Quick start:
 ```bash
@@ -499,7 +499,7 @@ pytest
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 Quick contribution workflow:
 1. Fork and clone the repository

@@ -127,7 +127,9 @@ harombe/
 │   ├── test_agent.py
 │   ├── test_cluster.py
 │   └── ...
-├── DEVELOPMENT.md        # Development guide
+├── docs/
+│   ├── DEVELOPMENT.md    # Development guide
+│   └── CONTRIBUTING.md   # This file
 └── pyproject.toml        # Package config
 ```
 
