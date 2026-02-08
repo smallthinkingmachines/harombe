@@ -63,6 +63,5 @@ harombe includes tools that can execute system commands and modify files. When u
 
 For any security concerns that don't require a private advisory, you can reach the maintainers through:
 - GitHub Discussions: https://github.com/smallthinkingmachines/harombe/discussions
-- Email: security@smallthinkingmachines.org (if available)
 
 Thank you for helping keep harombe and its users safe!
