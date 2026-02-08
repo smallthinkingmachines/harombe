@@ -52,3 +52,11 @@ result-*
 harombe.yaml
 .harombe/
 *.log
+
+# Internal documentation (keep in Notion)
+docs/internal/
+*_INTERNAL.md
+*_DESIGN.md
+*_ALIGNMENT*.md
+PHASE_*.md
+NOTION_*.md

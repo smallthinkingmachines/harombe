@@ -1,6 +1,6 @@
 """Pydantic models for harombe.yaml configuration."""
 
-from typing import Literal
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -57,6 +57,71 @@ class ServerConfig(BaseModel):
     port: int = Field(default=8000, description="Server port", ge=1, le=65535)
 
 
+class NodeConfig(BaseModel):
+    """Configuration for a single node in the cluster."""
+
+    name: str = Field(description="User-chosen name for this node (e.g., 'office-mac', 'server1')")
+    host: str = Field(description="Hostname or IP address")
+    port: int = Field(default=8000, description="Port number", ge=1, le=65535)
+    model: str = Field(description="Model running on this node")
+    tier: int = Field(description="User-declared tier: 0=fast, 1=medium, 2=powerful", ge=0, le=2)
+
+    # Optional fields
+    auth_token: Optional[str] = Field(default=None, description="Authentication token for remote nodes")
+    enabled: bool = Field(default=True, description="Whether this node is enabled")
+
+
+class DiscoveryConfig(BaseModel):
+    """Node discovery configuration."""
+
+    method: Literal["mdns", "explicit"] = Field(
+        default="explicit",
+        description="Discovery method: 'mdns' for auto-discovery, 'explicit' for manual config",
+    )
+    mdns_service: str = Field(
+        default="_harombe._tcp.local",
+        description="mDNS service name for auto-discovery",
+    )
+
+
+class RoutingConfig(BaseModel):
+    """Task routing configuration."""
+
+    prefer_local: bool = Field(
+        default=True,
+        description="Prefer lowest latency nodes when available",
+    )
+    fallback_strategy: Literal["graceful", "strict"] = Field(
+        default="graceful",
+        description="Fallback behavior: 'graceful' tries other tiers, 'strict' fails if preferred tier unavailable",
+    )
+    load_balance: bool = Field(
+        default=True,
+        description="Distribute load across same-tier nodes",
+    )
+
+
+class CoordinatorConfig(BaseModel):
+    """Coordinator configuration."""
+
+    host: str = Field(
+        default="localhost",
+        description="Host for the coordinator (any always-on machine)",
+    )
+
+
+class ClusterConfig(BaseModel):
+    """Cluster orchestration configuration."""
+
+    coordinator: CoordinatorConfig = Field(default_factory=CoordinatorConfig)
+    discovery: DiscoveryConfig = Field(default_factory=DiscoveryConfig)
+    routing: RoutingConfig = Field(default_factory=RoutingConfig)
+    nodes: List[NodeConfig] = Field(
+        default_factory=list,
+        description="List of nodes in the cluster",
+    )
+
+
 class HarombeConfig(BaseModel):
     """Root configuration schema for Harombe."""
 
@@ -65,3 +130,7 @@ class HarombeConfig(BaseModel):
     agent: AgentConfig = Field(default_factory=AgentConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
+    cluster: Optional[ClusterConfig] = Field(
+        default=None,
+        description="Cluster configuration for multi-machine orchestration (Phase 1)",
+    )
