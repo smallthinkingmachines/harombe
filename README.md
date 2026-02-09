@@ -11,6 +11,7 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 **The gap harombe fills:** No other open source project combines distributed inference across mixed hardware, autonomous agent loops with tool execution, and declarative cluster configuration. Existing solutions require either cloud providers, single-machine constraints, or complex DevOps expertise.
 
 **Core capabilities:**
+
 - **Autonomous execution:** Agents that plan, use tools, and execute multi-step tasks
 - **Distributed orchestration:** Smart routing across heterogeneous hardware based on workload complexity
 - **Privacy-first:** Your data, models, and workloads never leave your infrastructure
@@ -19,6 +20,7 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 - **Zero-config start:** `pip install harombe && harombe init && harombe chat` works in <5 minutes
 
 **Use cases:**
+
 - Interactive AI assistants with tool use (chat, voice)
 - Automated data processing pipelines
 - Code generation and analysis workflows
@@ -28,6 +30,7 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 > **⚠️ Security Notice**
 >
 > harombe can execute shell commands and modify files. While dangerous operations require confirmation by default:
+>
 > - Review what the AI plans to do before approving
 > - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
@@ -49,6 +52,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 ## Current Status
 
 **Phase 0 (Complete):** Single-machine agent foundation
+
 - Tool execution system (shell, filesystem, web search)
 - ReAct agent loop with autonomous reasoning
 - Hardware auto-detection and model selection
@@ -56,6 +60,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 - Zero-config deployment
 
 **Phase 1 (Complete):** Multi-machine orchestration
+
 - Cluster configuration and node management
 - Smart routing based on task complexity
 - Health monitoring with circuit breakers
@@ -88,6 +93,7 @@ harombe chat
 That's it! You have a working autonomous agent in under 5 minutes.
 
 **Example multi-step task:**
+
 ```
 You: Find all Python files in this directory that import 'requests',
      check which ones don't have error handling, and create a summary report.
@@ -104,6 +110,16 @@ Agent: I'll help you analyze Python files for requests usage and error handling.
 
 The agent autonomously plans the workflow, executes tools, and delivers results.
 
+## Examples
+
+See [`examples/`](examples/) for working code demonstrating:
+
+- **Simple Agent** - Basic single-node usage with all tools
+- **Multi-step Workflows** - Complex task automation (coming soon)
+- **Cluster Routing** - Distributed workloads (coming soon)
+
+Each example includes detailed comments and can be run standalone.
+
 ## Usage
 
 ### Interactive Agent Interface
@@ -113,12 +129,14 @@ harombe chat
 ```
 
 Interact with the autonomous agent through a conversational interface. The agent will:
+
 - Reason about tasks and break them into steps
 - Execute tools as needed (shell commands, file operations, web search)
 - Handle multi-step workflows autonomously
 - Ask for confirmation before dangerous operations
 
 Commands:
+
 - `/help` - Show available commands
 - `/model` - Show current model info
 - `/tools` - List enabled tools
@@ -196,9 +214,9 @@ cluster:
     host: localhost
 
   routing:
-    prefer_local: true          # Prefer lowest latency nodes
+    prefer_local: true # Prefer lowest latency nodes
     fallback_strategy: graceful # Try other tiers if preferred unavailable
-    load_balance: true          # Distribute across same-tier nodes
+    load_balance: true # Distribute across same-tier nodes
 
   nodes:
     # Fast/local node for simple queries
@@ -224,6 +242,7 @@ cluster:
 ```
 
 **Tiers are user-defined** - assign based on your judgment of hardware capabilities:
+
 - **Tier 0** (fast): Low latency, simple queries
 - **Tier 1** (medium): Balanced performance
 - **Tier 2** (powerful): Complex queries, large context
@@ -279,6 +298,7 @@ Each node in your cluster runs harombe in server mode. Here's how to set it up:
 **On each node machine:**
 
 1. Install harombe and dependencies:
+
 ```bash
 # Install harombe
 pip install harombe
@@ -291,12 +311,13 @@ ollama pull qwen2.5:14b  # or whichever model this node will run
 ```
 
 2. Create configuration file at `~/.harombe/harombe.yaml`:
+
 ```yaml
 model:
-  name: qwen2.5:14b  # Model for this specific node
+  name: qwen2.5:14b # Model for this specific node
 
 server:
-  host: 0.0.0.0  # Listen on all interfaces
+  host: 0.0.0.0 # Listen on all interfaces
   port: 8000
 
 ollama:
@@ -304,11 +325,13 @@ ollama:
 ```
 
 3. Start the harombe server:
+
 ```bash
 harombe start
 ```
 
 4. Verify it's accessible:
+
 ```bash
 curl http://<node-ip>:8000/health
 ```
@@ -321,7 +344,7 @@ Add the cluster configuration to your `~/.harombe/harombe.yaml`:
 cluster:
   nodes:
     - name: workstation
-      host: 192.168.1.100  # IP or hostname of the node
+      host: 192.168.1.100 # IP or hostname of the node
       port: 8000
       model: qwen2.5:14b
       tier: 1
@@ -330,11 +353,13 @@ cluster:
 ```
 
 Then check cluster status:
+
 ```bash
 harombe cluster status
 ```
 
 **Network Requirements:**
+
 - All nodes must be network-accessible from the coordinator
 - Port 8000 (or your configured port) must be open on each node
 - For SSH-based deployments, consider using SSH tunneling for secure connections
@@ -342,11 +367,13 @@ harombe cluster status
 ## How It Works
 
 ### Single Machine
+
 1. `harombe init` detects your hardware and recommends a model
 2. `harombe chat` starts the agent loop locally
 3. Queries are processed with tool calling (shell, files, web search)
 
 ### Cluster Mode
+
 1. Define nodes in YAML (each machine runs `harombe start`)
 2. Coordinator analyzes query complexity
 3. Routes to appropriate tier (fast/local → tier 0, complex → tier 2)
@@ -359,12 +386,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 ## Roadmap
 
 ### Phase 0: Weekend MVP (Complete)
+
 - Single-machine AI assistant with tool calling
 - ReAct agent loop
 - Hardware auto-detection
 - Interactive CLI and REST API
 
 ### Phase 1: Multi-Machine Orchestration (Complete)
+
 - **Phase 1.1** (Complete): Cluster foundation
   - Cluster configuration schema
   - Remote LLM client
@@ -390,12 +419,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
   - CLI metrics command
 
 ### Phase 2: Memory & Privacy (Future)
+
 - Long-term conversation memory
 - Vector store integration
 - Privacy router for PII detection
 - Knowledge base management
 
 ### Phase 3: Advanced Features (Future)
+
 - Voice input/output (STT/TTS)
 - Web UI with real-time updates
 - Plugin system for custom tools
@@ -462,6 +493,7 @@ If you get permission errors during tool execution:
 See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed setup instructions.
 
 Quick start:
+
 ```bash
 # Clone and setup
 git clone https://github.com/smallthinkingmachines/harombe.git
@@ -479,6 +511,7 @@ pytest
 We welcome contributions! See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 Quick contribution workflow:
+
 1. Fork and clone the repository
 2. Create a feature branch
 3. Make your changes with tests
@@ -494,6 +527,7 @@ Apache 2.0 - see [LICENSE](LICENSE)
 A smallthinkingmachines project.
 
 Built with:
+
 - [Ollama](https://ollama.ai) - Local LLM inference
 - [OpenAI SDK](https://github.com/openai/openai-python) - LLM client
 - [Typer](https://typer.tiangolo.com) - CLI framework

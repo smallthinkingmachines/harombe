@@ -22,7 +22,7 @@ repos:
           - types-pyyaml
           - pydantic>=2.7
         args: [--config-file=pyproject.toml]
-        exclude: ^tests/
+        exclude: ^(tests/|examples/)
 
   # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
