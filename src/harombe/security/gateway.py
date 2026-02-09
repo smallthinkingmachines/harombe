@@ -21,6 +21,8 @@ from harombe.mcp.protocol import (
     create_error_response,
 )
 
+from .audit_logger import AuditLogger
+
 logger = logging.getLogger(__name__)
 
 # Tool → Container routing table
@@ -222,6 +224,8 @@ class MCPGateway:
         host: str = "127.0.0.1",
         port: int = 8100,
         version: str = "0.1.0",
+        audit_db_path: str = "~/.harombe/audit.db",
+        enable_audit_logging: bool = True,
     ):
         """Initialize MCP Gateway.
 
@@ -229,6 +233,8 @@ class MCPGateway:
             host: Host to bind to
             port: Port to listen on
             version: Gateway version
+            audit_db_path: Path to audit database
+            enable_audit_logging: Enable audit logging
         """
         self.host = host
         self.port = port
@@ -240,6 +246,12 @@ class MCPGateway:
         )
         self.client_pool = MCPClientPool()
         self.start_time = time.time()
+
+        # Audit logging
+        self.enable_audit_logging = enable_audit_logging
+        self.audit_logger: AuditLogger | None = None
+        if enable_audit_logging:
+            self.audit_logger = AuditLogger(db_path=audit_db_path)
 
         # Register routes
         self._setup_routes()
@@ -257,6 +269,9 @@ class MCPGateway:
             Returns:
                 JSON-RPC response
             """
+            start_time = time.time()
+            correlation_id: str | None = None
+
             try:
                 # Parse request
                 body = await request.json()
@@ -267,27 +282,61 @@ class MCPGateway:
                 # Extract tool name
                 tool_params = mcp_request.get_tool_params()
                 if tool_params is None:
-                    return JSONResponse(
-                        content=create_error_response(
-                            request_id=mcp_request.id,
-                            code=ErrorCode.INVALID_PARAMS,
-                            message="Invalid method or parameters",
-                            details=f"Method '{mcp_request.method}' is not supported",
-                        ).model_dump(mode="json")
+                    error_response = create_error_response(
+                        request_id=mcp_request.id,
+                        code=ErrorCode.INVALID_PARAMS,
+                        message="Invalid method or parameters",
+                        details=f"Method '{mcp_request.method}' is not supported",
                     )
+
+                    # Log error
+                    if self.audit_logger:
+                        correlation_id = self.audit_logger.start_request_sync(
+                            actor="agent",
+                            action=mcp_request.method,
+                            metadata={"request_id": mcp_request.id},
+                        )
+                        self.audit_logger.end_request_sync(
+                            correlation_id=correlation_id,
+                            status="error",
+                            error_message="Invalid method or parameters",
+                        )
+
+                    return JSONResponse(content=error_response.model_dump(mode="json"))
 
                 tool_name = tool_params.name
 
+                # Start audit logging
+                if self.audit_logger:
+                    correlation_id = self.audit_logger.start_request_sync(
+                        actor="agent",
+                        tool_name=tool_name,
+                        action=mcp_request.method,
+                        metadata={
+                            "request_id": mcp_request.id,
+                            "tool_params": tool_params.model_dump(mode="json"),
+                        },
+                    )
+
                 # Route to container
                 if tool_name not in TOOL_ROUTES:
-                    return JSONResponse(
-                        content=create_error_response(
-                            request_id=mcp_request.id,
-                            code=ErrorCode.METHOD_NOT_FOUND,
-                            message=f"Tool '{tool_name}' not found",
-                            details=f"No container registered for tool '{tool_name}'",
-                        ).model_dump(mode="json")
+                    error_response = create_error_response(
+                        request_id=mcp_request.id,
+                        code=ErrorCode.METHOD_NOT_FOUND,
+                        message=f"Tool '{tool_name}' not found",
+                        details=f"No container registered for tool '{tool_name}'",
                     )
+
+                    # Log error
+                    if self.audit_logger and correlation_id:
+                        self.audit_logger.end_request_sync(
+                            correlation_id=correlation_id,
+                            status="error",
+                            error_message=f"Tool '{tool_name}' not found",
+                            duration_ms=int((time.time() - start_time) * 1000),
+                        )
+
+                    return JSONResponse(content=error_response.model_dump(mode="json"))
 
                 container = TOOL_ROUTES[tool_name]
                 logger.debug(f"Routing {tool_name} to {container}")
@@ -295,10 +344,47 @@ class MCPGateway:
                 # Forward request to container
                 response = await self.client_pool.send_request(container, mcp_request)
 
+                # Log tool call
+                duration_ms = int((time.time() - start_time) * 1000)
+                if self.audit_logger and correlation_id:
+                    # Determine status
+                    is_error = hasattr(response, "error") and response.error is not None
+                    status = "error" if is_error else "success"
+
+                    # Log completion
+                    self.audit_logger.end_request_sync(
+                        correlation_id=correlation_id,
+                        status=status,
+                        duration_ms=duration_ms,
+                        error_message=str(response.error) if is_error else None,
+                    )
+
+                    # Log tool call details
+                    self.audit_logger.log_tool_call(
+                        correlation_id=correlation_id,
+                        tool_name=tool_name,
+                        method=mcp_request.method,
+                        parameters=tool_params.model_dump(mode="json"),
+                        result=response.result if hasattr(response, "result") else None,
+                        error=str(response.error) if is_error else None,
+                        duration_ms=duration_ms,
+                        container_id=container,
+                    )
+
                 return JSONResponse(content=response.model_dump(mode="json"))
 
             except ValueError as e:
                 # Invalid JSON-RPC format
+                duration_ms = int((time.time() - start_time) * 1000)
+
+                if self.audit_logger and correlation_id:
+                    self.audit_logger.end_request_sync(
+                        correlation_id=correlation_id,
+                        status="error",
+                        error_message=f"Invalid request format: {e!s}",
+                        duration_ms=duration_ms,
+                    )
+
                 return JSONResponse(
                     content=create_error_response(
                         request_id="unknown",
@@ -311,6 +397,16 @@ class MCPGateway:
 
             except Exception as e:
                 logger.exception("Unexpected error handling MCP request")
+                duration_ms = int((time.time() - start_time) * 1000)
+
+                if self.audit_logger and correlation_id:
+                    self.audit_logger.end_request_sync(
+                        correlation_id=correlation_id,
+                        status="error",
+                        error_message=f"Internal gateway error: {e!s}",
+                        duration_ms=duration_ms,
+                    )
+
                 return JSONResponse(
                     content=create_error_response(
                         request_id="unknown",
@@ -361,9 +457,20 @@ class MCPGateway:
         logger.info(f"Version: {self.version}")
         logger.info(f"Registered tools: {len(TOOL_ROUTES)}")
 
+        # Start audit logger
+        if self.audit_logger:
+            await self.audit_logger.start()
+            logger.info("Audit logging enabled")
+
     async def shutdown(self) -> None:
         """Gateway shutdown tasks."""
         logger.info("MCP Gateway shutting down")
+
+        # Stop audit logger
+        if self.audit_logger:
+            await self.audit_logger.stop()
+            logger.info("Audit logger stopped")
+
         await self.client_pool.close_all()
 
 
@@ -371,6 +478,8 @@ def create_gateway(
     host: str = "127.0.0.1",
     port: int = 8100,
     version: str = "0.1.0",
+    audit_db_path: str = "~/.harombe/audit.db",
+    enable_audit_logging: bool = True,
 ) -> MCPGateway:
     """Create MCP Gateway instance.
 
@@ -378,11 +487,19 @@ def create_gateway(
         host: Host to bind to
         port: Port to listen on
         version: Gateway version
+        audit_db_path: Path to audit database
+        enable_audit_logging: Enable audit logging
 
     Returns:
         MCPGateway instance
     """
-    gateway = MCPGateway(host=host, port=port, version=version)
+    gateway = MCPGateway(
+        host=host,
+        port=port,
+        version=version,
+        audit_db_path=audit_db_path,
+        enable_audit_logging=enable_audit_logging,
+    )
 
     # Register startup/shutdown handlers
     gateway.app.add_event_handler("startup", gateway.startup)

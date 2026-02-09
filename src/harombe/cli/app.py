@@ -97,6 +97,11 @@ cluster_app = typer.Typer(help="Manage multi-machine cluster orchestration")
 app.add_typer(cluster_app, name="cluster")
 
 
+# Audit log commands (Phase 4.2)
+audit_app = typer.Typer(help="Query and analyze security audit logs")
+app.add_typer(audit_app, name="audit")
+
+
 @cluster_app.command("init")
 def cluster_init():
     """Generate cluster configuration template."""
@@ -154,6 +159,194 @@ def cluster_metrics(
     from harombe.cli.cluster_cmd import cluster_metrics_command
 
     cluster_metrics_command(config_path=config_path, node=node)
+
+
+@audit_app.command("events")
+def audit_events(
+    db_path: str = typer.Option(
+        "~/.harombe/audit.db",
+        "--db",
+        "-d",
+        help="Path to audit database",
+    ),
+    session_id: str = typer.Option(
+        None,
+        "--session",
+        "-s",
+        help="Filter by session ID",
+    ),
+    correlation_id: str = typer.Option(
+        None,
+        "--correlation",
+        "-c",
+        help="Filter by correlation ID",
+    ),
+    limit: int = typer.Option(
+        20,
+        "--limit",
+        "-n",
+        help="Maximum number of events to show",
+    ),
+    output_format: str = typer.Option(
+        "table",
+        "--format",
+        "-f",
+        help="Output format (table, json, csv)",
+    ),
+):
+    """Query audit events."""
+    from harombe.cli.audit_cmd import query_events
+
+    query_events(
+        db_path=db_path,
+        session_id=session_id,
+        correlation_id=correlation_id,
+        limit=limit,
+        output_format=output_format,
+    )
+
+
+@audit_app.command("tools")
+def audit_tools(
+    db_path: str = typer.Option(
+        "~/.harombe/audit.db",
+        "--db",
+        "-d",
+        help="Path to audit database",
+    ),
+    tool_name: str = typer.Option(
+        None,
+        "--tool",
+        "-t",
+        help="Filter by tool name",
+    ),
+    hours: int = typer.Option(
+        None,
+        "--hours",
+        "-h",
+        help="Only show calls from last N hours",
+    ),
+    limit: int = typer.Option(
+        20,
+        "--limit",
+        "-n",
+        help="Maximum number of calls to show",
+    ),
+    output_format: str = typer.Option(
+        "table",
+        "--format",
+        "-f",
+        help="Output format (table, json, csv)",
+    ),
+):
+    """Query tool execution logs."""
+    from harombe.cli.audit_cmd import query_tools
+
+    query_tools(
+        db_path=db_path,
+        tool_name=tool_name,
+        hours=hours,
+        limit=limit,
+        output_format=output_format,
+    )
+
+
+@audit_app.command("security")
+def audit_security(
+    db_path: str = typer.Option(
+        "~/.harombe/audit.db",
+        "--db",
+        "-d",
+        help="Path to audit database",
+    ),
+    decision_type: str = typer.Option(
+        None,
+        "--type",
+        "-t",
+        help="Filter by decision type",
+    ),
+    decision: str = typer.Option(
+        None,
+        "--decision",
+        help="Filter by decision outcome",
+    ),
+    limit: int = typer.Option(
+        20,
+        "--limit",
+        "-n",
+        help="Maximum number of decisions to show",
+    ),
+    output_format: str = typer.Option(
+        "table",
+        "--format",
+        "-f",
+        help="Output format (table, json, csv)",
+    ),
+):
+    """Query security decisions."""
+    from harombe.cli.audit_cmd import query_security
+
+    query_security(
+        db_path=db_path,
+        decision_type=decision_type,
+        decision=decision,
+        limit=limit,
+        output_format=output_format,
+    )
+
+
+@audit_app.command("stats")
+def audit_stats(
+    db_path: str = typer.Option(
+        "~/.harombe/audit.db",
+        "--db",
+        "-d",
+        help="Path to audit database",
+    ),
+    hours: int = typer.Option(
+        None,
+        "--hours",
+        "-h",
+        help="Only show stats from last N hours",
+    ),
+):
+    """Show audit log statistics."""
+    from harombe.cli.audit_cmd import stats
+
+    stats(db_path=db_path, hours=hours)
+
+
+@audit_app.command("export")
+def audit_export(
+    output_path: str = typer.Argument(
+        ...,
+        help="Output file path",
+    ),
+    db_path: str = typer.Option(
+        "~/.harombe/audit.db",
+        "--db",
+        "-d",
+        help="Path to audit database",
+    ),
+    hours: int = typer.Option(
+        None,
+        "--hours",
+        "-h",
+        help="Only export logs from last N hours",
+    ),
+    format: str = typer.Option(
+        "json",
+        "--format",
+        "-f",
+        help="Export format (json, csv)",
+    ),
+):
+    """Export audit logs to file."""
+    from pathlib import Path
+
+    from harombe.cli.audit_cmd import export
+
+    export(output_path=Path(output_path), db_path=db_path, hours=hours, format=format)
 
 
 @app.command()

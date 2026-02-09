@@ -68,6 +68,41 @@ voice:
     speed: 1.0  # Speech speed (0.5-2.0)
     device: auto  # auto, cpu, cuda, mps
 
+# Security configuration (Phase 4)
+security:
+  enabled: false  # Enable security layer with capability containers
+
+  # MCP Gateway
+  gateway:
+    host: 127.0.0.1
+    port: 8100
+    timeout: 30.0
+
+  # Audit logging (Phase 4.2)
+  audit:
+    enabled: true  # Enable audit logging
+    database: ~/.harombe/audit.db  # SQLite database path
+    retention_days: 90  # Auto-delete logs older than 90 days
+    redact_sensitive: true  # Redact API keys, passwords, tokens
+    log_level: INFO  # DEBUG, INFO, WARN, ERROR
+
+  # Credential management (planned)
+  credentials:
+    provider: env  # env, vault, sops
+    vault_url: null
+    secret_prefix: HAROMBE_
+
+  # Container isolation
+  isolation: docker  # docker or gvisor
+
+  # Human-In-The-Loop gates (planned)
+  hitl:
+    enabled: false
+    require_confirmation:
+      - shell_exec
+      - filesystem_write
+      - code_exec
+
 # Cluster configuration (Phase 1 - Multi-machine)
 # cluster:
 #   coordinator:

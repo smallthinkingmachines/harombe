@@ -304,6 +304,10 @@ class AuditConfig(BaseModel):
         description="Number of days to retain audit logs",
         ge=1,
     )
+    redact_sensitive: bool = Field(
+        default=True,
+        description="Automatically redact sensitive data (API keys, passwords, tokens)",
+    )
     log_level: Literal["DEBUG", "INFO", "WARN", "ERROR"] = Field(
         default="INFO",
         description="Audit logging verbosity level",
