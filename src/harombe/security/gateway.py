@@ -377,7 +377,12 @@ class MCPGateway:
                 # Invalid JSON-RPC format
                 duration_ms = int((time.time() - start_time) * 1000)
 
-                if self.audit_logger and correlation_id:
+                if self.audit_logger:
+                    if correlation_id is None:
+                        correlation_id = self.audit_logger.start_request_sync(
+                            actor="agent",
+                            action="invalid_request",
+                        )
                     self.audit_logger.end_request_sync(
                         correlation_id=correlation_id,
                         status="error",

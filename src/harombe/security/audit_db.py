@@ -410,14 +410,14 @@ class AuditDatabase:
 
     def get_events_by_session(
         self,
-        session_id: str,
+        session_id: str | None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get events for a session.
 
         Args:
-            session_id: Session ID to query
+            session_id: Session ID to query (None returns all events)
             limit: Maximum number of events to return
             offset: Number of events to skip
 
@@ -426,15 +426,25 @@ class AuditDatabase:
         """
         conn = self._get_connection()
         try:
-            cursor = conn.execute(
-                """
-                SELECT * FROM audit_events
-                WHERE session_id = ?
-                ORDER BY timestamp DESC
-                LIMIT ? OFFSET ?
-                """,
-                (session_id, limit, offset),
-            )
+            if session_id is None:
+                cursor = conn.execute(
+                    """
+                    SELECT * FROM audit_events
+                    ORDER BY timestamp DESC
+                    LIMIT ? OFFSET ?
+                    """,
+                    (limit, offset),
+                )
+            else:
+                cursor = conn.execute(
+                    """
+                    SELECT * FROM audit_events
+                    WHERE session_id = ?
+                    ORDER BY timestamp DESC
+                    LIMIT ? OFFSET ?
+                    """,
+                    (session_id, limit, offset),
+                )
             return [dict(row) for row in cursor.fetchall()]
         finally:
             conn.close()

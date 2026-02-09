@@ -120,10 +120,37 @@ class SensitiveDataRedactor:
         Returns:
             Redacted dictionary (new copy)
         """
+        # Sensitive key patterns
+        sensitive_keys = {
+            "password",
+            "passwd",
+            "pwd",
+            "secret",
+            "token",
+            "key",
+            "api_key",
+            "apikey",
+            "access_token",
+            "auth_token",
+            "bearer",
+            "private_key",
+            "secret_key",
+            "client_secret",
+        }
+
         result = {}
         for key, value in data.items():
+            # Check if key is sensitive
+            key_lower = key.lower().replace("-", "_")
+            is_sensitive_key = any(sens in key_lower for sens in sensitive_keys)
+
             if isinstance(value, str):
-                result[key] = cls.redact(value)
+                if is_sensitive_key and value:
+                    # Redact entire value if key is sensitive
+                    result[key] = cls.REDACTED_PLACEHOLDER
+                else:
+                    # Otherwise redact patterns within value
+                    result[key] = cls.redact(value)
             elif isinstance(value, dict):
                 result[key] = cls.redact_dict(value)
             elif isinstance(value, list):
@@ -362,7 +389,8 @@ class AuditLogger:
             container_id=container_id,
         )
 
-        self._write_queue.put_nowait(("tool_call", record))
+        # Write directly to database (synchronous)
+        self.db.log_tool_call(record)
 
     def log_security_decision(
         self,
@@ -401,7 +429,8 @@ class AuditLogger:
             actor=actor,
         )
 
-        self._write_queue.put_nowait(("decision", record))
+        # Write directly to database (synchronous)
+        self.db.log_security_decision(record)
 
     def log_error(
         self,
