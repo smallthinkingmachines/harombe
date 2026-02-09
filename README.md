@@ -35,13 +35,14 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 > - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
 >
-> **Security Layer (Phase 4 - Foundation Complete):** Core security infrastructure is now implemented:
+> **Security Layer (Phase 4.1-4.5 Complete):** Core security infrastructure is now implemented:
 >
 > - ✅ MCP Gateway with containerized tool isolation
 > - ✅ Comprehensive audit logging with SQLite
 > - ✅ Secret management (HashiCorp Vault, SOPS, env vars)
 > - ✅ Per-container network egress filtering
-> - ⏳ HITL gates, browser pre-auth, and code execution sandbox (Phase 4.5-4.8)
+> - ✅ Human-in-the-Loop (HITL) approval gates with risk classification
+> - ⏳ Browser pre-auth and code execution sandbox (Phase 4.6-4.8)
 >
 > See [SECURITY.md](SECURITY.md) and [docs/security-quickstart.md](docs/security-quickstart.md) for detailed security guidance.
 
@@ -835,9 +836,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
   - DNS query filtering
   - Connection attempt logging
 
-**Phase 4.5-4.8 (Planned):** Advanced security features
+**Phase 4.5 (Complete):** Human-in-the-Loop Gates
 
-- ⏳ Human-in-the-loop (HITL) confirmation gates for sensitive operations
+- ✅ **Risk-Based Classification** - LOW/MEDIUM/HIGH/CRITICAL operation classification
+- ✅ **HITL Gate System** - Centralized approval management with timeout handling
+- ✅ **CLI Approval Prompts** - Rich console formatting with risk-level color coding
+- ✅ **API Approval Support** - Web/API-compatible prompt data structures
+- ✅ **Gateway Integration** - HITL checks before tool execution
+- ✅ **Audit Integration** - All approval decisions logged to audit trail
+- ✅ **Default-Deny Safety** - Auto-deny on timeout for security
+
+**Phase 4.6-4.8 (Planned):** Remaining security features
+
 - ⏳ Pre-authenticated browser container (accessibility-snapshot mode)
 - ⏳ Code execution sandbox with gVisor
 - ⏳ End-to-end security integration and testing
@@ -849,6 +859,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - [Secret Management](docs/security-credentials.md)
 - [Network Isolation](docs/security-network.md)
 - [MCP Gateway Design](docs/mcp-gateway-design.md)
+- [HITL Gates Design](docs/hitl-design.md)
 
 ### Phase 5: Privacy Router (Planned)
 
