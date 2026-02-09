@@ -1,11 +1,9 @@
 """Tests for smart routing and complexity classification."""
 
-import pytest
 
 from harombe.coordination.router import (
     ComplexityClassifier,
     Router,
-    RoutingDecision,
     TaskComplexity,
 )
 from harombe.llm.client import Message
@@ -151,7 +149,9 @@ def test_router_tier_mapping():
 
         ```python
         # 100 lines of complex code here
-        """ + "code line\n" * 100 + """
+        """
+        + "code line\n" * 100
+        + """
         ```
         """
     )
@@ -215,7 +215,9 @@ def test_router_reasoning():
     # Should be at least tier 1 due to multiple complex keywords
     assert decision.recommended_tier >= 1
     # Reasoning should mention complexity or model type
-    assert any(word in decision.reasoning.lower() for word in ["complex", "powerful", "medium", "balanced"])
+    assert any(
+        word in decision.reasoning.lower() for word in ["complex", "powerful", "medium", "balanced"]
+    )
 
 
 def test_routing_decision_fields():

@@ -1,6 +1,5 @@
 """Filesystem read/write tools."""
 
-import os
 from pathlib import Path
 
 from harombe.tools.registry import tool
@@ -31,14 +30,16 @@ async def read_file(path: str) -> str:
         # Truncate to 20KB
         max_chars = 20_000
         if len(content) > max_chars:
-            content = content[:max_chars] + f"\n... (truncated, {len(content) - max_chars} chars omitted)"
+            content = (
+                content[:max_chars] + f"\n... (truncated, {len(content) - max_chars} chars omitted)"
+            )
 
         return content
 
     except PermissionError:
         return f"Error: Permission denied: {path}"
     except Exception as e:
-        return f"Error reading file: {str(e)}"
+        return f"Error reading file: {e!s}"
 
 
 @tool(description="Write content to a file", dangerous=True)
@@ -62,7 +63,6 @@ async def write_file(path: str, content: str, append: bool = False) -> str:
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write file
-        mode = "a" if append else "w"
         file_path.write_text(content, encoding="utf-8")
 
         action = "appended to" if append else "written to"
@@ -72,4 +72,4 @@ async def write_file(path: str, content: str, append: bool = False) -> str:
     except PermissionError:
         return f"Error: Permission denied: {path}"
     except Exception as e:
-        return f"Error writing file: {str(e)}"
+        return f"Error writing file: {e!s}"

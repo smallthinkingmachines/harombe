@@ -3,7 +3,6 @@
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -12,9 +11,9 @@ class RequestMetrics:
 
     node_name: str
     start_time: float
-    end_time: Optional[float] = None
+    end_time: float | None = None
     success: bool = True
-    error: Optional[str] = None
+    error: str | None = None
     tokens: int = 0
 
     @property
@@ -35,8 +34,8 @@ class NodeMetrics:
     failed_requests: int = 0
     total_tokens: int = 0
     total_duration_ms: float = 0.0
-    last_request_time: Optional[datetime] = None
-    error_history: List[str] = field(default_factory=list)
+    last_request_time: datetime | None = None
+    error_history: list[str] = field(default_factory=list)
 
     @property
     def success_rate(self) -> float:
@@ -74,8 +73,8 @@ class MetricsCollector:
         Args:
             max_error_history: Maximum errors to keep per node
         """
-        self._node_metrics: Dict[str, NodeMetrics] = {}
-        self._active_requests: Dict[str, RequestMetrics] = {}
+        self._node_metrics: dict[str, NodeMetrics] = {}
+        self._active_requests: dict[str, RequestMetrics] = {}
         self.max_error_history = max_error_history
 
     def start_request(self, node_name: str) -> str:
@@ -99,7 +98,7 @@ class MetricsCollector:
         self,
         request_id: str,
         success: bool = True,
-        error: Optional[str] = None,
+        error: str | None = None,
         tokens: int = 0,
     ) -> None:
         """
@@ -146,7 +145,7 @@ class MetricsCollector:
                 if len(metrics.error_history) > self.max_error_history:
                     metrics.error_history.pop(0)
 
-    def get_node_metrics(self, node_name: str) -> Optional[NodeMetrics]:
+    def get_node_metrics(self, node_name: str) -> NodeMetrics | None:
         """
         Get metrics for a specific node.
 
@@ -158,7 +157,7 @@ class MetricsCollector:
         """
         return self._node_metrics.get(node_name)
 
-    def get_all_metrics(self) -> Dict[str, NodeMetrics]:
+    def get_all_metrics(self) -> dict[str, NodeMetrics]:
         """
         Get metrics for all nodes.
 
@@ -182,7 +181,7 @@ class MetricsCollector:
         self._node_metrics.clear()
         self._active_requests.clear()
 
-    def get_cluster_summary(self) -> Dict[str, any]:
+    def get_cluster_summary(self) -> dict[str, any]:
         """
         Get summary statistics for the entire cluster.
 
@@ -206,8 +205,12 @@ class MetricsCollector:
         return {
             "total_nodes": len(self._node_metrics),
             "total_requests": total_requests,
-            "average_success_rate": total_successful / total_requests if total_requests > 0 else 0.0,
+            "average_success_rate": total_successful / total_requests
+            if total_requests > 0
+            else 0.0,
             "average_latency_ms": total_duration / total_requests if total_requests > 0 else 0.0,
             "total_tokens": total_tokens,
-            "tokens_per_second": (total_tokens * 1000) / total_duration if total_duration > 0 else 0.0,
+            "tokens_per_second": (total_tokens * 1000) / total_duration
+            if total_duration > 0
+            else 0.0,
         }

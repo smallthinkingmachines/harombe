@@ -2,14 +2,13 @@
 
 import platform
 import subprocess
-from typing import Optional, Tuple
 
 import httpx
 
-from harombe.config.defaults import get_default_model, select_model_for_vram
+from harombe.config.defaults import select_model_for_vram
 
 
-def detect_gpu() -> Tuple[str, float]:
+def detect_gpu() -> tuple[str, float]:
     """Detect GPU type and available VRAM.
 
     Returns:
@@ -164,7 +163,7 @@ async def check_ollama_running(base_url: str = "http://localhost:11434") -> bool
         return False
 
 
-def recommend_model() -> Tuple[str, str]:
+def recommend_model() -> tuple[str, str]:
     """Recommend a model based on detected hardware.
 
     Returns:

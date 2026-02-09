@@ -3,7 +3,6 @@
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict
 
 
 class CircuitState(Enum):
@@ -128,7 +127,7 @@ class CircuitBreakerRegistry:
             config: Default circuit breaker configuration
         """
         self.config = config
-        self._breakers: Dict[str, CircuitBreaker] = {}
+        self._breakers: dict[str, CircuitBreaker] = {}
 
     def get_breaker(self, node_name: str) -> CircuitBreaker:
         """

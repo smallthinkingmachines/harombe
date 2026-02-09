@@ -1,7 +1,8 @@
 """Base types for the tool system."""
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
+from typing import Any
 
 
 @dataclass
@@ -12,7 +13,7 @@ class ToolParameter:
     type: str  # JSON Schema type
     description: str
     required: bool = True
-    enum: Optional[List[str]] = None
+    enum: list[str] | None = None
 
 
 @dataclass
@@ -21,10 +22,10 @@ class ToolSchema:
 
     name: str
     description: str
-    parameters: List[ToolParameter]
+    parameters: list[ToolParameter]
     dangerous: bool = False
 
-    def to_openai_format(self) -> Dict[str, Any]:
+    def to_openai_format(self) -> dict[str, Any]:
         """Convert to OpenAI function calling format.
 
         Returns:
@@ -34,7 +35,7 @@ class ToolSchema:
         required = []
 
         for param in self.parameters:
-            param_schema: Dict[str, Any] = {
+            param_schema: dict[str, Any] = {
                 "type": param.type,
                 "description": param.description,
             }

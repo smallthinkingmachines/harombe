@@ -2,7 +2,6 @@
 
 import asyncio
 import sys
-from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
@@ -20,11 +19,12 @@ console = Console()
 
 def doctor_command():
     """Run system health checks."""
-    console.print(Panel.fit(
-        "[bold blue]harombe system health check[/bold blue]\n"
-        "Checking your installation...",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold blue]harombe system health check[/bold blue]\nChecking your installation...",
+            border_style="blue",
+        )
+    )
 
     asyncio.run(_async_doctor())
 
@@ -42,11 +42,7 @@ async def _async_doctor():
 
     # 1. Check Python version
     py_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    if sys.version_info >= (3, 11):
-        table.add_row("Python Version", "[green]✓[/green]", f"{py_version}")
-    else:
-        table.add_row("Python Version", "[red]✗[/red]", f"{py_version} (need 3.11+)")
-        issues.append("Python version too old. Upgrade to Python 3.11 or higher.")
+    table.add_row("Python Version", "[green]✓[/green]", f"{py_version}")
 
     # 2. Check config file
     if DEFAULT_CONFIG_PATH.exists():
@@ -58,7 +54,9 @@ async def _async_doctor():
             issues.append(f"Config file is invalid: {e}")
     else:
         table.add_row("Configuration", "[yellow]⚠[/yellow]", "Not found (using defaults)")
-        warnings.append(f"No config file at {DEFAULT_CONFIG_PATH}. Run 'harombe init' to create one.")
+        warnings.append(
+            f"No config file at {DEFAULT_CONFIG_PATH}. Run 'harombe init' to create one."
+        )
 
     # 3. Check Ollama
     ollama_running = await check_ollama_running()
@@ -94,10 +92,16 @@ async def _async_doctor():
             config = load_config()
             models = await get_ollama_models()
             if config.model.name in models:
-                table.add_row("Configured Model", "[green]✓[/green]", f"{config.model.name} available")
+                table.add_row(
+                    "Configured Model", "[green]✓[/green]", f"{config.model.name} available"
+                )
             else:
-                table.add_row("Configured Model", "[yellow]⚠[/yellow]", f"{config.model.name} not found")
-                warnings.append(f"Model '{config.model.name}' not installed. Run: ollama pull {config.model.name}")
+                table.add_row(
+                    "Configured Model", "[yellow]⚠[/yellow]", f"{config.model.name} not found"
+                )
+                warnings.append(
+                    f"Model '{config.model.name}' not installed. Run: ollama pull {config.model.name}"
+                )
         except Exception:
             pass
 
@@ -108,11 +112,13 @@ async def _async_doctor():
     # Print summary
     console.print("\n")
     if not issues and not warnings:
-        console.print(Panel.fit(
-            "[bold green]✓ All checks passed![/bold green]\n"
-            "Your harombe installation is healthy.",
-            border_style="green",
-        ))
+        console.print(
+            Panel.fit(
+                "[bold green]✓ All checks passed![/bold green]\n"
+                "Your harombe installation is healthy.",
+                border_style="green",
+            )
+        )
     else:
         if issues:
             console.print("[bold red]Issues Found:[/bold red]")
@@ -131,4 +137,6 @@ async def _async_doctor():
         else:
             console.print("[green]No critical issues. Warnings are optional improvements.[/green]")
 
-    console.print("\nFor more help, visit: https://github.com/smallthinkingmachines/harombe/discussions")
+    console.print(
+        "\nFor more help, visit: https://github.com/smallthinkingmachines/harombe/discussions"
+    )

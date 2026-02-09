@@ -1,7 +1,6 @@
 """API routes for Harombe server."""
 
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -9,14 +8,11 @@ from sse_starlette.sse import EventSourceResponse
 
 from harombe.agent.loop import Agent
 from harombe.config.schema import HarombeConfig
-from harombe.llm.client import Message, ToolCall
+from harombe.llm.client import Message
 from harombe.llm.ollama import OllamaClient
 from harombe.tools.registry import get_enabled_tools
 
 # Import tools to register them
-import harombe.tools.shell
-import harombe.tools.filesystem
-import harombe.tools.web_search
 
 
 class ChatRequest(BaseModel):
@@ -43,8 +39,8 @@ class HealthResponse(BaseModel):
 class CompletionRequest(BaseModel):
     """Request body for completion endpoint (used by RemoteLLMClient)."""
 
-    messages: List[Dict[str, Any]]
-    tools: Optional[List[Dict[str, Any]]] = None
+    messages: list[dict[str, Any]]
+    tools: list[dict[str, Any]] | None = None
     temperature: float = 0.7
 
 
@@ -52,14 +48,14 @@ class CompletionResponse(BaseModel):
     """Response body for completion endpoint."""
 
     content: str
-    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_calls: list[dict[str, Any]] | None = None
 
 
 class MetricsResponse(BaseModel):
     """Response body for metrics endpoint."""
 
-    nodes: Dict[str, Dict[str, Any]]
-    cluster_summary: Dict[str, Any]
+    nodes: dict[str, dict[str, Any]]
+    cluster_summary: dict[str, Any]
 
 
 def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
@@ -183,6 +179,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             tools_schemas = None
             if request.tools:
                 from harombe.tools.base import ToolSchema
+
                 tools_schemas = []
                 for tool_def in request.tools:
                     func = tool_def["function"]

@@ -1,14 +1,13 @@
 """Initialize command - hardware detection and config generation."""
 
 import asyncio
-from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
-from harombe.config.loader import DEFAULT_CONFIG_PATH, load_config, save_config
+from harombe.config.loader import DEFAULT_CONFIG_PATH, save_config
 from harombe.config.schema import HarombeConfig
 from harombe.hardware.detect import (
     check_ollama_running,
@@ -19,7 +18,7 @@ from harombe.hardware.detect import (
 console = Console()
 
 
-def init_command(force: bool = False, non_interactive: bool = False, model: str = None):
+def init_command(force: bool = False, non_interactive: bool = False, model: str | None = None):
     """Initialize harombe configuration.
 
     Args:
@@ -27,23 +26,27 @@ def init_command(force: bool = False, non_interactive: bool = False, model: str 
         non_interactive: Use defaults without prompting
         model: Optional model name to use
     """
-    console.print(Panel.fit(
-        "[bold blue]harombe initialization[/bold blue]\n"
-        "Detecting hardware and configuring your AI assistant...",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold blue]harombe initialization[/bold blue]\n"
+            "Detecting hardware and configuring your AI assistant...",
+            border_style="blue",
+        )
+    )
 
     # Check if config already exists
     if DEFAULT_CONFIG_PATH.exists() and not force:
         console.print(f"\n[yellow]Config already exists at {DEFAULT_CONFIG_PATH}[/yellow]")
-        console.print("Use [bold]--force[/bold] to overwrite, or [bold]harombe chat[/bold] to start using it.")
+        console.print(
+            "Use [bold]--force[/bold] to overwrite, or [bold]harombe chat[/bold] to start using it."
+        )
         raise typer.Exit(0)
 
     # Run async detection
     asyncio.run(_async_init(non_interactive=non_interactive, model_override=model))
 
 
-async def _async_init(non_interactive: bool = False, model_override: str = None):
+async def _async_init(non_interactive: bool = False, model_override: str | None = None):
     """Async initialization logic.
 
     Args:
@@ -86,10 +89,16 @@ async def _async_init(non_interactive: bool = False, model_override: str = None)
 
             # Check if recommended model is available
             if recommended_model not in models:
-                console.print(f"\n  [yellow]Recommended model '{recommended_model}' not found[/yellow]")
-                console.print(f"  [yellow]→[/yellow] Pull with: [bold]ollama pull {recommended_model}[/bold]")
+                console.print(
+                    f"\n  [yellow]Recommended model '{recommended_model}' not found[/yellow]"
+                )
+                console.print(
+                    f"  [yellow]→[/yellow] Pull with: [bold]ollama pull {recommended_model}[/bold]"
+                )
 
-                if not non_interactive and Confirm.ask(f"Pull {recommended_model} now?", default=True):
+                if not non_interactive and Confirm.ask(
+                    f"Pull {recommended_model} now?", default=True
+                ):
                     console.print("  (This may take several minutes)")
         else:
             console.print("  [yellow]No models found. You'll need to pull one:[/yellow]")

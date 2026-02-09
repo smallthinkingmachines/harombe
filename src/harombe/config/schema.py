@@ -1,6 +1,6 @@
 """Pydantic models for harombe.yaml configuration."""
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -67,7 +67,9 @@ class NodeConfig(BaseModel):
     tier: int = Field(description="User-declared tier: 0=fast, 1=medium, 2=powerful", ge=0, le=2)
 
     # Optional fields
-    auth_token: Optional[str] = Field(default=None, description="Authentication token for remote nodes")
+    auth_token: str | None = Field(
+        default=None, description="Authentication token for remote nodes"
+    )
     enabled: bool = Field(default=True, description="Whether this node is enabled")
 
 
@@ -116,7 +118,7 @@ class ClusterConfig(BaseModel):
     coordinator: CoordinatorConfig = Field(default_factory=CoordinatorConfig)
     discovery: DiscoveryConfig = Field(default_factory=DiscoveryConfig)
     routing: RoutingConfig = Field(default_factory=RoutingConfig)
-    nodes: List[NodeConfig] = Field(
+    nodes: list[NodeConfig] = Field(
         default_factory=list,
         description="List of nodes in the cluster",
     )
@@ -130,7 +132,7 @@ class HarombeConfig(BaseModel):
     agent: AgentConfig = Field(default_factory=AgentConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
-    cluster: Optional[ClusterConfig] = Field(
+    cluster: ClusterConfig | None = Field(
         default=None,
         description="Cluster configuration for multi-machine orchestration (Phase 1)",
     )

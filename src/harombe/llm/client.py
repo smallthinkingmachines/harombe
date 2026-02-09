@@ -1,7 +1,7 @@
 """LLM client protocol and data types."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 
 @dataclass
@@ -10,9 +10,9 @@ class Message:
 
     role: str  # "system", "user", "assistant", "tool"
     content: str
-    tool_calls: Optional[List["ToolCall"]] = None
-    tool_call_id: Optional[str] = None  # For tool response messages
-    name: Optional[str] = None  # Tool name for tool response messages
+    tool_calls: list["ToolCall"] | None = None
+    tool_call_id: str | None = None  # For tool response messages
+    name: str | None = None  # Tool name for tool response messages
 
 
 @dataclass
@@ -21,7 +21,7 @@ class ToolCall:
 
     id: str
     name: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
 
 
 @dataclass
@@ -29,7 +29,7 @@ class CompletionResponse:
     """Response from LLM completion."""
 
     content: str
-    tool_calls: Optional[List[ToolCall]] = None
+    tool_calls: list[ToolCall] | None = None
     finish_reason: str = "stop"
 
 
@@ -38,10 +38,10 @@ class LLMClient(Protocol):
 
     async def complete(
         self,
-        messages: List[Message],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        messages: list[Message],
+        tools: list[dict[str, Any]] | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> CompletionResponse:
         """Generate a completion from the LLM.
 
@@ -58,9 +58,9 @@ class LLMClient(Protocol):
 
     async def stream_complete(
         self,
-        messages: List[Message],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        temperature: Optional[float] = None,
+        messages: list[Message],
+        tools: list[dict[str, Any]] | None = None,
+        temperature: float | None = None,
     ) -> Any:
         """Stream a completion from the LLM.
 

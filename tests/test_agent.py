@@ -1,18 +1,18 @@
 """Tests for agent loop."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pytest
 
 from harombe.agent.loop import Agent, AgentState
 from harombe.llm.client import CompletionResponse, Message, ToolCall
-from harombe.tools.base import Tool, ToolFunction, ToolParameter, ToolSchema
+from harombe.tools.base import Tool, ToolParameter, ToolSchema
 
 
 class MockLLM:
     """Mock LLM client for testing."""
 
-    def __init__(self, responses: List[CompletionResponse]):
+    def __init__(self, responses: list[CompletionResponse]):
         """Initialize with predefined responses.
 
         Args:
@@ -20,21 +20,23 @@ class MockLLM:
         """
         self.responses = responses
         self.call_count = 0
-        self.calls: List[Dict[str, Any]] = []
+        self.calls: list[dict[str, Any]] = []
 
     async def complete(
         self,
-        messages: List[Message],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        messages: list[Message],
+        tools: list[dict[str, Any]] | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> CompletionResponse:
         """Return next predefined response."""
-        self.calls.append({
-            "messages": messages,
-            "tools": tools,
-            "temperature": temperature,
-        })
+        self.calls.append(
+            {
+                "messages": messages,
+                "tools": tools,
+                "temperature": temperature,
+            }
+        )
 
         response = self.responses[self.call_count]
         self.call_count += 1
@@ -57,9 +59,9 @@ class MockLLM:
 @pytest.mark.asyncio
 async def test_agent_simple_response():
     """Test agent with simple response (no tools)."""
-    mock_llm = MockLLM([
-        CompletionResponse(content="Hello! I'm here to help.", finish_reason="stop")
-    ])
+    mock_llm = MockLLM(
+        [CompletionResponse(content="Hello! I'm here to help.", finish_reason="stop")]
+    )
 
     agent = Agent(llm=mock_llm, tools=[], max_steps=10)
     result = await agent.run("Hi there")
@@ -71,6 +73,7 @@ async def test_agent_simple_response():
 @pytest.mark.asyncio
 async def test_agent_single_tool_call():
     """Test agent making a single tool call."""
+
     # Create a mock tool
     async def mock_search(query: str) -> str:
         return f"Search results for: {query}"
@@ -79,27 +82,25 @@ async def test_agent_single_tool_call():
         schema=ToolSchema(
             name="search",
             description="Search for information",
-            parameters=[
-                ToolParameter(name="query", type="string", description="Search query")
-            ],
+            parameters=[ToolParameter(name="query", type="string", description="Search query")],
         ),
         fn=mock_search,
     )
 
     # LLM responses: 1) tool call, 2) final answer
-    mock_llm = MockLLM([
-        CompletionResponse(
-            content="",
-            tool_calls=[
-                ToolCall(id="call_1", name="search", arguments={"query": "Python"})
-            ],
-            finish_reason="tool_calls",
-        ),
-        CompletionResponse(
-            content="Based on the search results, Python is a programming language.",
-            finish_reason="stop",
-        ),
-    ])
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[ToolCall(id="call_1", name="search", arguments={"query": "Python"})],
+                finish_reason="tool_calls",
+            ),
+            CompletionResponse(
+                content="Based on the search results, Python is a programming language.",
+                finish_reason="stop",
+            ),
+        ]
+    )
 
     agent = Agent(llm=mock_llm, tools=[search_tool], max_steps=10)
     result = await agent.run("Tell me about Python")
@@ -111,6 +112,7 @@ async def test_agent_single_tool_call():
 @pytest.mark.asyncio
 async def test_agent_multiple_tool_calls():
     """Test agent making multiple sequential tool calls."""
+
     async def add(a: int, b: int) -> str:
         return str(a + b)
 
@@ -142,17 +144,19 @@ async def test_agent_multiple_tool_calls():
     )
 
     # Sequence: add(5,3) -> multiply(result, 2) -> final answer
-    mock_llm = MockLLM([
-        CompletionResponse(
-            content="",
-            tool_calls=[ToolCall(id="call_1", name="add", arguments={"a": 5, "b": 3})],
-        ),
-        CompletionResponse(
-            content="",
-            tool_calls=[ToolCall(id="call_2", name="multiply", arguments={"a": 8, "b": 2})],
-        ),
-        CompletionResponse(content="The result is 16."),
-    ])
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[ToolCall(id="call_1", name="add", arguments={"a": 5, "b": 3})],
+            ),
+            CompletionResponse(
+                content="",
+                tool_calls=[ToolCall(id="call_2", name="multiply", arguments={"a": 8, "b": 2})],
+            ),
+            CompletionResponse(content="The result is 16."),
+        ]
+    )
 
     agent = Agent(llm=mock_llm, tools=[add_tool, multiply_tool], max_steps=10)
     result = await agent.run("What is (5+3)*2?")
@@ -164,6 +168,7 @@ async def test_agent_multiple_tool_calls():
 @pytest.mark.asyncio
 async def test_agent_dangerous_tool_confirmation():
     """Test dangerous tool confirmation mechanism."""
+
     async def dangerous_op(action: str) -> str:
         return f"Executed: {action}"
 
@@ -171,23 +176,23 @@ async def test_agent_dangerous_tool_confirmation():
         schema=ToolSchema(
             name="dangerous",
             description="Dangerous operation",
-            parameters=[
-                ToolParameter(name="action", type="string", description="Action")
-            ],
+            parameters=[ToolParameter(name="action", type="string", description="Action")],
             dangerous=True,
         ),
         fn=dangerous_op,
     )
 
-    mock_llm = MockLLM([
-        CompletionResponse(
-            content="",
-            tool_calls=[
-                ToolCall(id="call_1", name="dangerous", arguments={"action": "delete"})
-            ],
-        ),
-        CompletionResponse(content="Operation completed."),
-    ])
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[
+                    ToolCall(id="call_1", name="dangerous", arguments={"action": "delete"})
+                ],
+            ),
+            CompletionResponse(content="Operation completed."),
+        ]
+    )
 
     # Test with auto-deny (no callback)
     agent = Agent(
@@ -196,7 +201,7 @@ async def test_agent_dangerous_tool_confirmation():
         confirm_dangerous=True,
         confirm_callback=None,
     )
-    result = await agent.run("Do something dangerous")
+    await agent.run("Do something dangerous")
 
     # Should be cancelled
     assert "[CANCELLED]" in mock_llm.calls[1]["messages"][-1].content
@@ -205,6 +210,7 @@ async def test_agent_dangerous_tool_confirmation():
 @pytest.mark.asyncio
 async def test_agent_dangerous_tool_user_approves():
     """Test dangerous tool with user approval."""
+
     async def dangerous_op(action: str) -> str:
         return f"Executed: {action}"
 
@@ -212,27 +218,27 @@ async def test_agent_dangerous_tool_user_approves():
         schema=ToolSchema(
             name="dangerous",
             description="Dangerous operation",
-            parameters=[
-                ToolParameter(name="action", type="string", description="Action")
-            ],
+            parameters=[ToolParameter(name="action", type="string", description="Action")],
             dangerous=True,
         ),
         fn=dangerous_op,
     )
 
     # Callback that always approves
-    def approve_callback(name: str, desc: str, args: Dict[str, Any]) -> bool:
+    def approve_callback(name: str, desc: str, args: dict[str, Any]) -> bool:
         return True
 
-    mock_llm = MockLLM([
-        CompletionResponse(
-            content="",
-            tool_calls=[
-                ToolCall(id="call_1", name="dangerous", arguments={"action": "delete"})
-            ],
-        ),
-        CompletionResponse(content="Operation completed."),
-    ])
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[
+                    ToolCall(id="call_1", name="dangerous", arguments={"action": "delete"})
+                ],
+            ),
+            CompletionResponse(content="Operation completed."),
+        ]
+    )
 
     agent = Agent(
         llm=mock_llm,
@@ -240,7 +246,7 @@ async def test_agent_dangerous_tool_user_approves():
         confirm_dangerous=True,
         confirm_callback=approve_callback,
     )
-    result = await agent.run("Do something dangerous")
+    await agent.run("Do something dangerous")
 
     # Should execute
     assert "Executed" in mock_llm.calls[1]["messages"][-1].content

@@ -1,14 +1,13 @@
 """Server management commands."""
 
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 
 console = Console()
 
 
-def start_command(config_path: Optional[str] = None, detach: bool = False):
+def start_command(config_path: str | None = None, detach: bool = False):
     """Start the harombe API server.
 
     Args:
@@ -16,7 +15,6 @@ def start_command(config_path: Optional[str] = None, detach: bool = False):
         detach: Run server in background
     """
     # Import here to avoid circular imports
-    import asyncio
     import uvicorn
 
     from harombe.config.loader import load_config
@@ -34,7 +32,9 @@ def start_command(config_path: Optional[str] = None, detach: bool = False):
     # Create app
     app = create_app(config)
 
-    console.print(f"[green]Starting harombe server on {config.server.host}:{config.server.port}[/green]")
+    console.print(
+        f"[green]Starting harombe server on {config.server.host}:{config.server.port}[/green]"
+    )
     console.print(f"Model: {config.model.name}")
     console.print("\nPress Ctrl+C to stop")
 

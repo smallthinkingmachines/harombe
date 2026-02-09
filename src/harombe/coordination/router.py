@@ -3,7 +3,6 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
 
 from harombe.llm.client import Message
 
@@ -72,7 +71,7 @@ class ComplexityClassifier:
     def classify_query(
         self,
         query: str,
-        context: Optional[List[Message]] = None,
+        context: list[Message] | None = None,
     ) -> TaskComplexity:
         """
         Classify query complexity.
@@ -125,7 +124,7 @@ class ComplexityClassifier:
     def _score_keywords(self, query: str) -> float:
         """Score based on keyword presence."""
         query_lower = query.lower()
-        words = set(query_lower.split())
+        set(query_lower.split())
 
         # Check for complex keywords
         complex_matches = sum(1 for kw in self.COMPLEX_KEYWORDS if kw in query_lower)
@@ -138,7 +137,7 @@ class ComplexityClassifier:
         else:
             return 0.3  # Neutral
 
-    def _score_context(self, context: Optional[List[Message]]) -> float:
+    def _score_context(self, context: list[Message] | None) -> float:
         """Score based on conversation context size."""
         if not context:
             return 0.0
@@ -201,7 +200,7 @@ class Router:
     Combines complexity classification with node capabilities and health.
     """
 
-    def __init__(self, classifier: Optional[ComplexityClassifier] = None):
+    def __init__(self, classifier: ComplexityClassifier | None = None):
         """
         Initialize router.
 
@@ -213,7 +212,7 @@ class Router:
     def analyze_routing(
         self,
         query: str,
-        context: Optional[List[Message]] = None,
+        context: list[Message] | None = None,
     ) -> RoutingDecision:
         """
         Analyze query and determine routing.
@@ -260,7 +259,7 @@ class Router:
     def _estimate_tokens(
         self,
         query: str,
-        context: Optional[List[Message]] = None,
+        context: list[Message] | None = None,
     ) -> int:
         """
         Estimate total token count.

@@ -1,7 +1,7 @@
 """ReAct agent loop implementation."""
 
-import asyncio
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Optional
 
 from harombe.llm.client import CompletionResponse, LLMClient, Message, ToolCall
 from harombe.tools.base import Tool
@@ -19,9 +19,7 @@ class AgentState:
         Args:
             system_prompt: System message for the agent
         """
-        self.messages: List[Message] = [
-            Message(role="system", content=system_prompt)
-        ]
+        self.messages: list[Message] = [Message(role="system", content=system_prompt)]
 
     def add_user_message(self, content: str) -> None:
         """Add a user message to the conversation.
@@ -69,11 +67,11 @@ class Agent:
     def __init__(
         self,
         llm: LLMClient,
-        tools: List[Tool],
+        tools: list[Tool],
         max_steps: int = 10,
         system_prompt: str = "You are a helpful AI assistant.",
         confirm_dangerous: bool = True,
-        confirm_callback: Optional[Callable[[str, str, Dict[str, Any]], bool]] = None,
+        confirm_callback: Callable[[str, str, dict[str, Any]], bool] | None = None,
         cluster_manager: Optional["ClusterManager"] = None,
     ):
         """Initialize the agent.
@@ -98,10 +96,7 @@ class Agent:
         self.cluster_manager = cluster_manager
 
         # Build tool schemas for LLM
-        self.tool_schemas = [
-            tool.schema.to_openai_format()
-            for tool in tools
-        ]
+        self.tool_schemas = [tool.schema.to_openai_format() for tool in tools]
 
     async def run(self, user_message: str) -> str:
         """Run the agent on a user message.
@@ -148,7 +143,7 @@ class Agent:
     async def _get_llm_client(
         self,
         query: str,
-        messages: List[Message],
+        messages: list[Message],
     ) -> LLMClient:
         """
         Get appropriate LLM client, using smart routing if cluster is available.
@@ -164,7 +159,7 @@ class Agent:
             return self.llm
 
         # Use smart routing to select appropriate node
-        node, decision = self.cluster_manager.select_node_smart(
+        node, _decision = self.cluster_manager.select_node_smart(
             query=query,
             context=messages,
             fallback=True,
@@ -228,9 +223,9 @@ class Agent:
 async def run_agent_with_streaming(
     agent: Agent,
     user_message: str,
-    on_chunk: Optional[Callable[[str], None]] = None,
-    on_tool_call: Optional[Callable[[str, Dict[str, Any]], None]] = None,
-    on_tool_result: Optional[Callable[[str, str], None]] = None,
+    on_chunk: Callable[[str], None] | None = None,
+    on_tool_call: Callable[[str, dict[str, Any]], None] | None = None,
+    on_tool_result: Callable[[str, str], None] | None = None,
 ) -> str:
     """Run agent with streaming callbacks for UI updates.
 

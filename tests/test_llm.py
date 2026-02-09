@@ -110,9 +110,7 @@ async def test_convert_messages(ollama_client):
         Message(
             role="assistant",
             content="",
-            tool_calls=[
-                ToolCall(id="call_1", name="search", arguments={"q": "test"})
-            ],
+            tool_calls=[ToolCall(id="call_1", name="search", arguments={"q": "test"})],
         ),
         Message(
             role="tool",

@@ -4,7 +4,7 @@ import pytest
 import respx
 from httpx import Response
 
-from harombe.llm.client import CompletionResponse, Message, ToolCall
+from harombe.llm.client import CompletionResponse, Message
 from harombe.llm.remote import RemoteLLMClient
 from harombe.tools.base import ToolSchema
 

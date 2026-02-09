@@ -2,7 +2,7 @@
 
 import asyncio
 import socket
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
 from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf
 from zeroconf.asyncio import AsyncServiceInfo, AsyncZeroconf
@@ -44,13 +44,12 @@ class HarombeServiceListener:
             properties = {}
             if info.properties:
                 properties = {
-                    k.decode('utf-8'): v.decode('utf-8')
-                    for k, v in info.properties.items()
+                    k.decode("utf-8"): v.decode("utf-8") for k, v in info.properties.items()
                 }
 
-            node_name = properties.get('name', name.split('.')[0])
-            model = properties.get('model', 'unknown')
-            tier = int(properties.get('tier', '0'))
+            node_name = properties.get("name", name.split(".")[0])
+            model = properties.get("model", "unknown")
+            tier = int(properties.get("tier", "0"))
 
             node = NodeConfig(
                 name=node_name,
@@ -78,7 +77,7 @@ class ServiceDiscovery:
     def __init__(
         self,
         service_type: str = "_harombe._tcp.local.",
-        on_service_discovered: Optional[Callable[[NodeConfig], None]] = None,
+        on_service_discovered: Callable[[NodeConfig], None] | None = None,
     ):
         """
         Initialize service discovery.
@@ -89,9 +88,9 @@ class ServiceDiscovery:
         """
         self.service_type = service_type
         self.on_service_discovered = on_service_discovered
-        self.azeroconf: Optional[AsyncZeroconf] = None
-        self.browser: Optional[ServiceBrowser] = None
-        self.registered_service: Optional[ServiceInfo] = None
+        self.azeroconf: AsyncZeroconf | None = None
+        self.browser: ServiceBrowser | None = None
+        self.registered_service: ServiceInfo | None = None
 
     async def start_discovery(self) -> None:
         """Start discovering harombe services on the network."""
@@ -138,9 +137,9 @@ class ServiceDiscovery:
             addresses=[socket.inet_aton(local_ip)],
             port=port,
             properties={
-                b'name': name.encode('utf-8'),
-                b'model': model.encode('utf-8'),
-                b'tier': str(tier).encode('utf-8'),
+                b"name": name.encode("utf-8"),
+                b"model": model.encode("utf-8"),
+                b"tier": str(tier).encode("utf-8"),
             },
             server=f"{hostname}.local.",
         )

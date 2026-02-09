@@ -1,6 +1,5 @@
 """Tests for tool registration and schema generation."""
 
-from typing import Optional
 
 import pytest
 

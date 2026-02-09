@@ -2,7 +2,6 @@
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 from rich.table import Table
@@ -80,7 +79,7 @@ cluster:
     console.print(f"Config location: [cyan]{DEFAULT_CONFIG_PATH}[/cyan]")
 
 
-async def _async_status(config_path: Optional[str] = None):
+async def _async_status(config_path: str | None = None):
     """Async implementation of cluster status check."""
     if config_path:
         config = load_config(Path(config_path))
@@ -89,7 +88,9 @@ async def _async_status(config_path: Optional[str] = None):
 
     if not config.cluster or not config.cluster.nodes:
         console.print("[yellow]No cluster configured[/yellow]")
-        console.print("\nRun [cyan]harombe cluster init[/cyan] to generate a configuration template")
+        console.print(
+            "\nRun [cyan]harombe cluster init[/cyan] to generate a configuration template"
+        )
         return
 
     console.print("[bold]Checking cluster status...[/bold]\n")
@@ -110,7 +111,7 @@ async def _async_status(config_path: Optional[str] = None):
     table.add_column("Latency", style="yellow")
     table.add_column("Load", style="green")
 
-    for node_name in cluster._nodes.keys():
+    for node_name in cluster._nodes:
         node = cluster._nodes[node_name]
         health = cluster._health[node_name]
 
@@ -141,11 +142,7 @@ async def _async_status(config_path: Optional[str] = None):
     console.print(table)
 
     # Summary
-    available = sum(
-        1
-        for h in cluster._health.values()
-        if h.status == NodeStatus.AVAILABLE
-    )
+    available = sum(1 for h in cluster._health.values() if h.status == NodeStatus.AVAILABLE)
     total = len(cluster._nodes)
 
     console.print(f"\n[bold]Summary:[/bold] {available}/{total} nodes available")
@@ -153,12 +150,12 @@ async def _async_status(config_path: Optional[str] = None):
     await cluster.close()
 
 
-def cluster_status_command(config_path: Optional[str] = None):
+def cluster_status_command(config_path: str | None = None):
     """Show cluster status and node health."""
     asyncio.run(_async_status(config_path))
 
 
-async def _async_test(config_path: Optional[str] = None):
+async def _async_test(config_path: str | None = None):
     """Async implementation of cluster test."""
     if config_path:
         config = load_config(Path(config_path))
@@ -173,7 +170,7 @@ async def _async_test(config_path: Optional[str] = None):
 
     cluster = ClusterManager(config.cluster)
 
-    for node_name in cluster._nodes.keys():
+    for node_name in cluster._nodes:
         node = cluster._nodes[node_name]
         console.print(f"Testing [cyan]{node.name}[/cyan] ({node.host}:{node.port})... ", end="")
 
@@ -182,17 +179,17 @@ async def _async_test(config_path: Optional[str] = None):
         if health.status == NodeStatus.AVAILABLE:
             console.print(f"[green]✓[/green] OK ({health.latency_ms:.1f}ms)")
         else:
-            console.print(f"[red]✗[/red] Failed")
+            console.print("[red]✗[/red] Failed")
 
     await cluster.close()
 
 
-def cluster_test_command(config_path: Optional[str] = None):
+def cluster_test_command(config_path: str | None = None):
     """Test connectivity to all cluster nodes."""
     asyncio.run(_async_test(config_path))
 
 
-async def _async_metrics(config_path: Optional[str] = None, node: Optional[str] = None):
+async def _async_metrics(config_path: str | None = None, node: str | None = None):
     """Async implementation of cluster metrics display."""
     if config_path:
         config = load_config(Path(config_path))
@@ -201,7 +198,9 @@ async def _async_metrics(config_path: Optional[str] = None, node: Optional[str] 
 
     if not config.cluster or not config.cluster.nodes:
         console.print("[yellow]No cluster configured[/yellow]")
-        console.print("\nRun [cyan]harombe cluster init[/cyan] to generate a configuration template")
+        console.print(
+            "\nRun [cyan]harombe cluster init[/cyan] to generate a configuration template"
+        )
         return
 
     console.print("[bold]Cluster Performance Metrics[/bold]\n")
@@ -224,7 +223,7 @@ async def _async_metrics(config_path: Optional[str] = None, node: Optional[str] 
         console.print(f"Success Rate:      {metrics['success_rate']:.1%}")
         console.print(f"Average Latency:   {metrics['average_latency_ms']:.2f}ms")
         console.print(f"Tokens/Second:     {metrics['tokens_per_second']:.1f}")
-        if metrics['last_request']:
+        if metrics["last_request"]:
             console.print(f"Last Request:      {metrics['last_request']}")
         else:
             console.print("Last Request:      Never")
@@ -252,7 +251,7 @@ async def _async_metrics(config_path: Optional[str] = None, node: Optional[str] 
                 f"{node_metrics['success_rate']:.1%}",
                 f"{node_metrics['average_latency_ms']:.2f}ms",
                 f"{node_metrics['tokens_per_second']:.1f}",
-                node_metrics['last_request'] if node_metrics['last_request'] else "Never",
+                node_metrics["last_request"] if node_metrics["last_request"] else "Never",
             )
 
         console.print(table)
@@ -270,6 +269,6 @@ async def _async_metrics(config_path: Optional[str] = None, node: Optional[str] 
     await cluster.close()
 
 
-def cluster_metrics_command(config_path: Optional[str] = None, node: Optional[str] = None):
+def cluster_metrics_command(config_path: str | None = None, node: str | None = None):
     """Show cluster performance metrics."""
     asyncio.run(_async_metrics(config_path, node))

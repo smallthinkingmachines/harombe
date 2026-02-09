@@ -2,8 +2,6 @@
 
 import time
 
-import pytest
-
 from harombe.coordination.metrics import MetricsCollector, NodeMetrics, RequestMetrics
 
 
@@ -83,7 +81,7 @@ def test_metrics_collector_successful_requests():
     collector = MetricsCollector()
 
     # Track multiple successful requests
-    for i in range(5):
+    for _i in range(5):
         req_id = collector.start_request("node1")
         time.sleep(0.001)
         collector.end_request(req_id, success=True, tokens=50)
@@ -136,7 +134,7 @@ def test_metrics_collector_multiple_nodes():
 
     # Track requests for different nodes
     for node in ["node1", "node2", "node3"]:
-        for i in range(3):
+        for _i in range(3):
             req_id = collector.start_request(node)
             collector.end_request(req_id, success=True, tokens=100)
 

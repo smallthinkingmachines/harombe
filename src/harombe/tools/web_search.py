@@ -1,7 +1,6 @@
 """Web search tool using DuckDuckGo."""
 
 import asyncio
-from typing import Optional
 
 from duckduckgo_search import DDGS
 
@@ -48,4 +47,4 @@ async def web_search(query: str, max_results: int = 5) -> str:
         return output.strip()
 
     except Exception as e:
-        return f"Error performing web search: {str(e)}"
+        return f"Error performing web search: {e!s}"

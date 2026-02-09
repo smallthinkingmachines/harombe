@@ -3,7 +3,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
 from typer.testing import CliRunner
 
 from harombe.cli.app import app

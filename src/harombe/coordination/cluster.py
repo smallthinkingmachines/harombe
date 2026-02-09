@@ -1,11 +1,11 @@
 """Cluster management for multi-node orchestration."""
 
 import asyncio
+import contextlib
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional
 
 import httpx
 
@@ -65,10 +65,10 @@ class ClusterManager:
             health_check_interval: Seconds between health checks
         """
         self.config = config
-        self._nodes: Dict[str, NodeConfig] = {}
-        self._health: Dict[str, NodeHealth] = {}
-        self._clients: Dict[str, RemoteLLMClient] = {}
-        self._monitoring_task: Optional[asyncio.Task] = None
+        self._nodes: dict[str, NodeConfig] = {}
+        self._health: dict[str, NodeHealth] = {}
+        self._clients: dict[str, RemoteLLMClient] = {}
+        self._monitoring_task: asyncio.Task | None = None
         self.health_check_interval = health_check_interval
 
         # Circuit breaker for failing nodes
@@ -87,7 +87,7 @@ class ClusterManager:
         self._metrics = MetricsCollector()
 
         # Service discovery
-        self._discovery: Optional[ServiceDiscovery] = None
+        self._discovery: ServiceDiscovery | None = None
         if enable_discovery and config.discovery.method == "mdns":
             self._discovery = ServiceDiscovery(
                 service_type=config.discovery.mdns_service,
@@ -143,7 +143,7 @@ class ClusterManager:
                 await self._clients[name].close()
                 del self._clients[name]
 
-    def get_nodes_by_tier(self, tier: int, available_only: bool = True) -> List[NodeConfig]:
+    def get_nodes_by_tier(self, tier: int, available_only: bool = True) -> list[NodeConfig]:
         """
         Get all nodes in a specific tier.
 
@@ -158,14 +158,12 @@ class ClusterManager:
 
         if available_only:
             nodes = [
-                node
-                for node in nodes
-                if self._health[node.name].status == NodeStatus.AVAILABLE
+                node for node in nodes if self._health[node.name].status == NodeStatus.AVAILABLE
             ]
 
         return nodes
 
-    def get_node_by_name(self, name: str) -> Optional[NodeConfig]:
+    def get_node_by_name(self, name: str) -> NodeConfig | None:
         """
         Get a node by name.
 
@@ -177,7 +175,7 @@ class ClusterManager:
         """
         return self._nodes.get(name)
 
-    def get_node_health(self, name: str) -> Optional[NodeHealth]:
+    def get_node_health(self, name: str) -> NodeHealth | None:
         """
         Get health information for a node.
 
@@ -189,7 +187,7 @@ class ClusterManager:
         """
         return self._health.get(name)
 
-    def get_client(self, name: str) -> Optional[LLMClient]:
+    def get_client(self, name: str) -> LLMClient | None:
         """
         Get LLM client for a specific node.
 
@@ -246,10 +244,10 @@ class ClusterManager:
 
                 return health
 
-            except Exception as e:
+            except Exception:
                 # Exponential backoff
                 if attempt < max_retries - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(2**attempt)
                     continue
 
                 # All retries failed
@@ -262,14 +260,14 @@ class ClusterManager:
 
         return health
 
-    async def check_all_health(self) -> Dict[str, NodeHealth]:
+    async def check_all_health(self) -> dict[str, NodeHealth]:
         """
         Perform health checks on all nodes.
 
         Returns:
             Dictionary of node health by name
         """
-        tasks = [self.check_node_health(name) for name in self._nodes.keys()]
+        tasks = [self.check_node_health(name) for name in self._nodes]
         await asyncio.gather(*tasks, return_exceptions=True)
         return self._health
 
@@ -282,7 +280,7 @@ class ClusterManager:
         # Start periodic health monitoring
         await self.start_monitoring()
 
-    async def start_monitoring(self, interval: Optional[int] = None) -> None:
+    async def start_monitoring(self, interval: int | None = None) -> None:
         """
         Start periodic health monitoring.
 
@@ -305,12 +303,10 @@ class ClusterManager:
         """Stop periodic health monitoring."""
         if self._monitoring_task and not self._monitoring_task.done():
             self._monitoring_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._monitoring_task
-            except asyncio.CancelledError:
-                pass
 
-    def select_node(self, tier: int, fallback: bool = True) -> Optional[NodeConfig]:
+    def select_node(self, tier: int, fallback: bool = True) -> NodeConfig | None:
         """
         Select the best node for a query.
 
@@ -345,17 +341,13 @@ class ClusterManager:
         # Load balancing: select least loaded node
         if self.config.routing.load_balance and len(nodes) > 1:
             # Sort by load (ascending)
-            nodes_with_load = [
-                (node, self._health[node.name].load) for node in nodes
-            ]
+            nodes_with_load = [(node, self._health[node.name].load) for node in nodes]
             nodes_with_load.sort(key=lambda x: x[1])
             return nodes_with_load[0][0]
 
         # Prefer local (lowest latency)
         if self.config.routing.prefer_local and len(nodes) > 1:
-            nodes_with_latency = [
-                (node, self._health[node.name].latency_ms) for node in nodes
-            ]
+            nodes_with_latency = [(node, self._health[node.name].latency_ms) for node in nodes]
             nodes_with_latency.sort(key=lambda x: x[1])
             return nodes_with_latency[0][0]
 
@@ -365,9 +357,9 @@ class ClusterManager:
     def select_node_smart(
         self,
         query: str,
-        context: Optional[List[Message]] = None,
+        context: list[Message] | None = None,
         fallback: bool = True,
-    ) -> tuple[Optional[NodeConfig], RoutingDecision]:
+    ) -> tuple[NodeConfig | None, RoutingDecision]:
         """
         Smart node selection based on query complexity analysis.
 
@@ -387,7 +379,7 @@ class ClusterManager:
 
         return node, decision
 
-    def get_metrics(self, node_name: Optional[str] = None) -> dict:
+    def get_metrics(self, node_name: str | None = None) -> dict:
         """
         Get performance metrics.
 
@@ -406,7 +398,9 @@ class ClusterManager:
                     "success_rate": metrics.success_rate,
                     "average_latency_ms": metrics.average_latency_ms,
                     "tokens_per_second": metrics.tokens_per_second,
-                    "last_request": metrics.last_request_time.isoformat() if metrics.last_request_time else None,
+                    "last_request": metrics.last_request_time.isoformat()
+                    if metrics.last_request_time
+                    else None,
                 }
             return {}
 
@@ -419,7 +413,9 @@ class ClusterManager:
                     "success_rate": m.success_rate,
                     "average_latency_ms": m.average_latency_ms,
                     "tokens_per_second": m.tokens_per_second,
-                    "last_request": m.last_request_time.isoformat() if m.last_request_time else None,
+                    "last_request": m.last_request_time.isoformat()
+                    if m.last_request_time
+                    else None,
                 }
                 for name, m in all_metrics.items()
             },
@@ -459,7 +455,7 @@ class ClusterManager:
         # Clean up metrics
         self._metrics.reset_node_metrics(name)
 
-    def list_nodes(self) -> List[Dict[str, any]]:
+    def list_nodes(self) -> list[dict[str, any]]:
         """
         List all registered nodes with their status.
 
@@ -471,17 +467,19 @@ class ClusterManager:
             health = self._health.get(name)
             metrics = self._metrics.get_node_metrics(name)
 
-            nodes.append({
-                "name": name,
-                "host": node_config.host,
-                "port": node_config.port,
-                "model": node_config.model,
-                "tier": node_config.tier,
-                "status": health.status.value if health else "unknown",
-                "latency_ms": health.latency_ms if health else 0,
-                "requests": metrics.total_requests if metrics else 0,
-                "success_rate": metrics.success_rate if metrics else 0.0,
-            })
+            nodes.append(
+                {
+                    "name": name,
+                    "host": node_config.host,
+                    "port": node_config.port,
+                    "model": node_config.model,
+                    "tier": node_config.tier,
+                    "status": health.status.value if health else "unknown",
+                    "latency_ms": health.latency_ms if health else 0,
+                    "requests": metrics.total_requests if metrics else 0,
+                    "success_rate": metrics.success_rate if metrics else 0.0,
+                }
+            )
 
         return nodes
 

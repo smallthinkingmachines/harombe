@@ -1,11 +1,12 @@
 """Ollama LLM client using OpenAI SDK."""
 
 import json
-from typing import Any, AsyncIterator, Dict, List, Optional
+from collections.abc import AsyncIterator
+from typing import Any
 
 from openai import AsyncOpenAI
 
-from harombe.llm.client import CompletionResponse, LLMClient, Message, ToolCall
+from harombe.llm.client import CompletionResponse, Message, ToolCall
 
 
 class OllamaClient:
@@ -36,7 +37,7 @@ class OllamaClient:
             timeout=timeout,
         )
 
-    def _convert_messages(self, messages: List[Message]) -> List[Dict[str, Any]]:
+    def _convert_messages(self, messages: list[Message]) -> list[dict[str, Any]]:
         """Convert internal Message format to OpenAI format.
 
         Args:
@@ -48,7 +49,7 @@ class OllamaClient:
         openai_messages = []
 
         for msg in messages:
-            message_dict: Dict[str, Any] = {
+            message_dict: dict[str, Any] = {
                 "role": msg.role,
                 "content": msg.content,
             }
@@ -77,7 +78,7 @@ class OllamaClient:
 
         return openai_messages
 
-    def _parse_tool_calls(self, tool_calls: Any) -> List[ToolCall]:
+    def _parse_tool_calls(self, tool_calls: Any) -> list[ToolCall]:
         """Parse tool calls from OpenAI response.
 
         Args:
@@ -106,10 +107,10 @@ class OllamaClient:
 
     async def complete(
         self,
-        messages: List[Message],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        messages: list[Message],
+        tools: list[dict[str, Any]] | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> CompletionResponse:
         """Generate a completion from Ollama.
 
@@ -124,7 +125,7 @@ class OllamaClient:
         """
         openai_messages = self._convert_messages(messages)
 
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "model": self.model,
             "messages": openai_messages,
             "temperature": temperature if temperature is not None else self.temperature,
@@ -153,9 +154,9 @@ class OllamaClient:
 
     async def stream_complete(
         self,
-        messages: List[Message],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        temperature: Optional[float] = None,
+        messages: list[Message],
+        tools: list[dict[str, Any]] | None = None,
+        temperature: float | None = None,
     ) -> AsyncIterator[str]:
         """Stream a completion from Ollama.
 
@@ -169,7 +170,7 @@ class OllamaClient:
         """
         openai_messages = self._convert_messages(messages)
 
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "model": self.model,
             "messages": openai_messages,
             "temperature": temperature if temperature is not None else self.temperature,

@@ -1,13 +1,13 @@
 """Tool registration and discovery system."""
 
 import inspect
-from typing import Any, Callable, Dict, List, Union, get_type_hints
+from collections.abc import Callable
+from typing import Any, Union, get_type_hints
 
 from harombe.tools.base import Tool, ToolFunction, ToolParameter, ToolSchema
 
-
 # Global tool registry
-_TOOLS: Dict[str, Tool] = {}
+_TOOLS: dict[str, Tool] = {}
 
 
 def _python_type_to_json_schema(py_type: Any) -> str:
@@ -78,7 +78,7 @@ def tool(
         sig = inspect.signature(fn)
 
         # Build parameters from signature
-        parameters: List[ToolParameter] = []
+        parameters: list[ToolParameter] = []
 
         for param_name, param in sig.parameters.items():
             if param_name == "return":
@@ -139,7 +139,7 @@ def get_tool(name: str) -> Tool:
     return _TOOLS[name]
 
 
-def get_all_tools() -> Dict[str, Tool]:
+def get_all_tools() -> dict[str, Tool]:
     """Get all registered tools.
 
     Returns:
@@ -152,7 +152,7 @@ def get_enabled_tools(
     shell: bool = True,
     filesystem: bool = True,
     web_search: bool = True,
-) -> List[Tool]:
+) -> list[Tool]:
     """Get tools based on configuration flags.
 
     Args:

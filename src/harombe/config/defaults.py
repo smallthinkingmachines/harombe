@@ -1,6 +1,5 @@
 """Default model selection based on available VRAM."""
 
-from typing import Optional
 
 
 # Model selection table: maps VRAM threshold (GB) to recommended Qwen3 model
@@ -9,8 +8,8 @@ MODEL_SELECTION_TABLE = [
     (80, "qwen2.5:72b"),  # 72B model for high VRAM systems
     (40, "qwen2.5:32b"),  # 32B model
     (20, "qwen2.5:14b"),  # 14B model
-    (12, "qwen2.5:7b"),   # 7B model (most common)
-    (6, "qwen2.5:3b"),    # 3B for smaller systems
+    (12, "qwen2.5:7b"),  # 7B model (most common)
+    (6, "qwen2.5:3b"),  # 3B for smaller systems
     (3, "qwen2.5:1.5b"),  # 1.5B fallback
 ]
 

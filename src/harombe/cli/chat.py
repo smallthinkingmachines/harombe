@@ -2,29 +2,23 @@
 
 import asyncio
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
-from rich.spinner import Spinner
-from rich.live import Live
 
+# Import tools to register them
 from harombe.agent.loop import Agent
 from harombe.config.loader import load_config
 from harombe.llm.ollama import OllamaClient
 from harombe.tools.registry import get_enabled_tools
 
-# Import tools to register them
-import harombe.tools.shell
-import harombe.tools.filesystem
-import harombe.tools.web_search
-
 console = Console()
 
 
-def chat_command(config_path: Optional[str] = None):
+def chat_command(config_path: str | None = None):
     """Start interactive chat session.
 
     Args:
@@ -40,12 +34,14 @@ def chat_command(config_path: Optional[str] = None):
         return
 
     # Show welcome
-    console.print(Panel.fit(
-        f"[bold blue]harombe chat[/bold blue]\n"
-        f"Model: {config.model.name}\n"
-        f"Type /help for commands, /exit to quit",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            f"[bold blue]harombe chat[/bold blue]\n"
+            f"Model: {config.model.name}\n"
+            f"Type /help for commands, /exit to quit",
+            border_style="blue",
+        )
+    )
 
     # Run async chat loop
     asyncio.run(_async_chat(config))
@@ -73,7 +69,7 @@ async def _async_chat(config):
     )
 
     # Create confirmation callback for dangerous tools
-    def confirm_dangerous(tool_name: str, description: str, args: Dict[str, Any]) -> bool:
+    def confirm_dangerous(tool_name: str, description: str, args: dict[str, Any]) -> bool:
         console.print(f"\n[yellow]⚠️  Dangerous operation:[/yellow] {tool_name}")
         console.print(f"[dim]{description}[/dim]")
         console.print(f"Arguments: {args}")

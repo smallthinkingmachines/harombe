@@ -1,7 +1,6 @@
 """Remote LLM client for distributed inference."""
 
 from dataclasses import asdict
-from typing import List, Optional
 
 import httpx
 
@@ -17,7 +16,9 @@ class RemoteLLMClient(LLMClient):
     to another harombe instance running on a different machine.
     """
 
-    def __init__(self, host: str, port: int = 8000, timeout: int = 120, auth_token: Optional[str] = None):
+    def __init__(
+        self, host: str, port: int = 8000, timeout: int = 120, auth_token: str | None = None
+    ):
         """
         Initialize remote LLM client.
 
@@ -34,8 +35,8 @@ class RemoteLLMClient(LLMClient):
 
     async def complete(
         self,
-        messages: List[Message],
-        tools: Optional[List[ToolSchema]] = None,
+        messages: list[Message],
+        tools: list[ToolSchema] | None = None,
         temperature: float = 0.7,
     ) -> CompletionResponse:
         """

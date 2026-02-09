@@ -2,8 +2,6 @@
 
 import time
 
-import pytest
-
 from harombe.coordination.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,

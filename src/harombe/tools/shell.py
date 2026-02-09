@@ -1,7 +1,6 @@
 """Shell command execution tool."""
 
 import asyncio
-from typing import Optional
 
 from harombe.tools.registry import tool
 
@@ -31,7 +30,7 @@ async def shell(command: str, timeout: int = 30) -> str:
                 process.communicate(),
                 timeout=timeout,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             process.kill()
             await process.wait()
             return f"Error: Command timed out after {timeout} seconds"
@@ -51,9 +50,11 @@ async def shell(command: str, timeout: int = 30) -> str:
         # Truncate to 10KB
         max_chars = 10_000
         if len(output) > max_chars:
-            output = output[:max_chars] + f"\n... (truncated, {len(output) - max_chars} chars omitted)"
+            output = (
+                output[:max_chars] + f"\n... (truncated, {len(output) - max_chars} chars omitted)"
+            )
 
         return output
 
     except Exception as e:
-        return f"Error executing command: {str(e)}"
+        return f"Error executing command: {e!s}"
