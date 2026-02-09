@@ -4,6 +4,30 @@ ML-powered threat detection and behavioral analysis for Harombe agents.
 
 ## Quick Start
 
+### Threat Scoring (Recommended)
+
+```python
+from harombe.security.ml import ThreatScorer
+from datetime import datetime
+
+# Initialize scorer (combines ML + rules + threat intel)
+scorer = ThreatScorer()
+
+# Score an event
+score = await scorer.score_event("agent-123", {
+    "timestamp": datetime.now(),
+    "event_type": "tool_call",
+    "tool_name": "shell_execute",
+    "resource_count": 10,
+    "duration_ms": 500,
+    "success": True
+})
+
+print(f"Threat Level: {score.level}")
+print(f"Score: {score.total_score:.2f}")
+print(f"Explanation: {score.explanation}")
+```
+
 ### Anomaly Detection
 
 ```python
@@ -62,6 +86,19 @@ print(f"Anomaly scores: {anomalies}")
 ```
 
 ## Components
+
+### ThreatScorer
+
+Real-time threat scoring engine that combines multiple detection methods.
+
+**Features:**
+
+- Weighted scoring (ML 40%, Rules 30%, Intel 30%)
+- 5-level threat classification (NONE/LOW/MEDIUM/HIGH/CRITICAL)
+- 8 pre-configured security rules
+- Human-readable explanations
+- Multi-agent support
+- Automatic threat logging
 
 ### AnomalyDetector
 

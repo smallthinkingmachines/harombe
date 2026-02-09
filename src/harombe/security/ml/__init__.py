@@ -16,6 +16,7 @@ from .models import (
     SecurityEvent,
     ThreatLevel,
 )
+from .threat_scoring import ThreatRuleEngine, ThreatScore, ThreatScorer
 
 __all__ = [
     "AnomalyDetector",
@@ -25,4 +26,7 @@ __all__ = [
     "BehavioralPattern",
     "SecurityEvent",
     "ThreatLevel",
+    "ThreatRuleEngine",
+    "ThreatScore",
+    "ThreatScorer",
 ]
