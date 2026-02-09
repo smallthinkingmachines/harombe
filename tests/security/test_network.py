@@ -299,7 +299,7 @@ class TestEgressFilter:
         policy = NetworkPolicy(allow_dns=False, block_by_default=True)
         egress_filter = EgressFilter(policy)
 
-        allowed, reason = egress_filter.is_allowed("8.8.8.8", port=53)
+        allowed, _reason = egress_filter.is_allowed("8.8.8.8", port=53)
         assert allowed is False
 
     def test_filter_allow_localhost(self):

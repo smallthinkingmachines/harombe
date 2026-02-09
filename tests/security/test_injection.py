@@ -375,7 +375,7 @@ class TestDotEnvLoader:
         """Test that loading nonexistent file raises FileNotFoundError."""
         env_file = Path(temp_dir) / "nonexistent.env"
 
-        with pytest.raises(FileNotFoundError, match=".env file not found"):
+        with pytest.raises(FileNotFoundError, match=r"\.env file not found"):
             env_loader.load(env_file)
 
     def test_load_invalid_line_format(self, env_loader, temp_dir, capsys):

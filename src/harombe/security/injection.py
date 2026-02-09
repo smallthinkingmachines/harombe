@@ -14,6 +14,7 @@ Features:
 """
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -281,7 +282,7 @@ class SecretRotationScheduler:
     async def rotate_secret(
         self,
         secret_key: str,
-        generator: callable | None = None,
+        generator: Callable[[], str] | None = None,
     ) -> None:
         """Rotate a secret.
 

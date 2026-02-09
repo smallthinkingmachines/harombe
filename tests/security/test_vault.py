@@ -679,7 +679,7 @@ class TestHashiCorpVault:
         mock_response.status_code = 404
         mock_client.get.return_value = mock_response
 
-        with pytest.raises(ValueError, match="Secret .* not found"):
+        with pytest.raises(ValueError, match=r"Secret .* not found"):
             await backend.rotate_secret("nonexistent")
 
     @pytest.mark.asyncio

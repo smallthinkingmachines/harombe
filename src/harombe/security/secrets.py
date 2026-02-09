@@ -18,13 +18,13 @@ Features:
 import math
 import re
 from collections import Counter
-from enum import Enum
+from enum import StrEnum
 from typing import ClassVar
 
 from pydantic import BaseModel, Field
 
 
-class SecretType(str, Enum):
+class SecretType(StrEnum):
     """Types of secrets that can be detected."""
 
     API_KEY = "api_key"

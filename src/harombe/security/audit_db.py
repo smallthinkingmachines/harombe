@@ -20,14 +20,14 @@ import json
 import sqlite3
 import uuid
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     """Audit event types."""
 
     REQUEST = "request"
@@ -37,7 +37,7 @@ class EventType(str, Enum):
     TOOL_CALL = "tool_call"
 
 
-class SecurityDecision(str, Enum):
+class SecurityDecision(StrEnum):
     """Security decision outcomes."""
 
     ALLOW = "allow"
