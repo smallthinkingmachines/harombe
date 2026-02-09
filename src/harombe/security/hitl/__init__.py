@@ -12,6 +12,9 @@ from .auto_approval import (
     AutoApprovalEngine,
     AutoApprovalRule,
 )
+
+# Import context-aware engine
+from .context_engine import ContextAwareEngine, ContextDecision, DecisionType
 from .core import (
     ApprovalDecision,
     ApprovalStatus,
@@ -36,6 +39,9 @@ __all__ = [
     "AutoApprovalDecision",
     "AutoApprovalEngine",
     "AutoApprovalRule",
+    "ContextAwareEngine",
+    "ContextDecision",
+    "DecisionType",
     "HITLGate",
     "HITLRule",
     "HistoricalRiskScorer",
