@@ -108,7 +108,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 ├─────────────────────────────────────┤
 │  Layer 4: Agent & Memory            │  ReAct loop, tools, memory
 ├─────────────────────────────────────┤
-│  Layer 3: Security        │
+│  Layer 3: Security                  │
 │  MCP Gateway, container isolation   │  Credential vault, audit log
 │  Per-tool egress, HITL gates        │  Tool allowlist, secret scanning
 ├─────────────────────────────────────┤
