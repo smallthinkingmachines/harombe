@@ -204,10 +204,10 @@ async def test_get_relevant_context(semantic_memory):
     # Wait for async embedding tasks to complete
     await semantic_memory.wait_for_pending_embeddings()
 
-    # Get context for Python query
+    # Get context for Python query (small budget to test filtering)
     context = await semantic_memory.get_relevant_context(
         query="Python programming",
-        max_tokens=200,
+        max_tokens=30,  # Small budget: each message is ~7-13 tokens
     )
 
     # Should return Python-related messages within budget
