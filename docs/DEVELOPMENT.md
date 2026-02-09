@@ -43,7 +43,20 @@ If you use Nix, you can get a reproducible development environment:
 nix develop
 ```
 
-This provides Python, Ollama, and all dev dependencies pre-configured.
+This provides:
+
+- Python 3.12 + pip
+- Ollama
+- Development tools (ruff, mypy, pre-commit)
+- GNU Make
+- Git
+
+The Nix shell automatically:
+
+- Creates a Python virtual environment (.venv)
+- Installs harombe with dev dependencies
+- Installs pre-commit hooks
+- Shows available commands
 
 ### Running Tests
 

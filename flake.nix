@@ -25,9 +25,11 @@
             # Development tools
             ruff
             mypy
+            pre-commit
 
             # System dependencies
             git
+            gnumake
           ];
 
           shellHook = ''
@@ -42,12 +44,27 @@
 
             # Install package in editable mode with dev dependencies
             if [ -f pyproject.toml ]; then
+              echo "Installing harombe in editable mode..."
               pip install -e ".[dev]" --quiet 2>/dev/null || true
             fi
 
-            echo "harombe development environment ready!"
-            echo "Python: $(python --version)"
-            echo "Ollama: $(ollama --version 2>/dev/null || echo 'not running')"
+            # Install pre-commit hooks
+            if [ -f .pre-commit-config.yaml ] && ! [ -f .git/hooks/pre-commit ]; then
+              echo "Installing pre-commit hooks..."
+              pre-commit install --install-hooks 2>/dev/null || true
+            fi
+
+            echo ""
+            echo "✓ harombe development environment ready!"
+            echo "  Python: $(python --version)"
+            echo "  Ollama: $(ollama --version 2>/dev/null || echo 'not running')"
+            echo "  Pre-commit: $(pre-commit --version 2>/dev/null || echo 'not installed')"
+            echo ""
+            echo "Available commands:"
+            echo "  make help     - Show all Makefile commands"
+            echo "  make ci       - Run all checks (lint + type + test)"
+            echo "  harombe chat  - Start interactive agent"
+            echo ""
           '';
         };
       }
