@@ -44,6 +44,13 @@ from .network import (
     NetworkMonitor,
     NetworkPolicy,
 )
+from .sandbox_manager import (
+    ExecutionResult,
+    FileResult,
+    InstallResult,
+    Sandbox,
+    SandboxManager,
+)
 from .secrets import SecretMatch, SecretScanner, SecretType
 from .vault import (
     EnvVarBackend,
@@ -70,9 +77,12 @@ __all__ = [
     "EgressFilter",
     "EnvVarBackend",
     "EventType",
+    "ExecutionResult",
+    "FileResult",
     "HITLGate",
     "HITLRule",
     "HashiCorpVault",
+    "InstallResult",
     "MCPGateway",
     "NetworkIsolationManager",
     "NetworkMetrics",
@@ -83,6 +93,8 @@ __all__ = [
     "RiskClassifier",
     "RiskLevel",
     "SOPSBackend",
+    "Sandbox",
+    "SandboxManager",
     "SecretInjector",
     "SecretMatch",
     "SecretRotationScheduler",
