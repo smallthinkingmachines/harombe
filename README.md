@@ -87,7 +87,22 @@ harombe chat
 
 That's it! You have a working autonomous agent in under 5 minutes.
 
-The `harombe chat` command provides an interactive interface to the agent system. The agent can execute shell commands, read/write files, search the web, and perform multi-step reasoning to accomplish tasks.
+**Example multi-step task:**
+```
+You: Find all Python files in this directory that import 'requests',
+     check which ones don't have error handling, and create a summary report.
+
+Agent: I'll help you analyze Python files for requests usage and error handling.
+       [Executing: find . -name "*.py"]
+       [Executing: grep -l "import requests" on each file]
+       [Reading files and analyzing error handling patterns]
+       [Writing summary to requests_analysis.md]
+
+       Done! I found 12 files using requests. 5 of them lack try-except blocks
+       around HTTP calls. Summary saved to requests_analysis.md
+```
+
+The agent autonomously plans the workflow, executes tools, and delivers results.
 
 ## Usage
 
