@@ -37,6 +37,62 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 >
 > See [SECURITY.md](SECURITY.md) for detailed security guidance.
 
+## Usage Patterns
+
+harombe supports two approaches for working with AI agents:
+
+### Library Approach (Current)
+
+Use harombe as a Python library to programmatically create and control agents. This gives you maximum flexibility to integrate AI capabilities into your existing applications.
+
+```python
+from harombe.agent.loop import Agent
+from harombe.llm.ollama import OllamaClient
+from harombe.tools.registry import get_enabled_tools
+
+# Create an agent programmatically
+llm = OllamaClient(model="qwen2.5:7b")
+tools = get_enabled_tools(shell=True, filesystem=True, web_search=True)
+agent = Agent(llm=llm, tools=tools, system_prompt="You are a helpful assistant.")
+
+# Use it in your code
+response = await agent.run("Analyze this dataset")
+```
+
+**When to use:**
+
+- Building custom applications with AI capabilities
+- Need fine-grained control over agent behavior
+- Integrating with existing Python codebases
+- Dynamic agent creation based on runtime conditions
+
+### Platform Approach (Future)
+
+Define agents declaratively in YAML configuration, and let harombe create and manage them for you. This makes it easy to deploy pre-configured agents without writing code.
+
+```yaml
+# Future: harombe.yaml
+agents:
+  - name: research-agent
+    system_prompt: "You are a research assistant."
+    tools: [web_search, filesystem]
+    model: qwen2.5:7b
+
+  - name: sysadmin-agent
+    system_prompt: "You are a system administrator."
+    tools: [shell, filesystem]
+    model: qwen2.5:14b
+```
+
+**When to use (planned):**
+
+- Deploying standardized agents across your infrastructure
+- Configuration-driven workflows
+- Quick agent setup without coding
+- Team environments with shared agent configurations
+
+**Current status:** The platform approach with declarative agent configuration is planned for a future phase. For now, use the library approach shown in the [examples](examples/) directory.
+
 ## Architecture
 
 harombe is a five-layer system designed for clarity and extensibility:
@@ -122,13 +178,15 @@ Each example includes detailed comments and can be run standalone.
 
 ## Usage
 
-### Interactive Agent Interface
+harombe provides both CLI commands (platform mode) and a Python library (library mode).
+
+### Interactive Agent Interface (CLI)
 
 ```bash
 harombe chat
 ```
 
-Interact with the autonomous agent through a conversational interface. The agent will:
+The `harombe chat` command creates and manages an agent for you based on your configuration. The agent will:
 
 - Reason about tasks and break them into steps
 - Execute tools as needed (shell commands, file operations, web search)
@@ -142,7 +200,7 @@ Commands:
 - `/tools` - List enabled tools
 - `/exit` - Exit interface
 
-### Programmatic Access
+### REST API (CLI)
 
 ```bash
 # Start API server
@@ -158,6 +216,24 @@ curl -X POST http://localhost:8000/chat \
 ```
 
 The REST API provides programmatic access to the agent system for integration with other tools, automation pipelines, or custom interfaces.
+
+### Python Library
+
+For deeper integration, use harombe as a Python library in your code. See [`examples/02_api_usage.py`](examples/02_api_usage.py) for comprehensive examples:
+
+```python
+from harombe.agent.loop import Agent
+from harombe.llm.ollama import OllamaClient
+from harombe.tools.registry import get_enabled_tools
+
+llm = OllamaClient(model="qwen2.5:7b")
+tools = get_enabled_tools(shell=True, filesystem=True, web_search=True)
+agent = Agent(llm=llm, tools=tools, system_prompt="You are a helpful assistant.")
+
+response = await agent.run("Your task here")
+```
+
+This gives you full control over agent creation, configuration, and behavior.
 
 ### Configuration
 

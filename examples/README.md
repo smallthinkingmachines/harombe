@@ -1,6 +1,12 @@
 # Harombe Examples
 
-This directory contains example scripts demonstrating how to use harombe for various agent workloads.
+This directory contains example scripts demonstrating how to use harombe as a **library** for various agent workloads.
+
+## About These Examples
+
+These examples show the **library approach** to using harombe: you create and control agents programmatically in your Python code. This gives you maximum flexibility to integrate AI capabilities into your applications.
+
+**Future approach:** In a later phase, harombe will also support a **platform approach** where you can define agents declaratively in YAML configuration files, and the framework will create and manage them for you. For now, all examples use the programmatic library approach.
 
 ## Prerequisites
 
@@ -46,16 +52,50 @@ The agent will:
 
 Each query demonstrates different agent capabilities and tool usage.
 
+### 02. API/Programmatic Usage (`02_api_usage.py`)
+
+**What it demonstrates:**
+
+- Using harombe programmatically in Python applications
+- Custom confirmation callbacks for dangerous operations
+- Error handling patterns (try-except, retry, graceful degradation)
+- Multiple agents with different tool configurations
+- Integrating harombe into existing codebases
+
+**What you'll learn:**
+
+- How to create custom confirmation logic
+- Best practices for error handling with agents
+- How to use multiple specialized agents
+- How to build batch processing systems with agents
+- Production patterns for using harombe in applications
+
+**Run it:**
+
+```bash
+python examples/02_api_usage.py
+```
+
+**Expected output:**
+
+The example runs 5 demonstrations:
+
+1. Basic programmatic agent creation and usage
+2. Custom confirmation callback with auto-approval logic
+3. Error handling patterns (specific errors, fallbacks, retries)
+4. Agent state inspection (conversation history)
+5. Integration example (batch task processor)
+
 ## Coming Soon
 
-- **02. Multi-step Data Pipeline** - Process CSV files, analyze data, generate reports
-- **03. Code Review Agent** - Analyze code quality, suggest improvements
-- **04. Research Agent** - Multi-source web research with synthesis
-- **05. Cluster Routing** - Multi-node deployment with complexity-based routing
+- **03. Multi-step Data Pipeline** - Process CSV files, analyze data, generate reports
+- **04. Code Review Agent** - Analyze code quality, suggest improvements
+- **05. Research Agent** - Multi-source web research with synthesis
+- **06. Cluster Routing** - Multi-node deployment with complexity-based routing
 
 ## Example Template
 
-Here's a minimal template for creating your own agent:
+Here's a minimal template for creating your own agent programmatically (library approach):
 
 ```python
 import asyncio
