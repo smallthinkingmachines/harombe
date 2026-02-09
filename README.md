@@ -35,9 +35,15 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 > - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
 >
-> **Security Layer (Phase 4):** Full security layer with container isolation, credential vaults, audit logging, and per-tool egress controls is planned. Current version uses basic confirmation prompts.
+> **Security Layer (Phase 4 - Foundation Complete):** Core security infrastructure is now implemented:
 >
-> See [SECURITY.md](SECURITY.md) for detailed security guidance.
+> - ✅ MCP Gateway with containerized tool isolation
+> - ✅ Comprehensive audit logging with SQLite
+> - ✅ Secret management (HashiCorp Vault, SOPS, env vars)
+> - ✅ Per-container network egress filtering
+> - ⏳ HITL gates, browser pre-auth, and code execution sandbox (Phase 4.5-4.8)
+>
+> See [SECURITY.md](SECURITY.md) and [docs/security-quickstart.md](docs/security-quickstart.md) for detailed security guidance.
 
 ## Usage Patterns
 
@@ -104,13 +110,13 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 │  Layer 6: Clients                   │  Voice, iOS, Web, CLI
 ├─────────────────────────────────────┤
 │  Layer 5: Privacy Router            │  Hybrid local/cloud AI
-│  Classifies queries by sensitivity  │  (Phase 4)
+│  Classifies queries by sensitivity  │  (Phase 5 - Planned)
 ├─────────────────────────────────────┤
 │  Layer 4: Agent & Memory            │  ReAct loop, tools, memory
 ├─────────────────────────────────────┤
-│  Layer 3: Security                  │
-│  MCP Gateway, container isolation   │  Credential vault, audit log
-│  Per-tool egress, HITL gates        │  Tool allowlist, secret scanning
+│  Layer 3: Security                  │  Phase 4 Foundation: ✅ Complete
+│  ✅ MCP Gateway, container isolation│  ✅ Credential vault, audit log
+│  ✅ Per-tool egress, secret scanning│  ⏳ HITL gates, browser/code sandbox
 ├─────────────────────────────────────┤
 │  Layer 2: Orchestration             │  Smart routing, health monitoring
 │  Cluster config, mDNS discovery     │  Circuit breakers, metrics
@@ -119,7 +125,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 └─────────────────────────────────────┘
 ```
 
-**Layer 3: Security** — Harombe's security layer provides container isolation, credential management, and audit logging. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways).
+**Layer 3: Security** — Harombe's security layer foundation is now complete (Phase 4.1-4.4), providing container isolation, credential management, audit logging, and network egress filtering. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways). See [docs/security-quickstart.md](docs/security-quickstart.md) for setup instructions.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
@@ -165,6 +171,24 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 - Voice API endpoints (REST + WebSocket streaming)
 - Real-time audio processing with sounddevice
 - Cross-platform audio I/O (macOS, Linux, Windows)
+
+**Phase 4 (Foundation Complete):** Security Layer
+
+Core security infrastructure implemented (Phase 4.1-4.4):
+
+- **MCP Protocol & Gateway** - JSON-RPC 2.0 protocol base, containerized MCP Gateway server
+- **Audit Logging** - SQLite-based comprehensive audit trail with sensitive data redaction
+- **Secret Management** - HashiCorp Vault, SOPS, and environment variable backends
+- **Network Isolation** - Per-container egress filtering with Docker networks and iptables
+
+Remaining work (Phase 4.5-4.8):
+
+- Human-in-the-loop (HITL) confirmation gates
+- Browser container with pre-authenticated sessions
+- Code execution sandbox with gVisor
+- End-to-end security integration and testing
+
+See [docs/security-quickstart.md](docs/security-quickstart.md) for setup instructions.
 
 ## Quick Start
 
@@ -251,12 +275,13 @@ See [`examples/`](examples/) for working code demonstrating:
 
 - **01_simple_agent.py** - Basic single-node usage with all tools
 - **02_api_usage.py** - Programmatic agent creation and tool usage
-- **03_custom_tools.py** - Creating and registering custom tools
-- **04_cluster_setup.py** - Multi-machine orchestration
-- **05_smart_routing.py** - Task-based routing across heterogeneous nodes
+- **03_data_pipeline.py** - Data processing pipeline with autonomous agents
+- **04_code_review.py** - Automated code review workflows
+- **05_research_agent.py** - Research automation with web search
 - **06_memory_conversation.py** - Persistent conversation history
-- **07_memory_sessions.py** - Multi-session memory management
+- **07_cluster_routing.py** - Task-based routing across heterogeneous nodes
 - **08_semantic_memory.py** - Semantic search and RAG capabilities
+- **09_voice_assistant.py** - Voice-enabled AI assistant (STT + TTS)
 
 Each example includes detailed comments and can be run standalone.
 
@@ -775,33 +800,55 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
   - RAG (Retrieval-Augmented Generation) for context-aware responses
   - Cross-session knowledge retrieval
 
-### Phase 3: Voice & Multi-Modal (In Progress)
+### Phase 3: Voice & Multi-Modal (Complete)
 
 - ✅ Whisper STT integration (speech-to-text)
 - ✅ TTS integration (Piper fast, Coqui high-quality)
-- Voice client (push-to-talk or wake word)
-- Voice API endpoints (REST + WebSocket)
-- Progressive feedback during tool execution
-- Multi-modal support (vision - future)
+- ✅ Voice client (push-to-talk)
+- ✅ Voice API endpoints (REST + WebSocket)
+- ✅ Real-time audio processing
+- ✅ Cross-platform audio I/O (macOS, Linux, Windows)
+- 🔮 Multi-modal support (vision - future phases)
 
-### Phase 4: Security Layer (Planned)
+### Phase 4: Security Layer (Foundation Complete)
 
-**Capability-Container Pattern:**
+**Phase 4.1-4.4 (Complete):** Core security infrastructure
 
-- Docker MCP Gateway with per-tool isolation
-- Containerized MCP servers with resource limits
-- Per-service egress allowlists
-- Credential isolation (`.env` injection → Vault/SOPS)
-- Pre-authenticated browser container (accessibility-snapshot mode)
-- Tool allowlist + destructive action confirmation
-- Full audit trail of agent decisions and tool calls
+- ✅ **MCP Protocol Base** - JSON-RPC 2.0 protocol implementation
+- ✅ **Docker Container Manager** - Container lifecycle management with resource limits
+- ✅ **MCP Gateway Server** - Centralized gateway for tool execution routing
+- ✅ **Audit Logging System** - SQLite-based comprehensive audit trail
+  - Event tracking (requests, responses, errors)
+  - Tool call logging with parameters and results
+  - Security decision logging
+  - Sensitive data redaction (API keys, passwords, tokens)
+- ✅ **Secret Management** - Multi-backend credential vault
+  - HashiCorp Vault integration (production)
+  - SOPS file encryption (small teams)
+  - Environment variables (development)
+  - Secret scanning and detection
+  - Automatic secret injection into containers
+- ✅ **Network Isolation** - Per-container egress filtering
+  - Docker network isolation
+  - iptables-based egress rules
+  - Domain allowlists
+  - DNS query filtering
+  - Connection attempt logging
 
-**Security Hardening:**
+**Phase 4.5-4.8 (Planned):** Advanced security features
 
-- gVisor sandbox for code execution
-- HttpOnly cookies + network isolation for browser tools
-- Secret scanning in gateway
-- Human-in-the-loop gates for sensitive operations
+- ⏳ Human-in-the-loop (HITL) confirmation gates for sensitive operations
+- ⏳ Pre-authenticated browser container (accessibility-snapshot mode)
+- ⏳ Code execution sandbox with gVisor
+- ⏳ End-to-end security integration and testing
+
+**Documentation:**
+
+- [Security Quick Start](docs/security-quickstart.md)
+- [Audit Logging](docs/audit-logging.md)
+- [Secret Management](docs/security-credentials.md)
+- [Network Isolation](docs/security-network.md)
+- [MCP Gateway Design](docs/mcp-gateway-design.md)
 
 ### Phase 5: Privacy Router (Planned)
 

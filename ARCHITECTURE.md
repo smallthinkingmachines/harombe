@@ -44,7 +44,7 @@ flowchart TB
 - **Layer 6 (Clients):** Voice interface, iOS/web apps, CLI commands, REST API with SSE streaming
 - **Layer 5 (Privacy Router - Phase 5):** Hybrid local/cloud AI, PII detection, context sanitization, configurable privacy boundary
 - **Layer 4 (Agent):** ReAct agent loop, tool registry and execution, conversation state, memory (SQL + vector)
-- **Layer 3 (Security - Phase 4):** MCP Gateway, container isolation per tool, credential vault, audit logging, per-tool egress control, HITL gates
+- **Layer 3 (Security - Phase 4 Foundation Complete):** MCP Gateway (✅), container isolation (✅), credential vault (✅), audit logging (✅), per-tool egress control (✅), HITL gates (⏳)
 - **Layer 2 (Coordination):** Cluster manager, smart routing, health monitoring, metrics, circuit breakers, mDNS discovery
 - **Layer 1 (Runtimes):** llama.cpp (LLM), Whisper (STT), Piper/Coqui (TTS), sentence-transformers (embeddings), hardware detection
 
@@ -191,11 +191,13 @@ cluster:
 
 ---
 
-## Layer 3.5: Security — Phase 4
+## Layer 3.5: Security — Phase 4 (Foundation Complete)
 
 **Purpose:** Enforce security boundaries for tool execution and credential management.
 
 Harombe's security layer implements the **Capability-Container Pattern** for securing AI agent tool execution. Research completed February 2026 revealed a critical insight: **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer through containers, network policies, and gateways.
+
+**Status:** Phase 4.1-4.4 complete (foundation), Phase 4.5-4.8 planned (advanced features).
 
 ### The Capability-Container Pattern
 
@@ -206,76 +208,144 @@ Every tool runs in its own isolated container. The agent talks to an **MCP Gatew
 │  Agent Container (ReAct loop, LLM)              │
 │  Can ONLY talk to MCP Gateway                   │
 ├─────────────────────────────────────────────────┤
-│  MCP Gateway (auth, audit, secret-scanning)     │
+│  MCP Gateway (auth, audit, secret-scanning)     │  ✅ Implemented
 ├──────────┬──────────┬──────────┬────────────────┤
 │ Browser  │ Files    │ Code     │ API MCP        │
 │ (pre-auth│ (scoped  │ (gVisor  │ Servers        │
 │ cookies) │ volumes) │ sandbox) │ (containerized)│
+│    ⏳    │    ⏳    │    ⏳    │       ✅       │
 └──────────┴──────────┴──────────┴────────────────┘
 ```
 
-### Security Components
+### Implemented Security Components (Phase 4.1-4.4)
 
-**Container Isolation (Phase 4):**
+**✅ MCP Protocol & Gateway (Phase 4.1):**
 
-- Docker for Phase 1 (current: basic confirmation prompts)
-- Each MCP server in own container with 1 CPU / 2GB RAM cap
-- gVisor for code execution (stronger sandbox)
-- Firecracker only if multi-tenant hosting needed
+- JSON-RPC 2.0 protocol implementation
+- Docker container manager for lifecycle management
+- MCP Gateway server with routing capabilities
+- Container health monitoring and restart policies
+- Resource limits (CPU, memory) per container
 
-**MCP Gateway:**
+**✅ Audit Logging System (Phase 4.2):**
 
-- Request authentication and authorization
-- Secret scanning before responses reach agent
-- Full audit trail of all tool calls
-- Per-service egress allowlists (firewall rules per container)
+- SQLite-based comprehensive audit trail
+- Event tracking: requests, responses, tool calls, security decisions
+- Sensitive data redaction (API keys, passwords, JWT tokens, etc.)
+- Query interface for compliance reporting (SOC 2, GDPR)
+- Performance optimized with WAL mode and indexes
+- Retention policies and automatic cleanup
 
-**Credential Management:**
+**✅ Secret Management (Phase 4.3):**
 
-- Phase 1: `.env` file injection (never in config, never in LLM context)
-- Phase 4: HashiCorp Vault or SOPS for encrypted secrets
-- Time-limited tokens
-- Automatic rotation
+- **HashiCorp Vault integration** - Production-grade secret storage
+  - Dynamic secrets with time-limited leases
+  - AppRole authentication for automated access
+  - Automatic token renewal
+- **SOPS integration** - Encrypted files for teams
+  - age or GPG encryption
+  - Version control friendly (encrypted files in git)
+- **Environment variables** - Development fallback
+- **Secret scanning** - Detect and redact leaked credentials
+  - Pattern matching for common secret formats
+  - Entropy-based detection for unknown formats
+  - Alert system for credential leakage
+- **Environment injection** - Secure delivery to containers
+  - Secrets fetched from vault at container startup
+  - Injected as environment variables (never in config)
+  - Automatic cleanup on container stop
 
-**Browser Tools:**
+**✅ Network Isolation (Phase 4.4):**
+
+- Per-container Docker network namespaces
+- iptables-based egress filtering (default deny)
+- Domain allowlists with wildcard support
+- DNS query filtering and logging
+- Connection attempt audit trail
+- Suspicious pattern detection (port scanning, DNS tunneling, data exfiltration)
+- Support for CIDR blocks and IP ranges
+
+### Planned Security Components (Phase 4.5-4.8)
+
+**⏳ Human-in-the-Loop Gates (Phase 4.5):**
+
+- Confirmation prompts for destructive actions
+- Risk-based approval workflows
+- Timeout-based auto-deny
+- Audit trail of approvals/denials
+
+**⏳ Browser Container (Phase 4.6):**
 
 - Pre-authenticated persistent profile (cookies managed outside agent)
 - Accessibility-snapshot mode (structured elements, not raw DOM/CDP)
 - HttpOnly cookies + network isolation
-- Human-in-the-loop (HITL) for destructive actions (send email, delete, etc.)
+- Screenshot and element interaction tools
 
-**Tool Poisoning Defense:**
+**⏳ Code Execution Sandbox (Phase 4.7):**
 
-- Curated tool allowlist (no auto-discovery)
-- Gateway scans for injection attempts
-- Claude as default cloud model (\\<3% attack success rate in research)
-- Regular security audits
+- gVisor sandbox for stronger isolation
+- Network disabled by default
+- Optional package registry access (PyPI, npm)
+- Execution time limits
+
+**⏳ End-to-End Integration (Phase 4.8):**
+
+- Full MCP server implementations
+- Integration testing
+- Performance optimization
+- Production deployment guides
 
 ### Configuration Example
 
-```toml
-[security]
-isolation = "docker"  # docker | gvisor | firecracker
+```yaml
+security:
+  enabled: true
+  isolation: docker # docker | gvisor (future)
 
-[security.mcp.servers.browser]
-egress_allow = ["mail.google.com", "calendar.google.com"]
-interaction_mode = "accessibility-snapshot"
-confirm_actions = ["send_email", "delete_*"]
+  # MCP Gateway
+  gateway:
+    host: 127.0.0.1
+    port: 8100
 
-[security.mcp.servers.filesystem]
-mounts = ["/home/user/documents:ro"]
-egress_allow = []
+  # Audit logging
+  audit:
+    enabled: true
+    db_path: ~/.harombe/audit.db
+    retention_days: 90
+    redact_sensitive: true
 
-[security.mcp.servers.code-execution]
-sandbox = "gvisor"
-egress_allow = []
-cpu_limit = "1"
-memory_limit = "2g"
+  # Secret management
+  credentials:
+    provider: vault # vault | sops | env
+    vault_url: http://localhost:8200
+    mount_point: secret
+    auto_renew: true
 
-[security.credentials]
-method = "env"  # env | vault | sops
-env_file = ".env.harombe"
-# vault_addr = "http://localhost:8200"  # Phase 4
+  # Container configurations
+  containers:
+    browser:
+      image: harombe/browser:latest
+      enabled: true
+      egress_allow:
+        - "*.google.com"
+        - "*.github.com"
+      secrets:
+        GITHUB_TOKEN: github/token
+
+    filesystem:
+      image: harombe/filesystem:latest
+      enabled: true
+      egress_allow: [] # No network access
+      mounts:
+        - /home/user/documents:ro
+
+    code_exec:
+      image: harombe/code-exec:latest
+      enabled: true
+      egress_allow: [] # No network by default
+      # egress_allow:  # Optional: package registries
+      #   - pypi.org
+      #   - registry.npmjs.org
 ```
 
 ### Key Decisions (Feb 2026 Security Research)
@@ -286,6 +356,17 @@ env_file = ".env.harombe"
 4. **Accessibility APIs** provide structured interaction without DOM access
 5. **Allowlists over blocklists** — explicit approval required for each tool
 6. **Audit everything** — full trail for compliance and debugging
+
+### Documentation
+
+For detailed setup and usage:
+
+- [Security Quick Start](docs/security-quickstart.md) - Get started in 5 minutes
+- [Audit Logging](docs/audit-logging.md) - Comprehensive audit trail system
+- [Secret Management](docs/security-credentials.md) - Vault, SOPS, and credential handling
+- [Network Isolation](docs/security-network.md) - Egress filtering and DNS control
+- [MCP Gateway Design](docs/mcp-gateway-design.md) - Gateway architecture
+- [Phase 4 Implementation Plan](docs/phase4-implementation-plan.md) - Complete roadmap
 
 ---
 
@@ -348,14 +429,25 @@ The decorator:
 
 **Extensibility:** Easy to add custom tools following the same pattern.
 
-### Memory (Phase 2)
+### Memory (Phase 2 - Complete)
 
-Future additions:
+**Phase 2.1 (Complete):** Conversation Memory
 
-- Long-term conversation memory
-- Vector store integration (e.g., Qdrant)
-- Knowledge base management
-- Privacy router for PII detection
+- SQLite-based conversation persistence
+- Session management and lifecycle
+- Token-based context windowing
+- Multi-turn conversations with history recall
+- Backward compatible (memory is optional)
+
+**Phase 2.2 (Complete):** Semantic Search & RAG
+
+- Vector embeddings with sentence-transformers (privacy-first, local)
+- ChromaDB vector store for similarity search
+- Semantic search across conversation history
+- RAG (Retrieval-Augmented Generation) for context-aware responses
+- Cross-session knowledge retrieval
+
+See [docs/memory-architecture.md](docs/memory-architecture.md) and [docs/vector-store-architecture.md](docs/vector-store-architecture.md) for details.
 
 ---
 
@@ -527,28 +619,73 @@ Cluster Summary
 
 ---
 
+## Completed Phases
+
+### ✅ Phase 0: Single-Machine Foundation
+
+- Tool execution system (shell, filesystem, web search)
+- ReAct agent loop with autonomous reasoning
+- Hardware auto-detection and model selection
+- Interactive CLI and REST API
+
+### ✅ Phase 1: Multi-Machine Orchestration
+
+- Cluster configuration and smart routing
+- Health monitoring with circuit breakers
+- Performance metrics and observability
+- mDNS service discovery
+
+### ✅ Phase 2: Memory & Context
+
+- **Phase 2.1:** SQLite conversation persistence, session management
+- **Phase 2.2:** Vector embeddings, semantic search, RAG with ChromaDB
+
+### ✅ Phase 3: Voice & Multi-Modal
+
+- Speech-to-text with Whisper (all models)
+- Text-to-speech with Piper and Coqui
+- Push-to-talk voice interface
+- Voice API endpoints (REST + WebSocket)
+
+### ✅ Phase 4 Foundation: Security Layer
+
+- **Phase 4.1:** MCP protocol base, Docker container manager, MCP Gateway
+- **Phase 4.2:** Audit logging with SQLite, sensitive data redaction
+- **Phase 4.3:** Secret management (Vault, SOPS, env vars)
+- **Phase 4.4:** Network isolation with egress filtering
+
 ## Future Roadmap
 
-### Phase 2: Memory & Privacy
+### Phase 4 Completion: Advanced Security
 
-- Long-term conversation memory
-- Vector store for semantic search
-- Privacy router (detect PII, route sensitive queries locally)
-- Knowledge base management
+- **Phase 4.5:** Human-in-the-loop (HITL) confirmation gates
+- **Phase 4.6:** Browser container with pre-authenticated sessions
+- **Phase 4.7:** Code execution sandbox with gVisor
+- **Phase 4.8:** End-to-end integration and testing
 
-### Phase 3: Advanced Features
+### Phase 5: Privacy Router
 
-- Voice I/O (STT/TTS)
+- Hybrid local/cloud AI with configurable privacy boundary
+- PII detection and redaction before cloud calls
+- Context sanitization
+- Three modes: `local-only`, `hybrid` (default), `cloud-assisted`
+- User-configurable privacy policies
+
+### Phase 6: Community & Polish
+
 - Web UI with real-time updates
 - Plugin system for custom tools
-- Multi-modal support (vision, audio)
+- Distributed inference (single model across machines via llama.cpp RPC)
+- iOS/web clients
+- Contributor documentation and tooling
 
-### Potential Additions
+### Potential Future Additions
 
 - Speculative decoding across nodes
 - Model ensembles (multiple nodes vote)
 - Fine-tuning workflow integration
 - Observability dashboard (Grafana-style)
+- Multi-modal support (vision)
 
 ---
 
@@ -558,14 +695,36 @@ Cluster Summary
 src/harombe/
 ├── __init__.py
 ├── __main__.py
-├── cli/              # Layer 5: User interface
+├── cli/              # Layer 6: User interface
 │   ├── app.py
 │   ├── chat.py
+│   ├── voice.py
 │   ├── cluster_cmd.py
 │   └── init_cmd.py
 ├── agent/            # Layer 4: Agent loop
 │   └── loop.py
-├── coordination/     # Layer 3: Multi-machine
+├── memory/           # Layer 4: Memory & context
+│   ├── manager.py
+│   ├── storage.py
+│   └── session.py
+├── embeddings/       # Layer 4: Vector embeddings
+│   └── sentence_transformer.py
+├── vector/           # Layer 4: Vector store
+│   └── chromadb.py
+├── voice/            # Layer 4: Voice I/O
+│   ├── stt.py
+│   ├── tts.py
+│   └── audio.py
+├── security/         # Layer 3: Security
+│   ├── gateway.py        # MCP Gateway server
+│   ├── docker_manager.py # Container lifecycle
+│   ├── audit_logger.py   # Audit logging
+│   ├── audit_db.py       # SQLite audit database
+│   ├── vault.py          # Secret management backends
+│   ├── injection.py      # Secret injection
+│   ├── secrets.py        # Secret scanning
+│   └── network.py        # Network isolation
+├── coordination/     # Layer 2: Multi-machine
 │   ├── cluster.py
 │   ├── router.py
 │   ├── circuit_breaker.py

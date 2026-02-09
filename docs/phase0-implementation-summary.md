@@ -16,6 +16,7 @@ Successfully implemented the complete Harombe Phase 0 MVP according to the plan.
 ## What Was Built
 
 ### Sprint 1: Foundation ✅
+
 - Git repository with proper `.gitignore`, LICENSE (Apache 2.0)
 - Nix flake with direnv integration for reproducible dev environment
 - `pyproject.toml` with all dependencies and build configuration
@@ -25,6 +26,7 @@ Successfully implemented the complete Harombe Phase 0 MVP according to the plan.
 - Comprehensive test suite for config and tools
 
 ### Sprint 2: Core Engine ✅
+
 - LLM client protocol (abstract interface)
 - Ollama client using OpenAI SDK pointed at local Ollama server
 - ReAct agent loop (~150 LOC core logic)
@@ -36,6 +38,7 @@ Successfully implemented the complete Harombe Phase 0 MVP according to the plan.
 - Full test coverage for agent and LLM client (mocked)
 
 ### Sprint 3: CLI Interface ✅
+
 - Hardware detection (Apple Silicon, NVIDIA, AMD, CPU fallback)
 - Model recommendation based on VRAM
 - `harombe init` - Interactive setup with hardware detection
@@ -47,6 +50,7 @@ Successfully implemented the complete Harombe Phase 0 MVP according to the plan.
 - CLI tests with typer.testing
 
 ### Sprint 4: Server + Polish ✅
+
 - FastAPI application with CORS
 - REST endpoints:
   - `GET /health` - Health check with model info
@@ -61,9 +65,11 @@ Successfully implemented the complete Harombe Phase 0 MVP according to the plan.
 ## Key Design Decisions
 
 ### 1. OpenAI SDK Instead of Ollama SDK
+
 **Rationale**: OpenAI SDK is more portable. Users can easily swap `base_url` to point at cloud providers later. Ollama's `/v1` endpoint is OpenAI-compatible, making this seamless.
 
 ### 2. Decorator-Based Tool Registration
+
 **Rationale**: Pythonic, minimal boilerplate. Type hints automatically generate JSON Schema. Easy to extend.
 
 ```python
@@ -73,12 +79,15 @@ async def web_search(query: str, max_results: int = 5) -> str:
 ```
 
 ### 3. Zero-Config Philosophy
+
 **Rationale**: Every config field has a sensible default. `harombe chat` works with no config file at all. Hardware detection provides smart defaults.
 
 ### 4. Dangerous Tool Confirmation
+
 **Rationale**: Safety-first approach. Tools marked `dangerous=True` require explicit user approval in CLI mode, auto-denied in server mode (configurable).
 
 ### 5. Conservative VRAM Estimation
+
 **Rationale**: Better to recommend a smaller model that works than a large model that OOMs. Use 85% of total VRAM, account for system overhead.
 
 ## Architecture Highlights
@@ -102,7 +111,9 @@ async def web_search(query: str, max_results: int = 5) -> str:
 ```
 
 ### ReAct Agent Loop
+
 Core logic in ~150 lines:
+
 1. Add user message to state
 2. Loop for max_steps:
    - Call LLM with tools
@@ -112,6 +123,7 @@ Core logic in ~150 lines:
 3. If max steps reached: force final answer
 
 ### Tool System
+
 - Protocol-based design with `Tool`, `ToolSchema`, `ToolParameter`
 - Global registry populated by `@tool` decorator
 - Automatic type inference from Python type hints
