@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "harombe"
 version = "0.1.0"
-description = "Declarative self-hosted AI assistant platform"
+description = "Self-hosted agent framework for distributed AI workloads"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
     { name = "harombe contributors" }
 ]
 requires-python = ">=3.11"
-keywords = ["ai", "assistant", "self-hosted", "distributed", "ollama"]
+keywords = ["ai", "agent", "framework", "self-hosted", "distributed", "autonomous", "ollama"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

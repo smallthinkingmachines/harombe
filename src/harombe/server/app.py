@@ -19,7 +19,7 @@ def create_app(config: HarombeConfig) -> FastAPI:
     """
     app = FastAPI(
         title="Harombe",
-        description="Declarative self-hosted AI assistant platform",
+        description="Self-hosted agent framework for distributed AI workloads",
         version=__version__,
     )
 

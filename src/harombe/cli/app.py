@@ -10,7 +10,7 @@ from harombe import __version__
 # Create Typer app
 app = typer.Typer(
     name="harombe",
-    help="Harombe - Declarative self-hosted AI assistant platform",
+    help="Harombe - Self-hosted agent framework for distributed AI workloads",
     no_args_is_help=True,
 )
 

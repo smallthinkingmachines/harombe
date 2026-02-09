@@ -1,5 +1,5 @@
 {
-  description = "harombe - Declarative self-hosted AI assistant platform";
+  description = "harombe - Self-hosted agent framework for distributed AI workloads";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
