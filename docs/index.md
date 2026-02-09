@@ -42,6 +42,8 @@
 
 Harombe is a **self-hosted AI agent framework** designed for secure, distributed AI workloads. It provides a complete security layer with defense-in-depth protection, enabling you to run autonomous AI agents safely in production environments.
 
+**Status**: Phase 4 Complete ✅ | Phase 5 In Planning 🚧
+
 ### Key Features
 
 #### 🔒 Enterprise Security
