@@ -112,6 +112,56 @@ class CoordinatorConfig(BaseModel):
     )
 
 
+class VectorStoreConfig(BaseModel):
+    """Vector store configuration for semantic search."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable semantic search with vector embeddings",
+    )
+    backend: Literal["chromadb"] = Field(
+        default="chromadb",
+        description="Vector store backend (currently only chromadb is supported)",
+    )
+    embedding_model: str = Field(
+        default="sentence-transformers/all-MiniLM-L6-v2",
+        description="Embedding model for semantic search (local sentence-transformers model)",
+    )
+    embedding_provider: Literal["sentence-transformers", "ollama"] = Field(
+        default="sentence-transformers",
+        description="Embedding provider: 'sentence-transformers' (local, privacy-first) or 'ollama'",
+    )
+    persist_directory: str | None = Field(
+        default=None,
+        description="Directory for persistent vector storage (None = in-memory)",
+    )
+    collection_name: str = Field(
+        default="harombe_embeddings",
+        description="Name of the vector store collection",
+    )
+
+
+class RAGConfig(BaseModel):
+    """Retrieval-Augmented Generation configuration."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable RAG to inject relevant context from past conversations",
+    )
+    top_k: int = Field(
+        default=5,
+        description="Number of similar messages to retrieve for context",
+        ge=1,
+        le=20,
+    )
+    min_similarity: float = Field(
+        default=0.7,
+        description="Minimum similarity threshold for retrieval (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
+    )
+
+
 class MemoryConfig(BaseModel):
     """Conversation memory configuration."""
 
@@ -128,6 +178,14 @@ class MemoryConfig(BaseModel):
         description="Maximum tokens to load from conversation history",
         ge=512,
         le=128000,
+    )
+    vector_store: VectorStoreConfig = Field(
+        default_factory=VectorStoreConfig,
+        description="Vector store configuration for semantic search (Phase 2.2)",
+    )
+    rag: RAGConfig = Field(
+        default_factory=RAGConfig,
+        description="Retrieval-Augmented Generation configuration (Phase 2.2)",
     )
 
 

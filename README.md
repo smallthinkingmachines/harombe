@@ -131,6 +131,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 - Multi-turn conversations with history recall
 - Optional memory (backward compatible)
 
+**Phase 2.2 (Complete):** Semantic Search & RAG
+
+- Vector embeddings with sentence-transformers (privacy-first, local)
+- ChromaDB vector store for similarity search
+- Semantic search across conversation history
+- RAG (Retrieval-Augmented Generation) for context-aware responses
+- Cross-session knowledge retrieval
+
 ## Quick Start
 
 ### Prerequisites
@@ -178,9 +186,14 @@ The agent autonomously plans the workflow, executes tools, and delivers results.
 
 See [`examples/`](examples/) for working code demonstrating:
 
-- **Simple Agent** - Basic single-node usage with all tools
-- **Multi-step Workflows** - Complex task automation (coming soon)
-- **Cluster Routing** - Distributed workloads (coming soon)
+- **01_simple_agent.py** - Basic single-node usage with all tools
+- **02_api_usage.py** - Programmatic agent creation and tool usage
+- **03_custom_tools.py** - Creating and registering custom tools
+- **04_cluster_setup.py** - Multi-machine orchestration
+- **05_smart_routing.py** - Task-based routing across heterogeneous nodes
+- **06_memory_conversation.py** - Persistent conversation history
+- **07_memory_sessions.py** - Multi-session memory management
+- **08_semantic_memory.py** - Semantic search and RAG capabilities
 
 Each example includes detailed comments and can be run standalone.
 
@@ -301,6 +314,114 @@ await agent2.run("Do you remember what I asked before?")  # Agent recalls previo
 
 See [`examples/06_memory_conversation.py`](examples/06_memory_conversation.py) for a complete demonstration.
 
+### Semantic Search & RAG
+
+harombe supports semantic search over conversation history using vector embeddings, enabling agents to retrieve relevant context from past conversations even when the exact wording is different. This powers Retrieval-Augmented Generation (RAG) for smarter, context-aware responses.
+
+**Enable semantic search and RAG:**
+
+```yaml
+memory:
+  enabled: true
+  storage_path: ~/.harombe/memory.db
+  max_history_tokens: 4096
+  vector_store:
+    enabled: true
+    backend: chromadb
+    embedding_model: sentence-transformers/all-MiniLM-L6-v2
+    embedding_provider: sentence-transformers # Local, privacy-first
+    persist_directory: ~/.harombe/vectors
+  rag:
+    enabled: true
+    top_k: 5
+    min_similarity: 0.7
+```
+
+**Use RAG programmatically:**
+
+```python
+from harombe.agent.loop import Agent
+from harombe.llm.ollama import OllamaClient
+from harombe.memory.manager import MemoryManager
+from harombe.embeddings.sentence_transformer import SentenceTransformerEmbedding
+from harombe.vector.chromadb import ChromaDBVectorStore
+
+# Setup semantic search
+embedding_client = SentenceTransformerEmbedding(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    device="cpu",  # or "cuda" for GPU
+)
+
+vector_store = ChromaDBVectorStore(
+    collection_name="harombe_embeddings",
+    persist_directory="~/.harombe/vectors",
+)
+
+# Create memory manager with semantic search
+memory = MemoryManager(
+    storage_path="~/.harombe/memory.db",
+    max_history_tokens=4096,
+    embedding_client=embedding_client,
+    vector_store=vector_store,
+)
+
+# Create RAG-enabled agent
+session_id = memory.create_session(system_prompt="You are a helpful assistant.")
+agent = Agent(
+    llm=OllamaClient(model="qwen2.5:7b"),
+    tools=tools,
+    memory_manager=memory,
+    session_id=session_id,
+    enable_rag=True,        # Enable RAG
+    rag_top_k=5,            # Retrieve 5 similar messages
+    rag_min_similarity=0.7, # Minimum similarity threshold
+)
+
+# Agent will automatically retrieve relevant context
+await agent.run("What did we discuss about Python?")
+# The agent retrieves semantically similar messages even if
+# the exact word "Python" wasn't in the original query
+```
+
+**Search conversation history:**
+
+```python
+# Search for similar messages across all conversations
+results = await memory.search_similar(
+    query="machine learning and neural networks",
+    top_k=5,
+    min_similarity=0.7,
+)
+
+for msg in results:
+    print(f"[{msg.role}]: {msg.content}")
+
+# Search within a specific session
+results = await memory.search_similar(
+    query="Python programming",
+    top_k=3,
+    session_id="my-session",
+    min_similarity=0.6,
+)
+```
+
+**Key features:**
+
+- **Privacy-first** - Embeddings run locally using sentence-transformers, no API calls
+- **Semantic understanding** - Find relevant context even with different wording
+- **Cross-session search** - Retrieve knowledge from any past conversation
+- **RAG integration** - Agents automatically inject relevant context into queries
+- **Backward compatible** - Semantic search is optional, works with or without it
+
+**How it works:**
+
+1. Messages are automatically embedded as they're saved (384-dimensional vectors)
+2. Embeddings are stored in ChromaDB for fast similarity search
+3. When RAG is enabled, agent retrieves similar messages before generating responses
+4. Relevant context is injected into the prompt for better, more informed answers
+
+See [`examples/08_semantic_memory.py`](examples/08_semantic_memory.py) for comprehensive examples including backfilling embeddings for existing conversations.
+
 ### Configuration
 
 Configuration is stored at `~/.harombe/harombe.yaml`. Here's an example:
@@ -330,6 +451,16 @@ memory:
   enabled: false # Set to true to enable conversation persistence
   storage_path: ~/.harombe/memory.db
   max_history_tokens: 4096
+  vector_store:
+    enabled: false # Enable for semantic search
+    backend: chromadb
+    embedding_model: sentence-transformers/all-MiniLM-L6-v2
+    embedding_provider: sentence-transformers
+    persist_directory: ~/.harombe/vectors
+  rag:
+    enabled: false # Enable for context-aware responses
+    top_k: 5
+    min_similarity: 0.7
 
 server:
   host: 127.0.0.1
