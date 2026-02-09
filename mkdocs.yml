@@ -1,0 +1,122 @@
+site_name: Harombe Documentation
+site_url: https://smallthinkingmachines.github.io/harombe/
+site_description: Secure, intelligent AI agent framework with defense-in-depth security
+site_author: Small Thinking Machines
+repo_url: https://github.com/smallthinkingmachines/harombe
+repo_name: smallthinkingmachines/harombe
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/smallthinkingmachines/harombe
+  version:
+    provider: mike
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Configuration: getting-started/configuration.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Memory & RAG: memory-architecture.md
+      - Vector Store: vector-store-architecture.md
+      - Voice Interface: voice-architecture.md
+      - MCP Gateway: mcp-gateway-design.md
+      - Security: security-architecture.md
+  - Security:
+      - Overview: security/overview.md
+      - Quick Start: security-quickstart.md
+      - Architecture: security-architecture.md
+      - Foundation: security-phase4.1-foundation.md
+      - Sandboxing:
+          - Design: code-sandbox-design.md
+          - Browser: browser-container-design.md
+      - Credential Management: security-credentials.md
+      - Network Security: security-network.md
+      - Audit Logging: audit-logging.md
+      - HITL Gates: hitl-design.md
+  - Deployment:
+      - Production Guide: production-deployment-guide.md
+      - Performance Results: phase4-8-performance-results.md
+  - Development:
+      - Contributing: CONTRIBUTING.md
+      - Development Setup: DEVELOPMENT.md
+  - Phases:
+      - Phase 0 (Foundation): phase0-implementation-summary.md
+      - Phase 4 (Security): phase4-implementation-plan.md
+      - Phase 4.8 (Integration): phase4-8-integration-plan.md
+      - Phase 5 (Intelligence): phase5-implementation-plan.md
+  - User Guides:
+      - Browser Usage: browser-usage.md
+      - Code Sandbox: code-sandbox-usage.md
+      - Voice Setup: voice-setup.md

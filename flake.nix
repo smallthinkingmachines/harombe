@@ -27,6 +27,10 @@
             mypy
             pre-commit
 
+            # Documentation tools
+            pythonEnv.pkgs.mkdocs
+            pythonEnv.pkgs.mkdocs-material
+
             # System dependencies
             git
             gnumake
