@@ -1,0 +1,197 @@
+version: "3.8"
+
+services:
+  # MCP Gateway - Central security enforcement point
+  gateway:
+    build:
+      context: ../
+      dockerfile: docker/gateway/Dockerfile
+    container_name: harombe-gateway
+    ports:
+      - "8100:8100"
+    networks:
+      - harombe-network
+    environment:
+      - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=8100
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Browser Container - Web automation and browsing
+  browser:
+    build:
+      context: ./browser
+      dockerfile: Dockerfile
+    container_name: harombe-browser
+    networks:
+      - harombe-network
+    environment:
+      - MCP_PORT=3000
+      - DISPLAY=:99
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # Filesystem Container - File operations
+  filesystem:
+    build:
+      context: ./filesystem
+      dockerfile: Dockerfile
+    container_name: harombe-filesystem
+    networks:
+      - harombe-network
+    environment:
+      - MCP_PORT=3001
+      - LOG_LEVEL=INFO
+    volumes:
+      # Mount workspace (read-only by default)
+      - workspace:/workspace:ro
+      # Mount projects (read-write)
+      - projects:/projects:rw
+    restart: unless-stopped
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # No network access for filesystem container
+    network_mode: none
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Code Execution Container - Sandboxed code execution
+  code-exec:
+    build:
+      context: ./code-exec
+      dockerfile: Dockerfile
+    container_name: harombe-code-exec
+    networks:
+      - harombe-network
+    environment:
+      - MCP_PORT=3002
+      - EXECUTION_TIMEOUT=30
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    # Enhanced security for code execution
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=unconfined # Required for some language runtimes
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+    # No network access for code execution (can be overridden)
+    network_mode: none
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Web Search Container - External API access
+  web-search:
+    build:
+      context: ./web-search
+      dockerfile: Dockerfile
+    container_name: harombe-web-search
+    networks:
+      - harombe-network
+    environment:
+      - MCP_PORT=3003
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  harombe-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  # Persistent volumes for data
+  workspace:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HAROMBE_WORKSPACE:-./workspace}
+
+  projects:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HAROMBE_PROJECTS:-./projects}
