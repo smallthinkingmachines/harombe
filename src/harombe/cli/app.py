@@ -156,6 +156,32 @@ def cluster_metrics(
     cluster_metrics_command(config_path=config_path, node=node)
 
 
+@app.command()
+def voice(
+    stt_model: str = typer.Option(
+        "medium",
+        "--stt-model",
+        help="Whisper model size (tiny/base/small/medium/large-v3)",
+    ),
+    tts_engine: str = typer.Option(
+        "piper",
+        "--tts-engine",
+        help="TTS engine (piper/coqui)",
+    ),
+    tts_model: str = typer.Option(
+        "en_US-lessac-medium",
+        "--tts-model",
+        help="TTS model name",
+    ),
+):
+    """Start interactive voice assistant (push-to-talk)."""
+    import asyncio
+
+    from harombe.cli.voice import voice_command
+
+    asyncio.run(voice_command(stt_model=stt_model, tts_engine=tts_engine, tts_model=tts_model))
+
+
 def main():
     """Entry point for the CLI."""
     try:

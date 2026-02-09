@@ -41,6 +41,8 @@ dependencies = [
     "faster-whisper>=1.0",  # Speech-to-text (Phase 3)
     "piper-tts>=1.2",  # Text-to-speech - fast (Phase 3)
     "TTS>=0.22",  # Text-to-speech - high quality (Phase 3)
+    "sounddevice>=0.4",  # Audio I/O for voice client (Phase 3)
+    "pynput>=1.7",  # Keyboard input for push-to-talk (Phase 3)
 ]
 
 [project.optional-dependencies]
