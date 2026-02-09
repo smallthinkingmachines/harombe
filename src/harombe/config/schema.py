@@ -262,6 +262,190 @@ class VoiceConfig(BaseModel):
     )
 
 
+class GatewayConfig(BaseModel):
+    """MCP Gateway configuration."""
+
+    host: str = Field(
+        default="127.0.0.1",
+        description="Gateway bind address",
+    )
+    port: int = Field(
+        default=8100,
+        description="Gateway port",
+        ge=1,
+        le=65535,
+    )
+    timeout: int = Field(
+        default=30,
+        description="Request timeout in seconds",
+        ge=1,
+    )
+    max_retries: int = Field(
+        default=3,
+        description="Maximum retry attempts for container requests",
+        ge=1,
+        le=10,
+    )
+
+
+class AuditConfig(BaseModel):
+    """Audit logging configuration."""
+
+    enabled: bool = Field(
+        default=True,
+        description="Enable audit logging of all tool calls",
+    )
+    database: str = Field(
+        default="~/.harombe/audit.db",
+        description="Path to SQLite audit database",
+    )
+    retention_days: int = Field(
+        default=90,
+        description="Number of days to retain audit logs",
+        ge=1,
+    )
+    log_level: Literal["DEBUG", "INFO", "WARN", "ERROR"] = Field(
+        default="INFO",
+        description="Audit logging verbosity level",
+    )
+
+
+class CredentialsConfig(BaseModel):
+    """Credential management configuration."""
+
+    method: Literal["env", "vault", "sops"] = Field(
+        default="env",
+        description="Credential storage method: 'env' (environment vars), 'vault' (HashiCorp Vault), 'sops' (encrypted files)",
+    )
+    vault_addr: str | None = Field(
+        default=None,
+        description="Vault server address (e.g., http://localhost:8200)",
+    )
+    vault_token: str = Field(
+        default="~/.vault-token",
+        description="Path to Vault token file",
+    )
+    auto_refresh: bool = Field(
+        default=True,
+        description="Automatically refresh credentials before expiry",
+    )
+    rotation_days: int = Field(
+        default=30,
+        description="Days between credential rotation",
+        ge=1,
+    )
+
+
+class ContainerResourcesConfig(BaseModel):
+    """Container resource limits configuration."""
+
+    cpu_limit: str | None = Field(
+        default=None,
+        description="CPU limit (e.g., '2' for 2 cores, '0.5' for half a core)",
+    )
+    memory_limit: str | None = Field(
+        default=None,
+        description="Memory limit (e.g., '2g' for 2GB, '512m' for 512MB)",
+    )
+    pids_limit: int = Field(
+        default=100,
+        description="Maximum number of processes",
+        ge=1,
+    )
+
+
+class ContainerConfig(BaseModel):
+    """Configuration for a single capability container."""
+
+    image: str = Field(
+        description="Docker image name (e.g., 'harombe/browser:latest')",
+    )
+    enabled: bool = Field(
+        default=True,
+        description="Whether this container is enabled",
+    )
+    resources: ContainerResourcesConfig = Field(
+        default_factory=ContainerResourcesConfig,
+        description="Resource limits for this container",
+    )
+    egress_allow: list[str] = Field(
+        default_factory=list,
+        description="Allowed egress domains/IPs (empty list = no network access)",
+    )
+    mounts: list[str] = Field(
+        default_factory=list,
+        description="Volume mounts in format '/host/path:/container/path:mode' (mode: ro/rw)",
+    )
+    environment: dict[str, str] = Field(
+        default_factory=dict,
+        description="Environment variables for the container",
+    )
+    timeout: int | None = Field(
+        default=None,
+        description="Operation timeout in seconds (None = use gateway default)",
+        ge=1,
+    )
+    confirm_actions: list[str] = Field(
+        default_factory=list,
+        description="Action patterns requiring HITL confirmation (e.g., 'delete_*', 'send_email')",
+    )
+
+
+class HITLConfig(BaseModel):
+    """Human-In-The-Loop confirmation configuration."""
+
+    enabled: bool = Field(
+        default=True,
+        description="Enable HITL gates for dangerous operations",
+    )
+    timeout: int = Field(
+        default=60,
+        description="Seconds to wait for user confirmation before auto-deny",
+        ge=1,
+    )
+    notification_method: Literal["cli", "webhook", "email"] = Field(
+        default="cli",
+        description="How to notify user of pending confirmations",
+    )
+    webhook_url: str | None = Field(
+        default=None,
+        description="Webhook URL for remote confirmation notifications",
+    )
+
+
+class SecurityConfig(BaseModel):
+    """Security layer configuration (Phase 4)."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable security layer with capability containers",
+    )
+    isolation: Literal["docker", "gvisor"] = Field(
+        default="docker",
+        description="Container isolation technology: 'docker' (standard) or 'gvisor' (enhanced)",
+    )
+    gateway: GatewayConfig = Field(
+        default_factory=GatewayConfig,
+        description="MCP Gateway configuration",
+    )
+    audit: AuditConfig = Field(
+        default_factory=AuditConfig,
+        description="Audit logging configuration",
+    )
+    credentials: CredentialsConfig = Field(
+        default_factory=CredentialsConfig,
+        description="Credential management configuration",
+    )
+    containers: dict[str, ContainerConfig] = Field(
+        default_factory=dict,
+        description="Container configurations by name (e.g., 'browser', 'filesystem', 'code_exec', 'web_search')",
+    )
+    hitl: HITLConfig = Field(
+        default_factory=HITLConfig,
+        description="Human-In-The-Loop confirmation configuration",
+    )
+
+
 class HarombeConfig(BaseModel):
     """Root configuration schema for Harombe."""
 
@@ -281,4 +465,8 @@ class HarombeConfig(BaseModel):
     voice: VoiceConfig = Field(
         default_factory=VoiceConfig,
         description="Voice and multi-modal configuration (Phase 3)",
+    )
+    security: SecurityConfig = Field(
+        default_factory=SecurityConfig,
+        description="Security layer with capability containers (Phase 4)",
     )
