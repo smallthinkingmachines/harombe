@@ -35,6 +35,9 @@ dependencies = [
     "sse-starlette>=2.0",
     "duckduckgo-search>=6.0",
     "zeroconf>=0.132",  # mDNS service discovery
+    "sentence-transformers>=2.2",  # Local embeddings (Phase 2.2)
+    "chromadb>=0.4",  # Vector store (Phase 2.2)
+    "numpy>=1.24",  # Required for embeddings
 ]
 
 [project.optional-dependencies]
