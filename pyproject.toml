@@ -44,6 +44,7 @@ dependencies = [
     "piper-tts>=1.2",  # Text-to-speech - fast (Phase 3)
     "dnspython>=2.4",  # DNS resolution for network isolation (Phase 4.4)
     "docker>=7.0",  # Docker SDK for container management (Phase 4)
+    "playwright>=1.40",  # Browser automation for Phase 4.6
     "sounddevice>=0.4",  # Audio I/O for voice client (Phase 3)
     "pynput>=1.7",  # Keyboard input for push-to-talk (Phase 3)
 ]

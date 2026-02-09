@@ -20,6 +20,7 @@ from .audit_db import (
     ToolCallRecord,
 )
 from .audit_logger import AuditLogger, SensitiveDataRedactor
+from .browser_manager import BrowserContainerManager, BrowserCredentials, BrowserSession
 from .docker_manager import DockerManager
 from .gateway import MCPGateway
 from .hitl import (
@@ -58,6 +59,9 @@ __all__ = [
     "AuditDatabase",
     "AuditEvent",
     "AuditLogger",
+    "BrowserContainerManager",
+    "BrowserCredentials",
+    "BrowserSession",
     "CLIApprovalPrompt",
     "DNSResolver",
     "DockerManager",
