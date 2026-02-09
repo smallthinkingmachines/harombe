@@ -43,7 +43,6 @@ def get_database_connection():
     """Get database connection."""
     # SECURITY: Hardcoded credentials
     DB_USER = "admin"
-    DB_PASS = "password123"
     DB_HOST = "localhost"
 
     # This would connect to database (simplified for example)
