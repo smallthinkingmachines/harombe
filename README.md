@@ -6,7 +6,7 @@ Run a powerful AI assistant on your own hardware—one machine or many—with ze
 
 ## What is harombe?
 
-**harombe** orchestrates heterogeneous consumer hardware (Apple Silicon, NVIDIA, AMD, CPU) into a unified, tool-using AI system. Configure your cluster in YAML, and harombe automatically routes queries to the right machine based on complexity.
+**harombe** orchestrates heterogeneous consumer hardware into a unified, tool-using AI system. Configure your cluster in YAML, and harombe automatically routes queries to the right machine based on complexity.
 
 **The gap harombe fills:** No other open source project combines distributed inference across mixed hardware, autonomous agent loops with tool calling, and declarative cluster configuration. Existing solutions require either cloud providers, single-machine constraints, or complex DevOps expertise.
 
