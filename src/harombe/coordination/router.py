@@ -3,6 +3,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from typing import ClassVar
 
 from harombe.llm.client import Message
 
@@ -34,7 +35,7 @@ class ComplexityClassifier:
     """
 
     # Keywords indicating complex tasks
-    COMPLEX_KEYWORDS = {
+    COMPLEX_KEYWORDS: ClassVar[set[str]] = {
         "analyze",
         "compare",
         "explain",
@@ -50,7 +51,7 @@ class ComplexityClassifier:
     }
 
     # Keywords indicating simple tasks
-    SIMPLE_KEYWORDS = {
+    SIMPLE_KEYWORDS: ClassVar[set[str]] = {
         "what",
         "when",
         "where",

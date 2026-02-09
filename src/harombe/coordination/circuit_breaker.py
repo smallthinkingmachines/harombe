@@ -109,9 +109,8 @@ class CircuitBreaker:
     def get_state(self) -> CircuitState:
         """Get current circuit state."""
         # Update state if needed
-        if self.state == CircuitState.OPEN:
-            if time.time() - self.opened_at >= self.config.timeout:
-                self._transition_to_half_open()
+        if self.state == CircuitState.OPEN and time.time() - self.opened_at >= self.config.timeout:
+            self._transition_to_half_open()
 
         return self.state
 

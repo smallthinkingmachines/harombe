@@ -118,7 +118,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             response = await agent.run(request.message)
             return ChatResponse(response=response)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     @router.post("/chat/stream")
     async def chat_stream(request: ChatRequest):
@@ -217,7 +217,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             )
 
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     @router.get("/metrics", response_model=MetricsResponse)
     async def get_metrics():
@@ -240,6 +240,6 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
                 cluster_summary=metrics.get("cluster_summary", {}),
             )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     return router

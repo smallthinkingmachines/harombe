@@ -363,7 +363,7 @@ class MemoryManager:
 
         # Search vector store
         where = {"session_id": session_id} if session_id else None
-        ids, documents, metadatas, distances = self.vector_store.search(  # type: ignore[union-attr]
+        _ids, documents, metadatas, distances = self.vector_store.search(  # type: ignore[union-attr]
             query_embedding=query_embedding,
             top_k=top_k,
             where=where,

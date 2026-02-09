@@ -2,7 +2,7 @@
 
 import pytest
 import respx
-from httpx import Response
+from httpx import HTTPStatusError, Response
 
 from harombe.llm.client import CompletionResponse, Message
 from harombe.llm.remote import RemoteLLMClient
@@ -121,7 +121,7 @@ async def test_remote_llm_error_handling():
 
     messages = [Message(role="user", content="Test")]
 
-    with pytest.raises(Exception):  # httpx will raise on non-2xx status
+    with pytest.raises(HTTPStatusError):  # httpx raises HTTPStatusError on non-2xx status
         await client.complete(messages)
 
     await client.close()

@@ -150,7 +150,7 @@ def test_get_by_ids(vector_store):
     vector_store.add(ids, embeddings, documents, metadata)
 
     # Get specific IDs
-    result_ids, result_docs, result_meta = vector_store.get(ids=["doc1", "doc3"])
+    result_ids, result_docs, _result_meta = vector_store.get(ids=["doc1", "doc3"])
 
     assert len(result_ids) == 2
     assert "doc1" in result_ids
@@ -243,7 +243,7 @@ def test_update_embeddings(vector_store):
     )
 
     # Verify update
-    result_ids, result_docs, result_meta = vector_store.get(ids=["doc1"])
+    _result_ids, result_docs, result_meta = vector_store.get(ids=["doc1"])
     assert result_docs[0] == "Updated 1"
     assert result_meta[0]["version"] == 2
 

@@ -3,6 +3,7 @@
 import asyncio
 import socket
 from collections.abc import Callable
+from typing import Any
 
 from zeroconf import ServiceBrowser, ServiceInfo, Zeroconf
 from zeroconf.asyncio import AsyncServiceInfo, AsyncZeroconf
@@ -22,10 +23,13 @@ class HarombeServiceListener:
         """
         self.on_service_discovered = on_service_discovered
         self.discovered_services = set()
+        self._tasks: set[Any] = set()
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         """Called when a service is discovered."""
-        asyncio.create_task(self._async_add_service(zc, type_, name))
+        task = asyncio.create_task(self._async_add_service(zc, type_, name))
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
 
     async def _async_add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         """Async handler for service discovery."""
