@@ -10,18 +10,27 @@ import pytest
 
 # Try to import piper, skip all tests if not available
 piper_available = True
+model_available = True
 try:
     import piper.voice  # type: ignore[import-not-found] # noqa: F401
 
     from harombe.voice.piper import PiperTTS, create_piper_tts
+
+    # Try to load the test model to check if it's available
+    try:
+        test_tts = PiperTTS(model="en_US-lessac-medium", device="cpu")
+        # Try to access the voice to trigger model download/loading
+        test_tts._get_piper()
+    except Exception:
+        model_available = False
 except ImportError:
     piper_available = False
     PiperTTS = None  # type: ignore[misc,assignment]
     create_piper_tts = None  # type: ignore[misc,assignment]
 
 pytestmark = pytest.mark.skipif(
-    not piper_available,
-    reason="piper-tts not installed",
+    not piper_available or not model_available,
+    reason="piper-tts not installed or model not available",
 )
 
 

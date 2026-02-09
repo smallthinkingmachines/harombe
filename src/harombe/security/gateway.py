@@ -360,12 +360,16 @@ class MCPGateway:
                     )
 
                     # Log tool call details
+                    result_dict = None
+                    if hasattr(response, "result") and response.result is not None:
+                        result_dict = response.result.model_dump(mode="json")
+
                     self.audit_logger.log_tool_call(
                         correlation_id=correlation_id,
                         tool_name=tool_name,
                         method=mcp_request.method,
                         parameters=tool_params.model_dump(mode="json"),
-                        result=response.result if hasattr(response, "result") else None,
+                        result=result_dict,
                         error=str(response.error) if is_error else None,
                         duration_ms=duration_ms,
                         container_id=container,

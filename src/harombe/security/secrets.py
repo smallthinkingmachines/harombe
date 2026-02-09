@@ -89,6 +89,7 @@ class SecretScanner:
         ],
         SecretType.STRIPE_KEY: [
             re.compile(r"sk_live_[0-9a-zA-Z]{24,}"),  # Stripe secret key
+            re.compile(r"sk_test_[0-9a-zA-Z]{24,}"),  # Stripe test secret key
             re.compile(r"rk_live_[0-9a-zA-Z]{24,}"),  # Stripe restricted key
         ],
         SecretType.PRIVATE_KEY: [

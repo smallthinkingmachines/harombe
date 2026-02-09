@@ -1,5 +1,6 @@
 """Tests for agent with RAG (Retrieval-Augmented Generation)."""
 
+import asyncio
 import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -118,8 +119,6 @@ async def test_agent_with_rag_injects_context(mock_llm, semantic_memory):
     )
 
     # Wait a moment for embeddings to be processed
-    import asyncio
-
     await asyncio.sleep(0.1)
 
     # Now ask a related question
@@ -160,8 +159,6 @@ async def test_rag_context_formatting(mock_llm, semantic_memory):
         session_id, Message(role="assistant", content="Python is easy to learn")
     )
 
-    import asyncio
-
     await asyncio.sleep(0.1)
 
     mock_llm.complete.return_value = CompletionResponse(content="Response", tool_calls=None)
@@ -195,8 +192,6 @@ async def test_rag_saves_original_message(mock_llm, semantic_memory):
 
     # Add existing message
     semantic_memory.save_message(session_id, Message(role="user", content="Python programming"))
-
-    import asyncio
 
     await asyncio.sleep(0.1)
 
@@ -232,8 +227,6 @@ async def test_rag_with_top_k_limit(mock_llm, semantic_memory):
         semantic_memory.save_message(
             session_id, Message(role="user", content=f"Python message {i}")
         )
-
-    import asyncio
 
     await asyncio.sleep(0.2)
 

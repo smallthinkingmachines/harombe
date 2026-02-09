@@ -19,7 +19,7 @@ class TestSecretScanner:
     def test_detect_github_token(self):
         """Test detecting GitHub personal access tokens."""
         scanner = SecretScanner()
-        text = "export GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuv"
+        text = "export GITHUB_TOKEN=ghp_ABCDEFabcdef1234567890abcdefghijklmn"
 
         matches = scanner.scan(text)
 
@@ -29,7 +29,7 @@ class TestSecretScanner:
     def test_detect_slack_token(self):
         """Test detecting Slack tokens."""
         scanner = SecretScanner()
-        text = "SLACK_TOKEN=xoxb-EXAMPLE-FAKE-TOKEN-FOR-TESTING"
+        text = "SLACK_TOKEN=xoxb-EXAMPLEFAKETOKENFORTESTING1234567890"
 
         matches = scanner.scan(text)
 
@@ -115,7 +115,7 @@ class TestSecretScanner:
         """Test confidence scoring."""
         scanner = SecretScanner()
 
-        text = "GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuv"
+        text = "GITHUB_TOKEN=ghp_ABCDEFabcdef1234567890abcdefghijklmn"
 
         matches = scanner.scan(text)
 
@@ -139,11 +139,11 @@ class TestSecretScanner:
         """Test redacting secrets from text."""
         scanner = SecretScanner()
 
-        text = "My GitHub token is ghp_1234567890abcdefghijklmnopqrstuv"
+        text = "My GitHub token is ghp_ABCDEFabcdef1234567890abcdefghijklmn"
 
         redacted = scanner.redact(text)
 
-        assert "ghp_1234567890abcdefghijklmnopqrstuv" not in redacted
+        assert "ghp_ABCDEFabcdef1234567890abcdefghijklmn" not in redacted
         assert "[REDACTED]" in redacted
 
     def test_redact_multiple_secrets(self):
@@ -151,7 +151,7 @@ class TestSecretScanner:
         scanner = SecretScanner()
 
         text = """
-        GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz123456
+        GITHUB_TOKEN=ghp_ABCDEFabcdef1234567890abcdefghijklmn
         AWS_KEY=AKIAIOSFODNN7EXAMPLE
         """
 
@@ -204,7 +204,7 @@ class TestSecretScanner:
         """Test detecting Stripe API keys."""
         scanner = SecretScanner()
 
-        text = "STRIPE_KEY=sk_test_FAKE_KEY_FOR_TESTING_ONLY"
+        text = "STRIPE_KEY=sk_test_FAKEKEYFORTESTINGONLY1234"
 
         matches = scanner.scan(text)
 

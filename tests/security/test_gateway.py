@@ -1,5 +1,7 @@
 """Tests for MCP Gateway."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 import respx
 from fastapi.testclient import TestClient
@@ -43,22 +45,16 @@ def test_gateway_readiness_check_empty(client):
     assert data["containers_total"] == 0
 
 
-@respx.mock
-@pytest.mark.asyncio
-async def test_mcp_request_success():
+def test_mcp_request_success():
     """Test successful MCP request routing."""
+    gateway = create_gateway()
+    client = TestClient(gateway.app)
+
     # Mock container response
-    container_response = MCPResponse.success(
+    mock_response = MCPResponse.success(
         request_id="req-123",
         content=[ContentItem(type="text", text="Hello from container")],
     )
-
-    respx.post("http://browser-container:3000/mcp").mock(
-        return_value=Response(200, json=container_response.model_dump(mode="json"))
-    )
-
-    gateway = create_gateway()
-    client = TestClient(gateway.app)
 
     # Send request
     request = MCPRequest(
@@ -70,13 +66,16 @@ async def test_mcp_request_success():
         },
     )
 
-    response = client.post("/mcp", json=request.model_dump(mode="json"))
+    with patch.object(
+        gateway.client_pool, "send_request", new_callable=AsyncMock, return_value=mock_response
+    ):
+        response = client.post("/mcp", json=request.model_dump(mode="json"))
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data["id"] == "req-123"
-    assert data["result"] is not None
-    assert data["result"]["content"][0]["text"] == "Hello from container"
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == "req-123"
+        assert data["result"] is not None
+        assert data["result"]["content"][0]["text"] == "Hello from container"
 
 
 @respx.mock
@@ -266,51 +265,53 @@ def test_gateway_routes_registered(gateway):
     assert "/ready" in routes
 
 
-@respx.mock
-@pytest.mark.asyncio
-async def test_mcp_request_multiple_tools():
+def test_mcp_request_multiple_tools():
     """Test routing different tools to different containers."""
-    # Mock browser container
+    gateway = create_gateway()
+    client = TestClient(gateway.app)
+
+    # Mock browser response
     browser_response = MCPResponse.success(
         request_id="req-browser",
         content=[ContentItem(type="text", text="Browser response")],
     )
-    respx.post("http://browser-container:3000/mcp").mock(
-        return_value=Response(200, json=browser_response.model_dump(mode="json"))
-    )
 
-    # Mock filesystem container
+    # Mock filesystem response
     fs_response = MCPResponse.success(
         request_id="req-filesystem",
         content=[ContentItem(type="text", text="Filesystem response")],
     )
-    respx.post("http://filesystem-container:3001/mcp").mock(
-        return_value=Response(200, json=fs_response.model_dump(mode="json"))
-    )
 
-    gateway = create_gateway()
-    client = TestClient(gateway.app)
+    # Create a mock that returns different responses based on request
+    async def mock_send_request(container: str, request: MCPRequest):
+        if "browser" in request.params.get("name", ""):
+            return browser_response
+        elif "filesystem" in request.params.get("name", ""):
+            return fs_response
 
-    # Browser request
-    browser_req = MCPRequest(
-        id="req-browser",
-        method="tools/call",
-        params={"name": "browser_navigate", "arguments": {"url": "https://example.com"}},
-    )
+    with patch.object(
+        gateway.client_pool, "send_request", new_callable=AsyncMock, side_effect=mock_send_request
+    ):
+        # Browser request
+        browser_req = MCPRequest(
+            id="req-browser",
+            method="tools/call",
+            params={"name": "browser_navigate", "arguments": {"url": "https://example.com"}},
+        )
 
-    response1 = client.post("/mcp", json=browser_req.model_dump(mode="json"))
-    assert response1.status_code == 200
-    data1 = response1.json()
-    assert "Browser response" in data1["result"]["content"][0]["text"]
+        response1 = client.post("/mcp", json=browser_req.model_dump(mode="json"))
+        assert response1.status_code == 200
+        data1 = response1.json()
+        assert "Browser response" in data1["result"]["content"][0]["text"]
 
-    # Filesystem request
-    fs_req = MCPRequest(
-        id="req-filesystem",
-        method="tools/call",
-        params={"name": "filesystem_read", "arguments": {"path": "/test.txt"}},
-    )
+        # Filesystem request
+        fs_req = MCPRequest(
+            id="req-filesystem",
+            method="tools/call",
+            params={"name": "filesystem_read", "arguments": {"path": "/test.txt"}},
+        )
 
-    response2 = client.post("/mcp", json=fs_req.model_dump(mode="json"))
-    assert response2.status_code == 200
-    data2 = response2.json()
-    assert "Filesystem response" in data2["result"]["content"][0]["text"]
+        response2 = client.post("/mcp", json=fs_req.model_dump(mode="json"))
+        assert response2.status_code == 200
+        data2 = response2.json()
+        assert "Filesystem response" in data2["result"]["content"][0]["text"]

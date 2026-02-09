@@ -1,5 +1,6 @@
 """Tests for semantic memory (memory manager with vector store)."""
 
+import asyncio
 import tempfile
 from pathlib import Path
 
@@ -110,6 +111,9 @@ async def test_search_similar(semantic_memory):
         msg = Message(role="user", content=content)
         semantic_memory.save_message(session_id, msg)
 
+    # Wait for async embedding tasks to complete
+    await asyncio.sleep(0.1)
+
     # Search for programming-related content
     results = await semantic_memory.search_similar(
         query="coding with Python",
@@ -134,6 +138,9 @@ async def test_search_similar_session_filter(semantic_memory):
 
     msg2 = Message(role="user", content="Java development")
     semantic_memory.save_message(session2, msg2)
+
+    # Wait for async embedding tasks to complete
+    await asyncio.sleep(0.1)
 
     # Search only in session 1
     results = await semantic_memory.search_similar(
@@ -163,6 +170,9 @@ async def test_search_similar_min_similarity(semantic_memory):
         msg = Message(role="user", content=content)
         semantic_memory.save_message(session_id, msg)
 
+    # Wait for async embedding tasks to complete
+    await asyncio.sleep(0.1)
+
     # Search with high similarity threshold
     results = await semantic_memory.search_similar(
         query="Python programming",
@@ -191,6 +201,9 @@ async def test_get_relevant_context(semantic_memory):
     for content in messages:
         msg = Message(role="user", content=content)
         semantic_memory.save_message(session_id, msg)
+
+    # Wait for async embedding tasks to complete
+    await asyncio.sleep(0.1)
 
     # Get context for Python query
     context = await semantic_memory.get_relevant_context(

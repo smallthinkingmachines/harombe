@@ -1,5 +1,6 @@
 """High-level memory management for conversation sessions."""
 
+import asyncio
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -132,8 +133,6 @@ class MemoryManager:
             session_id: Session identifier
             message: Message to embed
         """
-        import asyncio
-
         # Skip empty messages or system messages
         if not message.content or message.role == "system":
             return
@@ -143,8 +142,11 @@ class MemoryManager:
             # Run async embedding in sync context
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                # Already in async context - skip for now
-                # TODO: Handle this better in future
+                # Already in async context - schedule async task
+                # Store reference to prevent task from being garbage collected
+                task = loop.create_task(self._embed_message_async(message_id, session_id, message))
+                # Add a done callback to capture any exceptions
+                task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
                 return
 
             embedding = loop.run_until_complete(
@@ -171,6 +173,41 @@ class MemoryManager:
             )
         except Exception:
             # Silently fail - don't break message saving
+            pass
+
+    async def _embed_message_async(
+        self, message_id: int, session_id: str, message: Message
+    ) -> None:
+        """Embed message asynchronously (for use in async contexts).
+
+        Args:
+            message_id: Database message ID
+            session_id: Session identifier
+            message: Message to embed
+        """
+        if not message.content or message.role == "system":
+            return
+
+        try:
+            embedding = await self.embedding_client.embed_single(message.content)  # type: ignore[union-attr]
+        except Exception:
+            return
+
+        try:
+            doc_id = f"msg_{message_id}"
+            metadata = {
+                "session_id": session_id,
+                "message_id": message_id,
+                "role": message.role,
+            }
+
+            self.vector_store.add(  # type: ignore[union-attr]
+                ids=[doc_id],
+                embeddings=[embedding],
+                documents=[message.content],
+                metadata=[metadata],
+            )
+        except Exception:
             pass
 
     def load_history(
@@ -453,8 +490,6 @@ class MemoryManager:
         if not self.semantic_search_enabled:
             msg = "Semantic search not enabled. Provide embedding_client and vector_store."
             raise RuntimeError(msg)
-
-        import asyncio
 
         # Get messages without embeddings
         # For now, just process all messages
