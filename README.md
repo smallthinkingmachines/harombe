@@ -119,7 +119,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 └─────────────────────────────────────┘
 ```
 
-**Layer 3: Security** — harombe's security layer (internal codename: Sitadèl). Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways).
+**Layer 3: Security** — Harombe's security layer provides container isolation, credential management, and audit logging. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 

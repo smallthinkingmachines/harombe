@@ -1,4 +1,4 @@
-# Phase 4 Implementation Plan: Security Layer (Sitadèl)
+# Phase 4 Implementation Plan: Security Layer
 
 **Status:** Planning
 **Start Date:** TBD

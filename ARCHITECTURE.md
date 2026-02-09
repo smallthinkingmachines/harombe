@@ -195,7 +195,7 @@ cluster:
 
 **Purpose:** Enforce security boundaries for tool execution and credential management.
 
-**Sitadèl** (internal codename, Creole "Citadelle") is harombe's security layer, named for the Citadelle Laferrière. Research completed February 2026 revealed a critical insight: **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer through containers, network policies, and gateways.
+Harombe's security layer implements the **Capability-Container Pattern** for securing AI agent tool execution. Research completed February 2026 revealed a critical insight: **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer through containers, network policies, and gateways.
 
 ### The Capability-Container Pattern
 
