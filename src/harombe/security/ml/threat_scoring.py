@@ -7,6 +7,7 @@ from typing import Any
 from ..audit_logger import AuditLogger
 from .anomaly_detector import AnomalyDetector
 from .models import ThreatLevel
+from .threat_intel import ThreatIntelligence
 
 logger = logging.getLogger(__name__)
 
@@ -190,16 +191,19 @@ class ThreatScorer:
     def __init__(
         self,
         anomaly_detector: AnomalyDetector | None = None,
+        threat_intel: ThreatIntelligence | None = None,
         audit_logger: AuditLogger | None = None,
     ):
         """Initialize threat scorer.
 
         Args:
             anomaly_detector: Anomaly detector instance
+            threat_intel: Threat intelligence instance (optional)
             audit_logger: Audit logger for threat alerts
         """
         self.anomaly_detector = anomaly_detector or AnomalyDetector()
         self.rule_engine = ThreatRuleEngine()
+        self.threat_intel = threat_intel  # Optional - can be None
         self.audit_logger = audit_logger
 
         # Scoring weights
@@ -240,8 +244,11 @@ class ThreatScorer:
             explanations.append(f"Rule-based threat detected (score: {rule_score:.2f})")
 
         # 3. Threat intel score (0-1)
-        # For now, placeholder - will be implemented in Task 5.1.4
         intel_score = 0.0
+        if self.threat_intel:
+            intel_score = await self.threat_intel.lookup(event)
+            if intel_score > 0.5:
+                explanations.append(f"Threat intelligence match (score: {intel_score:.2f})")
         scores["intel"] = intel_score
 
         # Calculate weighted total score

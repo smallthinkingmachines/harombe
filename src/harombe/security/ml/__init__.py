@@ -16,17 +16,31 @@ from .models import (
     SecurityEvent,
     ThreatLevel,
 )
+from .threat_intel import (
+    AbuseIPDBFeed,
+    AlienVaultOTXFeed,
+    ThreatCache,
+    ThreatFeed,
+    ThreatIntelligence,
+    VirusTotalFeed,
+)
 from .threat_scoring import ThreatRuleEngine, ThreatScore, ThreatScorer
 
 __all__ = [
+    "AbuseIPDBFeed",
+    "AlienVaultOTXFeed",
     "AnomalyDetector",
     "AnomalyResult",
     "BaselineLearner",
     "BehavioralBaseline",
     "BehavioralPattern",
     "SecurityEvent",
+    "ThreatCache",
+    "ThreatFeed",
+    "ThreatIntelligence",
     "ThreatLevel",
     "ThreatRuleEngine",
     "ThreatScore",
     "ThreatScorer",
+    "VirusTotalFeed",
 ]
