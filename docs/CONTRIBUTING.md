@@ -31,6 +31,7 @@ pytest
 ## Development Process
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -41,30 +42,41 @@ pytest
    - Add tests for new functionality
 
 3. **Test your changes**
+
    ```bash
    # Run all tests
    pytest
-   
+
    # Run specific tests
    pytest tests/test_your_feature.py -v
-   
+
    # Check coverage
    pytest --cov=src/harombe
    ```
 
-4. **Format and lint**
+4. **Run quality checks**
+
    ```bash
-   # Auto-format code
-   ruff format .
-   
-   # Check for issues
-   ruff check .
+   # Quick: run all checks (recommended)
+   make ci
+
+   # Or individually:
+   make format      # Auto-format code
+   make lint        # Check code quality
+   make type-check  # Check types
+   make test        # Run tests
    ```
 
+   **Pre-commit hooks** will automatically run these checks when you commit.
+
 5. **Commit with clear messages**
+
    ```bash
+   git add .
    git commit -m "feat: add new feature description"
    ```
+
+   Pre-commit hooks run automatically. If they fail, fix issues and commit again.
 
    Use conventional commit prefixes:
    - `feat:` - New features
@@ -97,15 +109,16 @@ pytest
 - Test both success and error cases
 
 Example test structure:
+
 ```python
 def test_feature_name():
     """Test that feature does what it should."""
     # Arrange
     input_data = ...
-    
+
     # Act
     result = your_function(input_data)
-    
+
     # Assert
     assert result == expected_value
 ```

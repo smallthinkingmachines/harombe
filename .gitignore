@@ -56,6 +56,9 @@ harombe.yaml
 # Claude Code
 .claude/
 
+# Node (for prettier pre-commit hook)
+node_modules/
+
 # Internal documentation (keep in Notion)
 docs/internal/
 *_INTERNAL.md

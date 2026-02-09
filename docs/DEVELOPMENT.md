@@ -27,6 +27,9 @@ source .venv/bin/activate
 # Install in editable mode with dev dependencies
 pip install -e ".[dev]"
 
+# Install pre-commit hooks
+pre-commit install
+
 # Verify installation
 pytest tests/test_config.py
 ```
@@ -60,15 +63,36 @@ pytest -v
 
 ### Code Quality
 
+We use automated tools to maintain code quality:
+
 ```bash
-# Format code
-ruff format .
+# Using Makefile (recommended)
+make format      # Auto-format code
+make lint        # Run linting checks
+make type-check  # Run type checking
+make test        # Run tests
+make ci          # Run all checks (lint + type-check + test)
 
-# Lint code
-ruff check .
+# Or run tools directly
+ruff format .           # Format code
+ruff check . --fix      # Lint and auto-fix
+mypy src/harombe        # Type checking
+pytest                  # Run tests
+```
 
-# Type checking
-mypy src/
+**Pre-commit hooks** automatically run these checks before each commit:
+
+- Code formatting (ruff format)
+- Linting (ruff check)
+- Type checking (mypy)
+- Trailing whitespace, file endings, YAML validation
+
+To run pre-commit hooks manually:
+
+```bash
+make pre-commit-run
+# Or directly:
+pre-commit run --all-files
 ```
 
 ### Project Structure
@@ -92,36 +116,41 @@ harombe/
 ### Making Changes
 
 1. Enter development environment:
+
    ```bash
-   nix develop
+   source .venv/bin/activate  # or: nix develop
    ```
 
 2. Make your changes
 
-3. Run tests:
+3. Run quality checks:
+
    ```bash
-   pytest
+   make ci  # Runs lint, type-check, and test
    ```
 
-4. Format and lint:
-   ```bash
-   ruff format .
-   ruff check .
-   ```
-
-5. Commit:
+4. Commit (pre-commit hooks run automatically):
    ```bash
    git add .
    git commit -m "description"
    ```
 
+If pre-commit hooks fail, fix the issues and commit again. The hooks will:
+
+- Auto-format your code
+- Check for common issues
+- Run type checking
+- Validate YAML/TOML files
+
 ### Adding Dependencies
 
 Edit `pyproject.toml` and add to the appropriate section:
+
 - `dependencies`: Runtime dependencies
 - `[project.optional-dependencies] dev`: Development dependencies
 
 Then reinstall:
+
 ```bash
 pip install -e ".[dev]"
 ```
@@ -133,16 +162,19 @@ pip install -e ".[dev]"
 **Import errors**: Reinstall package: `pip install -e ".[dev]"`
 
 **Ollama not found**:
+
 - Install Ollama from https://ollama.ai
 - Start the server: `ollama serve`
 - Verify: `curl http://localhost:11434/api/tags`
 
 **Tests failing**:
+
 - Check that Ollama is running
 - Pull a test model: `ollama pull llama3.2:3b`
 - Run specific tests: `pytest tests/test_config.py -v`
 
 **Python version issues**: harombe requires Python 3.11+
+
 - Check version: `python --version`
 - Consider using [pyenv](https://github.com/pyenv/pyenv) to manage Python versions
 
@@ -160,20 +192,29 @@ pip install -e ".[dev]"
 
 ### Development Workflow
 
-**Before committing:**
+**Quick reference:**
+
 ```bash
-# Run tests
-pytest
+make help         # Show all available commands
+make dev-install  # Install with dev deps + pre-commit hooks
+make format       # Auto-format code
+make lint         # Check code quality
+make type-check   # Check types
+make test         # Run tests
+make test-cov     # Run tests with coverage
+make ci           # Run all checks (what CI runs)
+make clean        # Clean up generated files
+```
 
-# Format and lint
-ruff format .
-ruff check .
+**Before committing:**
+Pre-commit hooks run automatically, but you can also run manually:
 
-# Optional: type checking
-mypy src/
+```bash
+make ci  # Run all checks
 ```
 
 **Running the development version:**
+
 ```bash
 # Interactive chat
 python -m harombe chat
