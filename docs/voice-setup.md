@@ -153,8 +153,8 @@ voice:
 
 **engine**: TTS backend
 
-- `"piper"`: Fast, local, neural TTS (recommended for real-time)
-- `"coqui"`: High-quality, slower (better for production audio)
+- `"piper"`: Fast, local, neural TTS (recommended for real-time, supports all Python versions)
+- `"coqui"`: High-quality, slower (better for production audio, **Python <3.11 only**)
 
 **Piper Models** (engine: piper):
 
@@ -163,8 +163,9 @@ voice:
 - `en_US-lessac-low`: Male voice, faster
 - `en_GB-southern_english_female-medium`: British female
 
-**Coqui Models** (engine: coqui):
+**Coqui Models** (engine: coqui, requires Python 3.10 or earlier):
 
+- Install with: `pip install 'harombe[coqui]'` (Python 3.10 only)
 - `tts_models/en/ljspeech/tacotron2-DDC`: High quality
 - `tts_models/en/vctk/vits`: Multi-speaker
 - `tts_models/multilingual/multi-dataset/your_tts`: Multilingual

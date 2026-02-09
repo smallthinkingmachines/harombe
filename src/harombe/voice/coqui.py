@@ -49,7 +49,12 @@ class CoquiTTS(TTSEngine):
         try:
             from TTS.api import TTS  # type: ignore[import-not-found]
         except ImportError as e:
-            msg = "Coqui TTS not installed. Install with: " "pip install TTS"
+            msg = (
+                "Coqui TTS not installed. "
+                "Note: Coqui TTS only supports Python <3.11. "
+                "Install with: pip install 'harombe[coqui]' (Python 3.10 or earlier) "
+                "or use Piper TTS instead (supports all Python versions)."
+            )
             raise ImportError(msg) from e
 
         logger.info(f"Loading Coqui TTS model: {self._model_name}")

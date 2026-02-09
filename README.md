@@ -160,7 +160,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 **Phase 3 (Complete):** Voice & Multi-Modal
 
 - Speech-to-text with Whisper (tiny to large-v3 models)
-- Text-to-speech with Piper (fast) and Coqui (high-quality)
+- Text-to-speech with Piper (fast, all Python versions) and Coqui (high-quality, Python <3.11 only)
 - Push-to-talk voice interface (press SPACE to record)
 - Voice API endpoints (REST + WebSocket streaming)
 - Real-time audio processing with sounddevice
@@ -238,7 +238,7 @@ voice:
     model: base # tiny, base, small, medium, large-v3
     language: null # Auto-detect, or specify: en, es, fr, etc.
   tts:
-    engine: piper # piper (fast) or coqui (high-quality)
+    engine: piper # piper (fast, all Python) or coqui (high-quality, Python <3.11)
     model: en_US-lessac-medium
     speed: 1.0
 ```

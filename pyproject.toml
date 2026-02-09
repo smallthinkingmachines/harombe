@@ -42,12 +42,16 @@ dependencies = [
     "numpy>=1.24",  # Required for embeddings
     "faster-whisper>=1.0",  # Speech-to-text (Phase 3)
     "piper-tts>=1.2",  # Text-to-speech - fast (Phase 3)
-    "TTS>=0.22",  # Text-to-speech - high quality (Phase 3)
     "sounddevice>=0.4",  # Audio I/O for voice client (Phase 3)
     "pynput>=1.7",  # Keyboard input for push-to-talk (Phase 3)
 ]
 
 [project.optional-dependencies]
+# Coqui TTS (high-quality voice) - only supports Python <3.11
+coqui = [
+    "TTS>=0.22; python_version < '3.11'",
+]
+
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
