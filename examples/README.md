@@ -123,11 +123,47 @@ The example processes sample sales data through multiple stages:
 
 Plus demonstrations of error recovery and batch processing.
 
+### 06. Cluster Routing (`06_cluster_routing.py`)
+
+**What it demonstrates:**
+
+- Multi-node cluster orchestration
+- Automatic task complexity classification
+- Smart routing to appropriate hardware tiers
+- Health monitoring and circuit breakers
+- Load balancing across nodes
+- Phase 1's unique distributed inference value
+
+**What you'll learn:**
+
+- How to configure multi-machine clusters
+- Routing strategies for different workload types
+- Health monitoring and failover patterns
+- Load balancing across heterogeneous hardware
+- Distributed AI without cloud dependencies
+
+**Run it:**
+
+```bash
+python examples/06_cluster_routing.py
+```
+
+**Expected output:**
+
+The example demonstrates cluster concepts in 5 parts:
+
+1. Routing strategy - How complexity classification works
+2. Simulated routing - Local demonstration of routing logic
+3. Cluster configuration - YAML setup for multi-node clusters
+4. Health monitoring - Circuit breakers, failover, load balancing
+5. Real cluster usage - Live demonstration if cluster is configured
+
+Works without a real cluster (educational mode) or with real nodes (live demo).
+
 ## Coming Soon
 
 - **04. Code Review Agent** - Analyze code quality, suggest improvements
 - **05. Research Agent** - Multi-source web research with synthesis
-- **06. Cluster Routing** - Multi-node deployment with complexity-based routing
 
 ## Example Template
 
