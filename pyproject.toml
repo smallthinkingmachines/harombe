@@ -11,7 +11,7 @@ license = { text = "Apache-2.0" }
 authors = [
     { name = "harombe contributors" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 keywords = ["ai", "agent", "framework", "self-hosted", "distributed", "autonomous", "ollama"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
 ]
 
 dependencies = [
