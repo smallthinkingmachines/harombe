@@ -696,19 +696,45 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
   - REST API metrics endpoint
   - CLI metrics command
 
-### Phase 2: Memory & Privacy (Future)
+### Phase 2: Memory & Context (Complete)
 
-- Long-term conversation memory
-- Vector store integration
-- Privacy router for PII detection
-- Knowledge base management
+- **Phase 2.1** (Complete): Conversation Memory
+  - SQLite-based conversation persistence
+  - Session management and lifecycle
+  - Token-based context windowing
+  - Multi-turn conversations with history recall
+  - Optional memory (backward compatible)
 
-### Phase 3: Advanced Features (Future)
+- **Phase 2.2** (Complete): Semantic Search & RAG
+  - Vector embeddings with sentence-transformers (privacy-first, local)
+  - ChromaDB vector store for similarity search
+  - Semantic search across conversation history
+  - RAG (Retrieval-Augmented Generation) for context-aware responses
+  - Cross-session knowledge retrieval
 
-- Voice input/output (STT/TTS)
+### Phase 3: Voice & Multi-Modal (In Progress)
+
+- Whisper STT integration (speech-to-text)
+- TTS integration (text-to-speech)
+- Voice client (push-to-talk or wake word)
+- Progressive feedback during tool execution
+- Multi-modal support (vision, audio)
+
+### Phase 4: Privacy Router (Planned)
+
+- Hybrid local/cloud AI with privacy boundary
+- PII detection and redaction
+- Context sanitization
+- Three modes: local-only, hybrid (default), cloud-assisted
+- User-configurable privacy policies
+
+### Phase 5: Community & Polish (Planned)
+
 - Web UI with real-time updates
 - Plugin system for custom tools
-- Multi-modal support (vision, audio)
+- Distributed inference (single model across machines)
+- iOS/web clients
+- Contributor documentation
 
 ## Troubleshooting
 
