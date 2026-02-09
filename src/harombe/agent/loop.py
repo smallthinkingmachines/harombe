@@ -76,6 +76,9 @@ class Agent:
         cluster_manager: Optional["ClusterManager"] = None,
         memory_manager: Optional["MemoryManager"] = None,
         session_id: str | None = None,
+        enable_rag: bool = False,
+        rag_top_k: int = 5,
+        rag_min_similarity: float = 0.7,
     ):
         """Initialize the agent.
 
@@ -91,6 +94,9 @@ class Agent:
             cluster_manager: Optional cluster manager for distributed routing
             memory_manager: Optional memory manager for conversation persistence
             session_id: Session ID for loading/saving conversation history
+            enable_rag: Enable retrieval-augmented generation from semantic memory
+            rag_top_k: Number of similar messages to retrieve for RAG
+            rag_min_similarity: Minimum similarity threshold for RAG retrieval
         """
         self.llm = llm
         self.tools = {tool.schema.name: tool for tool in tools}
@@ -101,6 +107,9 @@ class Agent:
         self.cluster_manager = cluster_manager
         self.memory_manager = memory_manager
         self.session_id = session_id
+        self.enable_rag = enable_rag
+        self.rag_top_k = rag_top_k
+        self.rag_min_similarity = rag_min_similarity
 
         # Build tool schemas for LLM
         self.tool_schemas = [tool.schema.to_openai_format() for tool in tools]
@@ -124,12 +133,23 @@ class Agent:
             if history:
                 state.messages = history
 
-        # Add user message
-        state.add_user_message(user_message)
+        # Retrieve relevant context if RAG is enabled
+        rag_context = None
+        if self.enable_rag and self.memory_manager:
+            rag_context = await self._retrieve_rag_context(user_message)
 
-        # Save user message to memory
+        # Add user message (with RAG context if available)
+        if rag_context:
+            # Inject RAG context into user message
+            enhanced_message = self._format_message_with_context(user_message, rag_context)
+            state.add_user_message(enhanced_message)
+        else:
+            state.add_user_message(user_message)
+
+        # Save original user message to memory (without RAG context)
         if self.memory_manager and self.session_id:
-            self.memory_manager.save_message(self.session_id, state.messages[-1])
+            original_msg = Message(role="user", content=user_message)
+            self.memory_manager.save_message(self.session_id, original_msg)
 
         # Use smart routing if cluster manager is available
         llm_client = await self._get_llm_client(user_message, state.messages)
@@ -256,6 +276,65 @@ class Agent:
             return f"Error: Invalid arguments for tool '{tool_name}': {e}"
         except Exception as e:
             return f"Error executing tool '{tool_name}': {e}"
+
+    async def _retrieve_rag_context(self, query: str) -> list[Message]:
+        """Retrieve relevant context from semantic memory for RAG.
+
+        Args:
+            query: User query to find relevant context for
+
+        Returns:
+            List of relevant messages from conversation history
+        """
+        if not self.memory_manager or not self.memory_manager.semantic_search_enabled:
+            return []
+
+        try:
+            # Search for similar messages across all sessions
+            relevant_messages = await self.memory_manager.search_similar(
+                query=query,
+                top_k=self.rag_top_k,
+                session_id=None,  # Search across all sessions
+                min_similarity=self.rag_min_similarity,
+            )
+            return relevant_messages
+        except Exception:
+            # Silently fail - don't break agent execution
+            return []
+
+    def _format_message_with_context(self, user_message: str, context: list[Message]) -> str:
+        """Format user message with RAG context.
+
+        Args:
+            user_message: Original user message
+            context: Relevant messages from conversation history
+
+        Returns:
+            Enhanced message with context
+        """
+        if not context:
+            return user_message
+
+        # Build context section
+        context_lines = ["RELEVANT CONTEXT FROM PAST CONVERSATIONS:", "---"]
+
+        for msg in context:
+            role_label = msg.role.upper()
+            # Truncate long messages
+            content = msg.content
+            if len(content) > 200:
+                content = content[:200] + "..."
+            context_lines.append(f"[{role_label}]: {content}")
+
+        context_lines.append("---")
+        context_lines.append("")
+        context_lines.append(
+            "Now answer the current user question using the context above if relevant."
+        )
+        context_lines.append("")
+        context_lines.append(f"USER QUESTION: {user_message}")
+
+        return "\n".join(context_lines)
 
 
 async def run_agent_with_streaming(
