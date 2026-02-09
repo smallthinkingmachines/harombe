@@ -51,6 +51,7 @@ from .sandbox_manager import (
     Sandbox,
     SandboxManager,
 )
+from .sandbox_risk import get_allowed_registries, get_sandbox_hitl_rules
 from .secrets import SecretMatch, SecretScanner, SecretType
 from .vault import (
     EnvVarBackend,
@@ -108,7 +109,9 @@ __all__ = [
     "create_injector",
     "create_prompt",
     "create_vault_backend",
+    "get_allowed_registries",
     "get_browser_hitl_rules",
+    "get_sandbox_hitl_rules",
     "get_sensitive_domains",
     "get_trusted_domains",
 ]
