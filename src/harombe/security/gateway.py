@@ -22,6 +22,7 @@ from harombe.mcp.protocol import (
 )
 
 from .audit_logger import AuditLogger
+from .hitl import ApprovalStatus, HITLGate, Operation
 
 logger = logging.getLogger(__name__)
 
@@ -226,6 +227,8 @@ class MCPGateway:
         version: str = "0.1.0",
         audit_db_path: str = "~/.harombe/audit.db",
         enable_audit_logging: bool = True,
+        enable_hitl: bool = False,
+        hitl_prompt_callback: any | None = None,
     ):
         """Initialize MCP Gateway.
 
@@ -235,6 +238,8 @@ class MCPGateway:
             version: Gateway version
             audit_db_path: Path to audit database
             enable_audit_logging: Enable audit logging
+            enable_hitl: Enable Human-in-the-Loop approval gates
+            hitl_prompt_callback: Optional callback for prompting users for approval
         """
         self.host = host
         self.port = port
@@ -252,6 +257,13 @@ class MCPGateway:
         self.audit_logger: AuditLogger | None = None
         if enable_audit_logging:
             self.audit_logger = AuditLogger(db_path=audit_db_path)
+
+        # HITL gates
+        self.enable_hitl = enable_hitl
+        self.hitl_gate: HITLGate | None = None
+        self.hitl_prompt_callback = hitl_prompt_callback
+        if enable_hitl:
+            self.hitl_gate = HITLGate()
 
         # Register routes
         self._setup_routes()
@@ -340,6 +352,65 @@ class MCPGateway:
 
                 container = TOOL_ROUTES[tool_name]
                 logger.debug(f"Routing {tool_name} to {container}")
+
+                # Check HITL approval if enabled
+                if self.hitl_gate:
+                    operation = Operation(
+                        tool_name=tool_name,
+                        params=tool_params.arguments or {},
+                        correlation_id=correlation_id or mcp_request.id,
+                        session_id=getattr(request.state, "session_id", None),
+                        metadata={
+                            "request_id": mcp_request.id,
+                            "container": container,
+                        },
+                    )
+
+                    approval_decision = await self.hitl_gate.check_approval(
+                        operation=operation,
+                        user="agent",
+                        prompt_callback=self.hitl_prompt_callback,
+                    )
+
+                    # Log HITL decision
+                    if self.audit_logger and correlation_id:
+                        self.audit_logger.log_security_decision(
+                            correlation_id=correlation_id,
+                            decision="allow"
+                            if approval_decision.decision == ApprovalStatus.APPROVED
+                            or approval_decision.decision == ApprovalStatus.AUTO_APPROVED
+                            else "deny",
+                            reason=approval_decision.reason
+                            or f"HITL decision: {approval_decision.decision}",
+                            metadata={
+                                "approval_status": approval_decision.decision,
+                                "approval_user": approval_decision.user,
+                                "approval_timestamp": approval_decision.timestamp.isoformat(),
+                            },
+                        )
+
+                    # Deny if not approved
+                    if approval_decision.decision not in (
+                        ApprovalStatus.APPROVED,
+                        ApprovalStatus.AUTO_APPROVED,
+                    ):
+                        error_response = create_error_response(
+                            request_id=mcp_request.id,
+                            code=ErrorCode.AUTHORIZATION_DENIED,
+                            message=f"Operation denied by HITL gate: {approval_decision.decision}",
+                            details=approval_decision.reason or "No reason provided",
+                        )
+
+                        # Log denial
+                        if self.audit_logger and correlation_id:
+                            self.audit_logger.end_request_sync(
+                                correlation_id=correlation_id,
+                                status="denied",
+                                error_message=f"HITL denied: {approval_decision.reason}",
+                                duration_ms=int((time.time() - start_time) * 1000),
+                            )
+
+                        return JSONResponse(content=error_response.model_dump(mode="json"))
 
                 # Forward request to container
                 response = await self.client_pool.send_request(container, mcp_request)
