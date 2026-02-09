@@ -1,0 +1,4 @@
+# Ignore generated review reports
+*_report.md
+*_review.md
+*.txt

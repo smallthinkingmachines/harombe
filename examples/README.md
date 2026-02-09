@@ -123,6 +123,83 @@ The example processes sample sales data through multiple stages:
 
 Plus demonstrations of error recovery and batch processing.
 
+### 04. Code Review Agent (`04_code_review.py`)
+
+**What it demonstrates:**
+
+- Automated code quality analysis
+- Bug and error detection
+- Security vulnerability scanning
+- Performance issue identification
+- Code smell and anti-pattern detection
+- Refactoring suggestions with examples
+
+**What you'll learn:**
+
+- How to automate code reviews with AI
+- Identifying security vulnerabilities (OWASP)
+- Detecting bugs before they reach production
+- Generating comprehensive review reports
+- Getting actionable refactoring suggestions
+- Prioritizing issues by severity
+
+**Run it:**
+
+```bash
+python examples/04_code_review.py
+```
+
+**Expected output:**
+
+The example performs 5 types of code review:
+
+1. Single file analysis - Detailed review with severity ratings
+2. Multi-file analysis - Compare quality across files
+3. Security audit - OWASP-focused vulnerability scan
+4. Refactoring suggestions - Before/after code examples
+5. Comprehensive report - Full markdown report with action items
+
+Sample code files included with intentional bugs and security issues.
+
+### 05. Research Agent (`05_research_agent.py`)
+
+**What it demonstrates:**
+
+- Automated web research and information gathering
+- Multi-source synthesis and analysis
+- Comparative research across topics
+- Fact-checking and verification
+- Literature reviews
+- Comprehensive research report generation
+
+**What you'll learn:**
+
+- How to automate research workflows with AI
+- Gathering and synthesizing information from multiple sources
+- Cross-referencing and fact-checking
+- Generating well-structured research reports
+- Comparing different perspectives
+- Building research agents for specific domains
+
+**Run it:**
+
+```bash
+python examples/05_research_agent.py
+```
+
+**Expected output:**
+
+The example demonstrates 6 types of research:
+
+1. Simple research - Basic topic investigation with sources
+2. Comparative analysis - GraphQL vs REST with pros/cons
+3. Multi-source investigation - Breaking down complex topics
+4. Fact-checking - Verifying claims with confidence levels
+5. Literature review - Academic-style synthesis
+6. Comprehensive report - Full markdown report with citations
+
+Generated reports saved to research_output/ directory.
+
 ### 06. Cluster Routing (`06_cluster_routing.py`)
 
 **What it demonstrates:**
@@ -159,11 +236,6 @@ The example demonstrates cluster concepts in 5 parts:
 5. Real cluster usage - Live demonstration if cluster is configured
 
 Works without a real cluster (educational mode) or with real nodes (live demo).
-
-## Coming Soon
-
-- **04. Code Review Agent** - Analyze code quality, suggest improvements
-- **05. Research Agent** - Multi-source web research with synthesis
 
 ## Example Template
 

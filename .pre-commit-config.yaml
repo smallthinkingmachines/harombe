@@ -10,8 +10,10 @@ repos:
       # Run the linter
       - id: ruff
         args: [--fix]
+        exclude: ^examples/sample_code/
       # Run the formatter
       - id: ruff-format
+        exclude: ^examples/sample_code/
 
   # Mypy - Type checking
   - repo: https://github.com/pre-commit/mirrors-mypy

@@ -1,0 +1,4 @@
+# Ignore all generated research reports
+*
+# But keep this .gitignore
+!.gitignore
