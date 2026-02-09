@@ -19,6 +19,9 @@ from .core import (
 # Import risk scoring
 from .risk_scorer import HistoricalRiskScorer, RiskScore
 
+# Import trust management
+from .trust import TrustLevel, TrustManager, TrustScore
+
 __all__ = [
     "ApprovalDecision",
     "ApprovalStatus",
@@ -30,4 +33,7 @@ __all__ = [
     "RiskClassifier",
     "RiskLevel",
     "RiskScore",
+    "TrustLevel",
+    "TrustManager",
+    "TrustScore",
 ]
