@@ -126,3 +126,7 @@ disallow_untyped_defs = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "--cov=harombe --cov-report=term-missing"
+markers = [
+    "docker_integration: Integration tests requiring Docker daemon (deselect with '-m \"not docker_integration\"')",
+    "cluster_integration: Integration tests requiring multi-node cluster",
+]
