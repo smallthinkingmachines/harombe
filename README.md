@@ -123,6 +123,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 - Performance metrics and observability
 - mDNS service discovery
 
+**Phase 2.1 (Complete):** Conversation Memory
+
+- SQLite-based conversation persistence
+- Session management and lifecycle
+- Token-based context windowing
+- Multi-turn conversations with history recall
+- Optional memory (backward compatible)
+
 ## Quick Start
 
 ### Prerequisites
@@ -235,6 +243,64 @@ response = await agent.run("Your task here")
 
 This gives you full control over agent creation, configuration, and behavior.
 
+### Conversation Memory
+
+harombe supports persistent conversation history across agent interactions. This allows agents to remember context from previous messages and maintain continuity across multiple runs.
+
+**Enable memory in your config:**
+
+```yaml
+memory:
+  enabled: true
+  storage_path: ~/.harombe/memory.db
+  max_history_tokens: 4096
+```
+
+**Use memory programmatically:**
+
+```python
+from harombe.agent.loop import Agent
+from harombe.llm.ollama import OllamaClient
+from harombe.memory.manager import MemoryManager
+
+# Create memory manager
+memory = MemoryManager(
+    storage_path="~/.harombe/memory.db",
+    max_history_tokens=4096,
+)
+
+# Create or get session
+session_id, created = memory.get_or_create_session(
+    session_id="my-conversation",
+    system_prompt="You are a helpful assistant.",
+)
+
+# Agent automatically loads history
+llm = OllamaClient(model="qwen2.5:7b")
+agent = Agent(
+    llm=llm,
+    tools=tools,
+    memory_manager=memory,
+    session_id=session_id,
+)
+
+# First message
+await agent.run("What is your name?")
+
+# Later: new agent instance remembers previous context
+agent2 = Agent(llm=llm, tools=tools, memory_manager=memory, session_id=session_id)
+await agent2.run("Do you remember what I asked before?")  # Agent recalls previous messages
+```
+
+**Key features:**
+
+- **Automatic history loading** - Agent loads conversation context on startup
+- **Token windowing** - Most recent messages that fit within token limit
+- **Session management** - Multiple independent conversations
+- **Backward compatible** - Memory is optional, existing code works unchanged
+
+See [`examples/06_memory_conversation.py`](examples/06_memory_conversation.py) for a complete demonstration.
+
 ### Configuration
 
 Configuration is stored at `~/.harombe/harombe.yaml`. Here's an example:
@@ -259,6 +325,11 @@ tools:
   filesystem: true
   web_search: true
   confirm_dangerous: true
+
+memory:
+  enabled: false # Set to true to enable conversation persistence
+  storage_path: ~/.harombe/memory.db
+  max_history_tokens: 4096
 
 server:
   host: 127.0.0.1

@@ -200,7 +200,43 @@ The example demonstrates 6 types of research:
 
 Generated reports saved to research_output/ directory.
 
-### 06. Cluster Routing (`06_cluster_routing.py`)
+### 06. Conversation Memory (`06_memory_conversation.py`)
+
+**What it demonstrates:**
+
+- Persistent conversation history across agent interactions
+- Session creation and management
+- Loading conversation context automatically
+- Token windowing for context limits
+- Multi-turn conversations with memory recall
+- Session lifecycle (create, list, clear, delete)
+
+**What you'll learn:**
+
+- How to enable persistent conversations
+- Managing multiple conversation sessions
+- Loading and replaying conversation history
+- Token-based context window management
+- Session metadata and organization
+- Memory cleanup and maintenance
+
+**Run it:**
+
+```bash
+python examples/06_memory_conversation.py
+```
+
+**Expected output:**
+
+The example demonstrates memory features in 3 parts:
+
+1. Session persistence - Multiple agent instances share conversation context
+2. History inspection - View full conversation logs with messages
+3. Token windowing - Automatic context management for long conversations
+
+The agent remembers previous interactions and can reference earlier messages.
+
+### 07. Cluster Routing (`07_cluster_routing.py`)
 
 **What it demonstrates:**
 

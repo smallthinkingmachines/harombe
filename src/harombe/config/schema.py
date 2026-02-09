@@ -112,6 +112,25 @@ class CoordinatorConfig(BaseModel):
     )
 
 
+class MemoryConfig(BaseModel):
+    """Conversation memory configuration."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable conversation memory persistence",
+    )
+    storage_path: str = Field(
+        default="~/.harombe/memory.db",
+        description="Path to SQLite database for conversation storage",
+    )
+    max_history_tokens: int = Field(
+        default=4096,
+        description="Maximum tokens to load from conversation history",
+        ge=512,
+        le=128000,
+    )
+
+
 class ClusterConfig(BaseModel):
     """Cluster orchestration configuration."""
 
@@ -132,6 +151,10 @@ class HarombeConfig(BaseModel):
     agent: AgentConfig = Field(default_factory=AgentConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
+    memory: MemoryConfig = Field(
+        default_factory=MemoryConfig,
+        description="Conversation memory configuration (Phase 2.1)",
+    )
     cluster: ClusterConfig | None = Field(
         default=None,
         description="Cluster configuration for multi-machine orchestration (Phase 1)",
