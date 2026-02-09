@@ -83,12 +83,48 @@ The example runs 5 demonstrations:
 1. Basic programmatic agent creation and usage
 2. Custom confirmation callback with auto-approval logic
 3. Error handling patterns (specific errors, fallbacks, retries)
-4. Agent state inspection (conversation history)
+4. Multiple specialized agents with different configurations
 5. Integration example (batch task processor)
+
+### 03. Multi-step Data Pipeline (`03_data_pipeline.py`)
+
+**What it demonstrates:**
+
+- Real-world data processing workflows
+- CSV file analysis and transformation
+- Multi-step calculations and aggregations
+- Automated report generation
+- Error handling in data pipelines
+- Batch file processing
+
+**What you'll learn:**
+
+- How to build data analysis workflows with agents
+- Automating repetitive data tasks
+- Generating insights from structured data
+- Handling missing or invalid data gracefully
+- Creating comprehensive reports automatically
+
+**Run it:**
+
+```bash
+python examples/03_data_pipeline.py
+```
+
+**Expected output:**
+
+The example processes sample sales data through multiple stages:
+
+1. Data exploration (row count, columns, date range)
+2. Category analysis (revenue by category, units sold)
+3. Regional analysis (sales by region, top regions)
+4. Product insights (best-selling products, averages)
+5. Comprehensive report generation (sales_report.md)
+
+Plus demonstrations of error recovery and batch processing.
 
 ## Coming Soon
 
-- **03. Multi-step Data Pipeline** - Process CSV files, analyze data, generate reports
 - **04. Code Review Agent** - Analyze code quality, suggest improvements
 - **05. Research Agent** - Multi-source web research with synthesis
 - **06. Cluster Routing** - Multi-node deployment with complexity-based routing

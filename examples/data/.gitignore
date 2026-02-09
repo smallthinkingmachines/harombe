@@ -1,0 +1,9 @@
+# Ignore generated reports and analysis outputs
+*_report.md
+*_analysis.md
+*.xlsx
+*.json
+*.txt
+
+# Keep sample data
+!sales_data.csv

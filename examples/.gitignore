@@ -1,11 +1,11 @@
 # Ignore example output files
 *.txt
-*.csv
 *.json
 *.log
 output/
 reports/
-data/
 
-# But keep example data if explicitly committed
-!example_data.csv
+# Ignore data directory but keep sample files
+data/
+!data/.gitignore
+!data/sales_data.csv
