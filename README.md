@@ -1,22 +1,29 @@
 # harombe
 
-> **Orchestrate AI across your hardware**
+> **Self-hosted agent framework for distributed AI**
 
-Run a powerful AI assistant on your own hardware—one machine or many—with zero cloud dependencies.
+Build autonomous AI agents that orchestrate workloads across your hardware—one machine or many—with zero cloud dependencies.
 
 ## What is harombe?
 
-**harombe** orchestrates heterogeneous consumer hardware into a unified, tool-using AI system. Configure your cluster in YAML, and harombe automatically routes queries to the right machine based on complexity.
+**harombe** is a general-purpose agent framework that orchestrates heterogeneous consumer hardware (Apple Silicon, NVIDIA, AMD, CPU) into a unified system for autonomous task execution. Define your cluster in YAML, create custom tools, and let harombe route workloads to the right hardware based on task complexity.
 
-**The gap harombe fills:** No other open source project combines distributed inference across mixed hardware, autonomous agent loops with tool calling, and declarative cluster configuration. Existing solutions require either cloud providers, single-machine constraints, or complex DevOps expertise.
+**The gap harombe fills:** No other open source project combines distributed inference across mixed hardware, autonomous agent loops with tool execution, and declarative cluster configuration. Existing solutions require either cloud providers, single-machine constraints, or complex DevOps expertise.
 
-**Value proposition:**
-- **Privacy-first:** Your data never leaves your hardware
-- **Zero-config:** `pip install harombe && harombe init && harombe chat` works in <5 minutes
-- **Smart routing:** Automatically sends simple queries to fast/local models, complex queries to powerful ones
-- **Tool-using agent:** Execute shell commands, read/write files, search the web
-- **Observable:** Built-in metrics, health monitoring, and failure recovery
-- **Extensible:** Add custom tools, backends, or nodes easily
+**Core capabilities:**
+- **Autonomous execution:** Agents that plan, use tools, and execute multi-step tasks
+- **Distributed orchestration:** Smart routing across heterogeneous hardware based on workload complexity
+- **Privacy-first:** Your data, models, and workloads never leave your infrastructure
+- **Extensible:** Add custom tools, backends, nodes, and agent behaviors
+- **Observable:** Built-in metrics, health monitoring, circuit breakers, and failure recovery
+- **Zero-config start:** `pip install harombe && harombe init && harombe chat` works in <5 minutes
+
+**Use cases:**
+- Interactive AI assistants with tool use (chat, voice)
+- Automated data processing pipelines
+- Code generation and analysis workflows
+- Research automation with web search and file management
+- Multi-modal agents (vision, audio - roadmap)
 
 > **⚠️ Security Notice**
 >
@@ -39,16 +46,21 @@ harombe is a five-layer system designed for clarity and extensibility:
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
-## Phase 0: Weekend MVP ✅
+## Current Status
 
-This initial release provides a working single-machine AI assistant with:
+**Phase 0 (Complete):** Single-machine agent foundation
+- Tool execution system (shell, filesystem, web search)
+- ReAct agent loop with autonomous reasoning
+- Hardware auto-detection and model selection
+- Interactive CLI and REST API
+- Zero-config deployment
 
-- ✅ Tool calling (shell, filesystem, web search)
-- ✅ ReAct agent loop (~300 LOC)
-- ✅ Hardware auto-detection and model selection
-- ✅ Interactive CLI chat interface
-- ✅ REST API with SSE streaming
-- ✅ Zero-config deployment
+**Phase 1 (Complete):** Multi-machine orchestration
+- Cluster configuration and node management
+- Smart routing based on task complexity
+- Health monitoring with circuit breakers
+- Performance metrics and observability
+- mDNS service discovery
 
 ## Quick Start
 
@@ -60,7 +72,7 @@ This initial release provides a working single-machine AI assistant with:
 ### Installation
 
 ```bash
-# Install Harombe
+# Install harombe
 pip install harombe
 
 # Initialize configuration (detects your hardware)
@@ -69,40 +81,50 @@ harombe init
 # Pull recommended model
 ollama pull qwen2.5:7b  # or whatever model was recommended
 
-# Start chatting!
+# Start interactive agent
 harombe chat
 ```
 
-That's it! You should be up and running in under 5 minutes.
+That's it! You have a working autonomous agent in under 5 minutes.
+
+The `harombe chat` command provides an interactive interface to the agent system. The agent can execute shell commands, read/write files, search the web, and perform multi-step reasoning to accomplish tasks.
 
 ## Usage
 
-### Interactive Chat
+### Interactive Agent Interface
 
 ```bash
 harombe chat
 ```
 
-Chat commands:
+Interact with the autonomous agent through a conversational interface. The agent will:
+- Reason about tasks and break them into steps
+- Execute tools as needed (shell commands, file operations, web search)
+- Handle multi-step workflows autonomously
+- Ask for confirmation before dangerous operations
+
+Commands:
 - `/help` - Show available commands
 - `/model` - Show current model info
 - `/tools` - List enabled tools
-- `/exit` - Exit chat
+- `/exit` - Exit interface
 
-### API Server
+### Programmatic Access
 
 ```bash
-# Start server
+# Start API server
 harombe start
 
-# In another terminal, test it
+# Health check
 curl http://localhost:8000/health
 
-# Send a chat message
+# Submit task to agent
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello!"}'
+  -d '{"message": "Analyze the last 100 lines of system.log and summarize errors"}'
 ```
+
+The REST API provides programmatic access to the agent system for integration with other tools, automation pipelines, or custom interfaces.
 
 ### Configuration
 

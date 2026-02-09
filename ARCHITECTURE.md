@@ -1,20 +1,21 @@
 # Harombe Architecture
 
-> **Orchestrate AI across your hardware**
+> **Self-hosted agent framework for distributed AI**
 
-Harombe is designed as a five-layer system that abstracts hardware complexity and provides a unified interface for distributed AI inference.
+Harombe is designed as a five-layer system that abstracts hardware complexity and provides a unified interface for autonomous agent workloads across distributed infrastructure.
 
 ## Design Philosophy
 
-**The Problem:** Running AI assistants across heterogeneous hardware (Apple Silicon, NVIDIA, AMD, CPU) is complex. Each device has different capabilities, but manually routing queries and managing workloads is error-prone.
+**The Problem:** Building autonomous AI agents that can execute complex, multi-step tasks across heterogeneous hardware (Apple Silicon, NVIDIA, AMD, CPU) is complex. Existing solutions either lock you into cloud providers, limit you to single machines, or require extensive DevOps expertise.
 
-**The Solution:** Harombe provides a declarative, YAML-based configuration that automatically:
-- Detects available hardware
-- Routes queries to appropriate nodes based on complexity
-- Monitors health and performance
-- Handles failures gracefully
+**The Solution:** Harombe provides a declarative, YAML-based agent framework that automatically:
+- Detects available hardware and recommends appropriate models
+- Routes workloads to appropriate nodes based on task complexity
+- Provides extensible tool execution for autonomous agents
+- Monitors health and performance with failure recovery
+- Scales from single machines to multi-node clusters
 
-Think of it as infrastructure-as-code for your personal AI cluster.
+Think of it as infrastructure-as-code for autonomous AI workloads on your own hardware.
 
 ---
 
