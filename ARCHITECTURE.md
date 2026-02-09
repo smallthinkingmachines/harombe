@@ -28,7 +28,7 @@ flowchart TB
     L6["Layer 6: Clients<br/>Voice • iOS • Web • CLI"]
     L5["Layer 5: Privacy Router<br/>Local/Cloud Boundary • PII Detection"]
     L4["Layer 4: Agent & Memory<br/>ReAct Loop • Tools • State"]
-    L3["Layer 3: Sitadèl (Security)<br/>🏰 MCP Gateway • Container Isolation • Audit"]
+    L3["Layer 3: Security<br/>MCP Gateway • Container Isolation • Audit"]
     L2["Layer 2: Coordination<br/>Cluster • Router • Health • Metrics"]
     L1["Layer 1: Runtimes<br/>llama.cpp • Whisper • TTS • Embeddings"]
 
@@ -44,7 +44,7 @@ flowchart TB
 - **Layer 6 (Clients):** Voice interface, iOS/web apps, CLI commands, REST API with SSE streaming
 - **Layer 5 (Privacy Router - Phase 5):** Hybrid local/cloud AI, PII detection, context sanitization, configurable privacy boundary
 - **Layer 4 (Agent):** ReAct agent loop, tool registry and execution, conversation state, memory (SQL + vector)
-- **Layer 3 (Sitadèl - Phase 4):** 🏰 **NEW** - MCP Gateway, container isolation per tool, credential vault, audit logging, per-tool egress control, HITL gates
+- **Layer 3 (Security - Phase 4):** MCP Gateway, container isolation per tool, credential vault, audit logging, per-tool egress control, HITL gates
 - **Layer 2 (Coordination):** Cluster manager, smart routing, health monitoring, metrics, circuit breakers, mDNS discovery
 - **Layer 1 (Runtimes):** llama.cpp (LLM), Whisper (STT), Piper/Coqui (TTS), sentence-transformers (embeddings), hardware detection
 
@@ -191,11 +191,11 @@ cluster:
 
 ---
 
-## Layer 3.5: Sitadèl (Security) — Phase 4
+## Layer 3.5: Security — Phase 4
 
 **Purpose:** Enforce security boundaries for tool execution and credential management.
 
-**🏰 Sitadèl** (Creole "Citadelle") is harombe's security layer, named for the Citadelle Laferrière. Research completed February 2026 revealed a critical insight: **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer through containers, network policies, and gateways.
+**Sitadèl** (internal codename, Creole "Citadelle") is harombe's security layer, named for the Citadelle Laferrière. Research completed February 2026 revealed a critical insight: **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer through containers, network policies, and gateways.
 
 ### The Capability-Container Pattern
 

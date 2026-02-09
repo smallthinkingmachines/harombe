@@ -35,7 +35,7 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 > - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
 >
-> **Sitadèl (Phase 4):** Full security layer with container isolation, credential vaults, audit logging, and per-tool egress controls is planned. Current version uses basic confirmation prompts.
+> **Security Layer (Phase 4):** Full security layer with container isolation, credential vaults, audit logging, and per-tool egress controls is planned. Current version uses basic confirmation prompts.
 >
 > See [SECURITY.md](SECURITY.md) for detailed security guidance.
 
@@ -108,7 +108,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 ├─────────────────────────────────────┤
 │  Layer 4: Agent & Memory            │  ReAct loop, tools, memory
 ├─────────────────────────────────────┤
-│  Layer 3: Sitadèl (Security)        │
+│  Layer 3: Security        │
 │  MCP Gateway, container isolation   │  Credential vault, audit log
 │  Per-tool egress, HITL gates        │  Tool allowlist, secret scanning
 ├─────────────────────────────────────┤
@@ -119,7 +119,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 └─────────────────────────────────────┘
 ```
 
-**Layer 3: Sitadèl** (Creole "Citadelle") — harombe's security layer, named for the Citadelle Laferrière. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways).
+**Layer 3: Security** — harombe's security layer (internal codename: Sitadèl). Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
@@ -739,9 +739,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - Progressive feedback during tool execution
 - Multi-modal support (vision - future)
 
-### Phase 4: Sitadèl (Security Layer) (Planned)
+### Phase 4: Security Layer (Planned)
 
-**🏰 Capability-Container Pattern:**
+**Capability-Container Pattern:**
 
 - Docker MCP Gateway with per-tool isolation
 - Containerized MCP servers with resource limits
@@ -751,7 +751,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - Tool allowlist + destructive action confirmation
 - Full audit trail of agent decisions and tool calls
 
-**🏰 Security Hardening:**
+**Security Hardening:**
 
 - gVisor sandbox for code execution
 - HttpOnly cookies + network isolation for browser tools
