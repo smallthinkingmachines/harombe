@@ -1,6 +1,5 @@
 """Tests for semantic memory (memory manager with vector store)."""
 
-import asyncio
 import tempfile
 from pathlib import Path
 
@@ -111,8 +110,8 @@ async def test_search_similar(semantic_memory):
         msg = Message(role="user", content=content)
         semantic_memory.save_message(session_id, msg)
 
-    # Wait for async embedding tasks to complete (longer for CI)
-    await asyncio.sleep(1.0)
+    # Wait for async embedding tasks to complete
+    await semantic_memory.wait_for_pending_embeddings()
 
     # Search for programming-related content
     results = await semantic_memory.search_similar(
@@ -139,8 +138,8 @@ async def test_search_similar_session_filter(semantic_memory):
     msg2 = Message(role="user", content="Java development")
     semantic_memory.save_message(session2, msg2)
 
-    # Wait for async embedding tasks to complete (longer for CI)
-    await asyncio.sleep(1.0)
+    # Wait for async embedding tasks to complete
+    await semantic_memory.wait_for_pending_embeddings()
 
     # Search only in session 1
     results = await semantic_memory.search_similar(
@@ -170,8 +169,8 @@ async def test_search_similar_min_similarity(semantic_memory):
         msg = Message(role="user", content=content)
         semantic_memory.save_message(session_id, msg)
 
-    # Wait for async embedding tasks to complete (longer for CI)
-    await asyncio.sleep(1.0)
+    # Wait for async embedding tasks to complete
+    await semantic_memory.wait_for_pending_embeddings()
 
     # Search with high similarity threshold
     results = await semantic_memory.search_similar(
@@ -202,8 +201,8 @@ async def test_get_relevant_context(semantic_memory):
         msg = Message(role="user", content=content)
         semantic_memory.save_message(session_id, msg)
 
-    # Wait for async embedding tasks to complete (longer for CI)
-    await asyncio.sleep(1.0)
+    # Wait for async embedding tasks to complete
+    await semantic_memory.wait_for_pending_embeddings()
 
     # Get context for Python query
     context = await semantic_memory.get_relevant_context(

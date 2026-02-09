@@ -41,6 +41,9 @@ class MemoryManager:
         # Enable semantic search if both components provided
         self.semantic_search_enabled = embedding_client is not None and vector_store is not None
 
+        # Track pending embedding tasks (for testing)
+        self._pending_tasks: list[asyncio.Task] = []
+
     def create_session(
         self,
         system_prompt: str,
@@ -147,6 +150,10 @@ class MemoryManager:
                 task = loop.create_task(self._embed_message_async(message_id, session_id, message))
                 # Add a done callback to capture any exceptions
                 task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                # Track task for testing
+                self._pending_tasks.append(task)
+                # Clean up completed tasks
+                self._pending_tasks = [t for t in self._pending_tasks if not t.done()]
                 return
 
             embedding = loop.run_until_complete(
@@ -209,6 +216,16 @@ class MemoryManager:
             )
         except Exception:
             pass
+
+    async def wait_for_pending_embeddings(self) -> None:
+        """Wait for all pending embedding tasks to complete.
+
+        This is primarily for testing to ensure embeddings are indexed
+        before performing searches.
+        """
+        if self._pending_tasks:
+            await asyncio.gather(*self._pending_tasks, return_exceptions=True)
+            self._pending_tasks.clear()
 
     def load_history(
         self,

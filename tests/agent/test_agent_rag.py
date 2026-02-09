@@ -1,6 +1,5 @@
 """Tests for agent with RAG (Retrieval-Augmented Generation)."""
 
-import asyncio
 import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -118,8 +117,8 @@ async def test_agent_with_rag_injects_context(mock_llm, semantic_memory):
         session_id, Message(role="assistant", content="Use pip install numpy")
     )
 
-    # Wait a moment for embeddings to be processed (longer for CI)
-    await asyncio.sleep(1.0)
+    # Wait a moment for embeddings to be processed
+    await semantic_memory.wait_for_pending_embeddings()
 
     # Now ask a related question
     mock_llm.complete.return_value = CompletionResponse(
@@ -159,7 +158,7 @@ async def test_rag_context_formatting(mock_llm, semantic_memory):
         session_id, Message(role="assistant", content="Python is easy to learn")
     )
 
-    await asyncio.sleep(1.0)
+    await semantic_memory.wait_for_pending_embeddings()
 
     mock_llm.complete.return_value = CompletionResponse(content="Response", tool_calls=None)
 
@@ -193,7 +192,7 @@ async def test_rag_saves_original_message(mock_llm, semantic_memory):
     # Add existing message
     semantic_memory.save_message(session_id, Message(role="user", content="Python programming"))
 
-    await asyncio.sleep(1.0)
+    await semantic_memory.wait_for_pending_embeddings()
 
     mock_llm.complete.return_value = CompletionResponse(content="Response", tool_calls=None)
 
@@ -228,7 +227,7 @@ async def test_rag_with_top_k_limit(mock_llm, semantic_memory):
             session_id, Message(role="user", content=f"Python message {i}")
         )
 
-    await asyncio.sleep(1.0)
+    await semantic_memory.wait_for_pending_embeddings()
 
     mock_llm.complete.return_value = CompletionResponse(content="Response", tool_calls=None)
 
