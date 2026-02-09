@@ -27,6 +27,7 @@ dependencies = [
     "typer[all]>=0.12",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.6",  # For file uploads in FastAPI
     "pydantic>=2.7",
     "pyyaml>=6.0",
     "openai>=1.40",

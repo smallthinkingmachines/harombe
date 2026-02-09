@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from harombe import __version__
 from harombe.config.schema import HarombeConfig
 from harombe.server.routes import create_router
+from harombe.server.voice_routes import voice_router
 
 
 def create_app(config: HarombeConfig) -> FastAPI:
@@ -35,5 +36,8 @@ def create_app(config: HarombeConfig) -> FastAPI:
     # Include routes
     router = create_router(config)
     app.include_router(router)
+
+    # Include voice routes
+    app.include_router(voice_router)
 
     return app
