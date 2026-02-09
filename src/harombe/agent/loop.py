@@ -8,6 +8,7 @@ from harombe.tools.base import Tool
 
 if TYPE_CHECKING:
     from harombe.coordination.cluster import ClusterManager
+    from harombe.memory.manager import MemoryManager
 
 
 class AgentState:
@@ -73,6 +74,8 @@ class Agent:
         confirm_dangerous: bool = True,
         confirm_callback: Callable[[str, str, dict[str, Any]], bool] | None = None,
         cluster_manager: Optional["ClusterManager"] = None,
+        memory_manager: Optional["MemoryManager"] = None,
+        session_id: str | None = None,
     ):
         """Initialize the agent.
 
@@ -86,6 +89,8 @@ class Agent:
                              Takes (tool_name, description, args) -> bool.
                              If None and confirm_dangerous=True, auto-denies dangerous tools.
             cluster_manager: Optional cluster manager for distributed routing
+            memory_manager: Optional memory manager for conversation persistence
+            session_id: Session ID for loading/saving conversation history
         """
         self.llm = llm
         self.tools = {tool.schema.name: tool for tool in tools}
@@ -94,6 +99,8 @@ class Agent:
         self.confirm_dangerous = confirm_dangerous
         self.confirm_callback = confirm_callback
         self.cluster_manager = cluster_manager
+        self.memory_manager = memory_manager
+        self.session_id = session_id
 
         # Build tool schemas for LLM
         self.tool_schemas = [tool.schema.to_openai_format() for tool in tools]
@@ -107,8 +114,22 @@ class Agent:
         Returns:
             Agent's final response
         """
+        # Initialize state
         state = AgentState(self.system_prompt)
+
+        # Load history if memory is enabled
+        if self.memory_manager and self.session_id:
+            history = self.memory_manager.load_history(self.session_id)
+            # Replace system message with loaded history (which includes system prompt)
+            if history:
+                state.messages = history
+
+        # Add user message
         state.add_user_message(user_message)
+
+        # Save user message to memory
+        if self.memory_manager and self.session_id:
+            self.memory_manager.save_message(self.session_id, state.messages[-1])
 
         # Use smart routing if cluster manager is available
         llm_client = await self._get_llm_client(user_message, state.messages)
@@ -122,21 +143,38 @@ class Agent:
 
             # If no tool calls, this is the final answer
             if not response.tool_calls:
+                # Save final assistant message
+                if self.memory_manager and self.session_id:
+                    final_msg = Message(role="assistant", content=response.content)
+                    self.memory_manager.save_message(self.session_id, final_msg)
                 return response.content
 
             # Add assistant response with tool calls
             state.add_assistant_message(response)
+
+            # Save assistant message with tool calls
+            if self.memory_manager and self.session_id:
+                self.memory_manager.save_message(self.session_id, state.messages[-1])
 
             # Execute each tool call
             for tool_call in response.tool_calls:
                 result = await self._execute_tool_call(tool_call)
                 state.add_tool_result(tool_call.id, tool_call.name, result)
 
+                # Save tool result
+                if self.memory_manager and self.session_id:
+                    self.memory_manager.save_message(self.session_id, state.messages[-1])
+
         # Max steps reached - force final answer
         final_response = await llm_client.complete(
             messages=state.messages,
             tools=None,  # No tools available - must give final answer
         )
+
+        # Save final assistant message
+        if self.memory_manager and self.session_id:
+            final_msg = Message(role="assistant", content=final_response.content)
+            self.memory_manager.save_message(self.session_id, final_msg)
 
         return final_response.content
 
