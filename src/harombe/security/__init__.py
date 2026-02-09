@@ -22,6 +22,14 @@ from .audit_logger import AuditLogger, SensitiveDataRedactor
 from .docker_manager import DockerManager
 from .gateway import MCPGateway
 from .injection import DotEnvLoader, SecretInjector, SecretRotationScheduler, create_injector
+from .network import (
+    DNSResolver,
+    EgressFilter,
+    NetworkIsolationManager,
+    NetworkMetrics,
+    NetworkMonitor,
+    NetworkPolicy,
+)
 from .secrets import SecretMatch, SecretScanner, SecretType
 from .vault import (
     EnvVarBackend,
@@ -35,12 +43,18 @@ __all__ = [
     "AuditDatabase",
     "AuditEvent",
     "AuditLogger",
+    "DNSResolver",
     "DockerManager",
     "DotEnvLoader",
+    "EgressFilter",
     "EnvVarBackend",
     "EventType",
     "HashiCorpVault",
     "MCPGateway",
+    "NetworkIsolationManager",
+    "NetworkMetrics",
+    "NetworkMonitor",
+    "NetworkPolicy",
     "SOPSBackend",
     "SecretInjector",
     "SecretMatch",
