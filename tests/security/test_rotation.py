@@ -528,3 +528,303 @@ class TestRotationIntegration:
         for secret in secrets:
             new_value = await mock_vault.get_secret(secret)
             assert new_value != f"value_{secret}"
+
+
+@pytest.mark.integration
+class TestZeroDowntimeRotation:
+    """Integration tests for zero-downtime rotation strategies."""
+
+    @pytest.mark.asyncio
+    async def test_dual_write_rotation_success(self, mock_vault):
+        """Test successful dual-write rotation."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/api_key", "old_key_value")
+
+        # Create dual-write policy
+        policy = RotationPolicy(
+            name="dual_write",
+            interval_days=90,
+            strategy=RotationStrategy.DUAL_WRITE,
+            require_verification=False,
+            metadata={"migration_timeout_seconds": 1},  # Short timeout for testing
+        )
+
+        # Rotate
+        result = await manager.rotate_secret("/secrets/api_key", policy)
+
+        # Verify result
+        assert result.success
+        assert result.status == RotationStatus.SUCCESS
+        assert result.old_version != result.new_version
+
+        # Verify new secret is in place
+        new_value = await mock_vault.get_secret("/secrets/api_key")
+        assert new_value is not None
+        assert new_value != "old_key_value"
+
+    @pytest.mark.asyncio
+    async def test_dual_write_rotation_with_verification(self, mock_vault):
+        """Test dual-write rotation with verification."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/verified_key", "old_verified")
+
+        policy = RotationPolicy(
+            name="dual_write_verified",
+            interval_days=90,
+            strategy=RotationStrategy.DUAL_WRITE,
+            require_verification=True,
+            verification_tests=["api_test"],
+            metadata={"migration_timeout_seconds": 1},
+        )
+
+        result = await manager.rotate_secret("/secrets/verified_key", policy)
+
+        assert result.success
+        assert result.verification_passed or result.verification_passed is None
+
+    @pytest.mark.asyncio
+    async def test_dual_write_rotation_rollback(self, mock_vault):
+        """Test dual-write rotation rollback on verification failure."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/fail_key", "old_fail_value")
+
+        # Mock verification to fail
+        async def _failing_verify(secret_path, policy):
+            return False
+
+        manager._verify_secret = _failing_verify
+
+        policy = RotationPolicy(
+            name="dual_write_fail",
+            interval_days=90,
+            strategy=RotationStrategy.DUAL_WRITE,
+            require_verification=True,
+            auto_rollback=True,
+            metadata={"migration_timeout_seconds": 1},
+        )
+
+        result = await manager.rotate_secret("/secrets/fail_key", policy)
+
+        # Should fail and rollback
+        assert not result.success
+        assert result.status == RotationStatus.FAILED
+
+        # Old value should be preserved
+        current_value = await mock_vault.get_secret("/secrets/fail_key")
+        assert current_value == "old_fail_value"
+
+    @pytest.mark.asyncio
+    async def test_blue_green_rotation_success(self, mock_vault):
+        """Test successful blue-green rotation."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/bg_key", "blue_value")
+
+        # Create blue-green policy
+        policy = RotationPolicy(
+            name="blue_green",
+            interval_days=90,
+            strategy=RotationStrategy.BLUE_GREEN,
+            require_verification=False,
+            metadata={"current_environment": "blue"},
+        )
+
+        # Rotate
+        result = await manager.rotate_secret("/secrets/bg_key", policy)
+
+        # Verify result
+        assert result.success
+        assert result.status == RotationStatus.SUCCESS
+        assert result.old_version != result.new_version
+
+        # Verify new secret is in place
+        new_value = await mock_vault.get_secret("/secrets/bg_key")
+        assert new_value is not None
+        assert new_value != "blue_value"
+
+        # Verify green environment was created
+        green_value = await mock_vault.get_secret("/secrets/bg_key.green")
+        assert green_value is not None
+
+    @pytest.mark.asyncio
+    async def test_blue_green_rotation_with_verification(self, mock_vault):
+        """Test blue-green rotation with verification."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/bg_verified", "current_blue")
+
+        policy = RotationPolicy(
+            name="blue_green_verified",
+            interval_days=90,
+            strategy=RotationStrategy.BLUE_GREEN,
+            require_verification=True,
+            verification_tests=["environment_test"],
+            metadata={"current_environment": "blue"},
+        )
+
+        result = await manager.rotate_secret("/secrets/bg_verified", policy)
+
+        assert result.success
+        assert result.verification_passed or result.verification_passed is None
+
+    @pytest.mark.asyncio
+    async def test_blue_green_rotation_rollback(self, mock_vault):
+        """Test blue-green rotation rollback on verification failure."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/bg_fail", "blue_original")
+
+        # Mock verification to fail
+        async def _failing_verify(secret_path, policy):
+            return False
+
+        manager._verify_secret = _failing_verify
+
+        policy = RotationPolicy(
+            name="blue_green_fail",
+            interval_days=90,
+            strategy=RotationStrategy.BLUE_GREEN,
+            require_verification=True,
+            auto_rollback=True,
+            metadata={"current_environment": "blue"},
+        )
+
+        result = await manager.rotate_secret("/secrets/bg_fail", policy)
+
+        # Should fail and rollback
+        assert not result.success
+        assert result.status == RotationStatus.FAILED
+
+        # Original value should be preserved
+        current_value = await mock_vault.get_secret("/secrets/bg_fail")
+        assert current_value == "blue_original"
+
+        # Green environment should be cleaned up
+        green_value = await mock_vault.get_secret("/secrets/bg_fail.green")
+        assert green_value is None
+
+    @pytest.mark.asyncio
+    async def test_blue_green_toggle_between_environments(self, mock_vault):
+        """Test toggling between blue and green environments."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/toggle", "initial_value")
+
+        # First rotation: blue → green
+        policy_blue_to_green = RotationPolicy(
+            name="to_green",
+            interval_days=90,
+            strategy=RotationStrategy.BLUE_GREEN,
+            require_verification=False,
+            metadata={"current_environment": "blue"},
+        )
+
+        result1 = await manager.rotate_secret("/secrets/toggle", policy_blue_to_green)
+        assert result1.success
+
+        # Second rotation: green → blue
+        policy_green_to_blue = RotationPolicy(
+            name="to_blue",
+            interval_days=90,
+            strategy=RotationStrategy.BLUE_GREEN,
+            require_verification=False,
+            metadata={"current_environment": "green"},
+        )
+
+        result2 = await manager.rotate_secret("/secrets/toggle", policy_green_to_blue)
+        assert result2.success
+
+        # Values should be different each time
+        assert result1.new_version != result2.new_version
+
+    @pytest.mark.asyncio
+    async def test_concurrent_dual_write_prevented(self, rotation_manager, mock_vault):
+        """Test concurrent dual-write rotations are prevented."""
+        await mock_vault.set_secret("/secrets/concurrent_dw", "value")
+
+        policy = RotationPolicy(
+            name="concurrent_dual",
+            interval_days=0,
+            strategy=RotationStrategy.DUAL_WRITE,
+            require_verification=False,
+            metadata={"migration_timeout_seconds": 1},
+        )
+
+        # Mark as active
+        rotation_manager.active_rotations["/secrets/concurrent_dw"] = RotationResult(
+            success=False,
+            secret_path="/secrets/concurrent_dw",
+            status=RotationStatus.IN_PROGRESS,
+            started_at=datetime.utcnow(),
+        )
+
+        # Try second rotation
+        result = await rotation_manager.rotate_secret("/secrets/concurrent_dw", policy)
+
+        assert not result.success
+        assert result.status == RotationStatus.FAILED
+        assert "already in progress" in result.error.lower()
+
+    @pytest.mark.asyncio
+    async def test_dual_write_statistics_tracking(self, rotation_manager, mock_vault):
+        """Test statistics tracking for dual-write rotations."""
+        await mock_vault.set_secret("/secrets/stats_dw", "value")
+
+        policy = RotationPolicy(
+            name="stats_dual",
+            interval_days=0,
+            strategy=RotationStrategy.DUAL_WRITE,
+            require_verification=False,
+            metadata={"migration_timeout_seconds": 1},
+        )
+
+        result = await rotation_manager.rotate_secret("/secrets/stats_dw", policy)
+
+        assert result.success
+
+        stats = rotation_manager.get_statistics()
+        assert stats["total_rotations"] >= 1
+        assert stats["successful_rotations"] >= 1
+
+
+class TestConsumerTracking:
+    """Tests for consumer tracking during zero-downtime rotation."""
+
+    def test_consumer_status_creation(self):
+        """Test creating consumer status."""
+        from harombe.security.rotation import ConsumerStatus
+
+        status = ConsumerStatus(
+            consumer_id="service-1",
+            secret_version="old",
+            last_heartbeat=datetime.utcnow(),
+            migration_status="pending",
+        )
+
+        assert status.consumer_id == "service-1"
+        assert status.secret_version == "old"
+        assert status.migration_status == "pending"
+
+    def test_dual_mode_config_creation(self):
+        """Test creating dual-mode configuration."""
+        from harombe.security.rotation import ConsumerStatus, DualModeConfig
+
+        consumers = [
+            ConsumerStatus(
+                consumer_id="svc1",
+                secret_version="old",
+                last_heartbeat=datetime.utcnow(),
+            ),
+            ConsumerStatus(
+                consumer_id="svc2",
+                secret_version="new",
+                last_heartbeat=datetime.utcnow(),
+            ),
+        ]
+
+        config = DualModeConfig(
+            old_value="old_secret",
+            new_value="new_secret",
+            enabled_at=datetime.utcnow(),
+            consumers=consumers,
+        )
+
+        assert config.old_value == "old_secret"
+        assert config.new_value == "new_secret"
+        assert len(config.consumers) == 2

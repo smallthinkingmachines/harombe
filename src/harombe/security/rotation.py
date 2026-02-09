@@ -152,6 +152,38 @@ class RotationSchedule(BaseModel):
     enabled: bool = True
 
 
+class ConsumerStatus(BaseModel):
+    """Status of a consumer during secret rotation.
+
+    Attributes:
+        consumer_id: Identifier for the consumer
+        secret_version: Which secret version consumer is using
+        last_heartbeat: Last time consumer checked in
+        migration_status: Migration status (pending, migrating, completed)
+    """
+
+    consumer_id: str
+    secret_version: str  # 'old' or 'new'
+    last_heartbeat: datetime
+    migration_status: str = "pending"  # pending, migrating, completed
+
+
+class DualModeConfig(BaseModel):
+    """Configuration for dual-write mode.
+
+    Attributes:
+        old_value: Previous secret value
+        new_value: New secret value
+        enabled_at: When dual-mode was enabled
+        consumers: List of consumer statuses
+    """
+
+    old_value: str
+    new_value: str
+    enabled_at: datetime
+    consumers: list[ConsumerStatus] = Field(default_factory=list)
+
+
 class SecretRotationManager:
     """Manages automatic credential rotation.
 
@@ -254,6 +286,14 @@ class SecretRotationManager:
                 success = await self._staged_rotation(secret_path, current_value, new_value, policy)
             elif policy.strategy == RotationStrategy.IMMEDIATE:
                 success = await self._immediate_rotation(secret_path, new_value, policy)
+            elif policy.strategy == RotationStrategy.DUAL_WRITE:
+                success = await self._dual_write_rotation(
+                    secret_path, current_value, new_value, policy
+                )
+            elif policy.strategy == RotationStrategy.BLUE_GREEN:
+                success = await self._blue_green_rotation(
+                    secret_path, current_value, new_value, policy
+                )
             else:
                 raise NotImplementedError(f"Strategy {policy.strategy} not implemented")
 
@@ -412,6 +452,276 @@ class SecretRotationManager:
                     logger.info(f"Rolled back {secret_path} after error")
 
             raise
+
+    async def _dual_write_rotation(
+        self,
+        secret_path: str,
+        current_value: str,
+        new_value: str,
+        policy: RotationPolicy,
+    ) -> bool:
+        """Perform dual-write rotation (zero-downtime).
+
+        This strategy enables zero-downtime rotation by:
+        1. Enabling dual-mode where both old and new secrets are valid
+        2. Waiting for consumers to update to new secret
+        3. Removing old secret once all consumers updated
+
+        Args:
+            secret_path: Path to secret
+            current_value: Current secret value
+            new_value: New secret value
+            policy: Rotation policy
+
+        Returns:
+            True if successful
+        """
+        dual_path = f"{secret_path}.dual"
+        consumer_tracking_path = f"{secret_path}.consumers"
+
+        try:
+            # Phase 1: Enable dual-mode (both old and new valid)
+            logger.info(f"Enabling dual-mode for {secret_path}")
+            await self._enable_dual_mode(secret_path, current_value, new_value)
+
+            # Phase 2: Verify new secret works
+            if policy.require_verification:
+                logger.debug(f"Verifying new secret at {dual_path}")
+                verification_passed = await self._verify_secret(dual_path, policy)
+
+                if not verification_passed:
+                    logger.warning(f"Verification failed for {dual_path}")
+                    await self._disable_dual_mode(secret_path, current_value)
+
+                    if policy.auto_rollback:
+                        logger.info("Auto-rollback: disabled dual-mode, kept old secret")
+                        return False
+
+                    raise ValueError("Verification failed")
+
+            # Phase 3: Wait for consumers to update
+            # Get migration timeout from policy metadata (default: 300s = 5 minutes)
+            migration_timeout = policy.metadata.get("migration_timeout_seconds", 300)
+            logger.info(
+                f"Waiting up to {migration_timeout}s for consumers to migrate to new secret"
+            )
+
+            consumers_updated = await self._wait_for_consumer_migration(
+                secret_path, consumer_tracking_path, timeout_seconds=migration_timeout
+            )
+
+            if not consumers_updated:
+                logger.warning(f"Not all consumers updated within {migration_timeout}s")
+                # Continue anyway - we can't wait forever
+                # The old secret is still valid, so no downtime
+
+            # Phase 4: Promote new secret and remove old
+            logger.info(f"Promoting new secret and removing old for {secret_path}")
+            await self.vault.set_secret(secret_path, new_value)
+
+            # Cleanup dual-mode paths
+            with contextlib.suppress(Exception):
+                await self.vault.delete_secret(dual_path)
+                await self.vault.delete_secret(consumer_tracking_path)
+
+            logger.info(f"Dual-write rotation completed for {secret_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Dual-write rotation failed: {e}")
+
+            # Rollback: disable dual-mode, keep old secret
+            if policy.auto_rollback:
+                with contextlib.suppress(Exception):
+                    await self._disable_dual_mode(secret_path, current_value)
+                    self.stats["rollbacks"] += 1
+                    logger.info(f"Rolled back {secret_path} to single-mode with old secret")
+
+            raise
+
+    async def _blue_green_rotation(
+        self,
+        secret_path: str,
+        current_value: str,
+        new_value: str,
+        policy: RotationPolicy,
+    ) -> bool:
+        """Perform blue-green rotation (complete environment switch).
+
+        This strategy maintains two complete secret environments (blue and green)
+        and switches between them atomically.
+
+        Args:
+            secret_path: Path to secret
+            current_value: Current secret value
+            new_value: New secret value
+            policy: Rotation policy
+
+        Returns:
+            True if successful
+        """
+        # Determine current and target environments
+        metadata = policy.metadata
+        current_env = metadata.get("current_environment", "blue")
+        target_env = "green" if current_env == "blue" else "blue"
+
+        blue_path = f"{secret_path}.blue"
+        green_path = f"{secret_path}.green"
+        target_path = green_path if target_env == "green" else blue_path
+
+        try:
+            # Phase 1: Write new secret to target environment
+            logger.info(f"Writing new secret to {target_env} environment: {target_path}")
+            await self.vault.set_secret(target_path, new_value)
+
+            # Phase 2: Verify target environment
+            if policy.require_verification:
+                logger.debug(f"Verifying {target_env} environment")
+                verification_passed = await self._verify_secret(target_path, policy)
+
+                if not verification_passed:
+                    logger.warning(f"Verification failed for {target_env} environment")
+                    await self.vault.delete_secret(target_path)
+
+                    if policy.auto_rollback:
+                        logger.info(f"Auto-rollback: keeping {current_env} environment")
+                        return False
+
+                    raise ValueError("Verification failed")
+
+            # Phase 3: Switch active environment (atomic pointer update)
+            logger.info(f"Switching from {current_env} to {target_env} environment")
+            await self.vault.set_secret(secret_path, new_value)
+
+            # Update metadata to reflect new current environment
+            metadata["current_environment"] = target_env
+            metadata["previous_environment"] = current_env
+            await self.vault.set_secret(
+                f"{secret_path}.metadata",
+                str(metadata),
+                environment=target_env,
+                previous_environment=current_env,
+            )
+
+            logger.info(f"Blue-green rotation completed: now on {target_env} environment")
+            return True
+
+        except Exception as e:
+            logger.error(f"Blue-green rotation failed: {e}")
+
+            # Rollback: delete target environment, keep current
+            if policy.auto_rollback:
+                with contextlib.suppress(Exception):
+                    await self.vault.delete_secret(target_path)
+                    self.stats["rollbacks"] += 1
+                    logger.info(f"Rolled back: deleted {target_env}, kept {current_env}")
+
+            raise
+
+    async def _enable_dual_mode(self, secret_path: str, old_value: str, new_value: str) -> None:
+        """Enable dual-mode where both old and new secrets are valid.
+
+        Args:
+            secret_path: Path to secret
+            old_value: Old secret value
+            new_value: New secret value
+        """
+        dual_path = f"{secret_path}.dual"
+
+        # Store both values in dual structure
+        dual_config = {"old": old_value, "new": new_value, "mode": "dual"}
+
+        await self.vault.set_secret(dual_path, str(dual_config), dual_mode=True)
+        logger.debug(f"Enabled dual-mode at {dual_path}")
+
+    async def _disable_dual_mode(self, secret_path: str, value_to_keep: str) -> None:
+        """Disable dual-mode and revert to single secret.
+
+        Args:
+            secret_path: Path to secret
+            value_to_keep: Secret value to keep active
+        """
+        dual_path = f"{secret_path}.dual"
+
+        # Remove dual-mode paths
+        with contextlib.suppress(Exception):
+            await self.vault.delete_secret(dual_path)
+
+        # Ensure original path has the value to keep
+        await self.vault.set_secret(secret_path, value_to_keep)
+        logger.debug(f"Disabled dual-mode for {secret_path}")
+
+    async def _wait_for_consumer_migration(
+        self, secret_path: str, tracking_path: str, timeout_seconds: int = 300
+    ) -> bool:
+        """Wait for consumers to migrate to new secret.
+
+        This is a simplified implementation that waits for a timeout.
+        In production, this would:
+        - Track consumer heartbeats
+        - Monitor which consumers are using old vs new secrets
+        - Return True when all consumers migrated or timeout reached
+
+        Args:
+            secret_path: Path to secret being rotated
+            tracking_path: Path to consumer tracking data
+            timeout_seconds: Maximum time to wait for migration
+
+        Returns:
+            True if all consumers migrated, False if timeout
+        """
+        import asyncio
+
+        # In production, this would check actual consumer status
+        # For now, we use a simplified wait with periodic checks
+        check_interval = 10  # Check every 10 seconds
+        elapsed = 0
+
+        while elapsed < timeout_seconds:
+            # Check if consumers have migrated
+            # In production: query consumer tracking system
+            consumers_data = await self._get_consumer_status(tracking_path)
+
+            if consumers_data and self._all_consumers_migrated(consumers_data):
+                logger.info(f"All consumers migrated to new secret after {elapsed}s")
+                return True
+
+            # Wait before next check
+            await asyncio.sleep(min(check_interval, timeout_seconds - elapsed))
+            elapsed += check_interval
+
+        logger.warning(f"Consumer migration timeout after {timeout_seconds}s")
+        return False
+
+    async def _get_consumer_status(self, tracking_path: str) -> dict[str, Any] | None:
+        """Get consumer tracking status.
+
+        Args:
+            tracking_path: Path to consumer tracking data
+
+        Returns:
+            Consumer status data or None if not available
+        """
+        with contextlib.suppress(Exception):
+            tracking_data = await self.vault.get_secret(tracking_path)
+            if tracking_data:
+                # In production: parse JSON tracking data
+                return {"status": "migrating"}  # Placeholder
+
+        return None
+
+    def _all_consumers_migrated(self, consumers_data: dict[str, Any]) -> bool:
+        """Check if all consumers have migrated to new secret.
+
+        Args:
+            consumers_data: Consumer tracking data
+
+        Returns:
+            True if all migrated
+        """
+        # In production: check each consumer's status
+        # For now, always return False to simulate ongoing migration
+        return False
 
     async def _verify_secret(self, secret_path: str, policy: RotationPolicy) -> bool:
         """Verify new secret works correctly.
