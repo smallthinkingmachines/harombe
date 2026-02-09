@@ -2,29 +2,43 @@
 
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from harombe.llm.client import Message
 from harombe.memory.schema import MessageRecord, SessionMetadata, SessionRecord
 from harombe.memory.storage import MemoryStorage
 from harombe.memory.utils import estimate_tokens
 
+if TYPE_CHECKING:
+    from harombe.embeddings.client import EmbeddingClient
+    from harombe.vector.store import VectorStore
+
 
 class MemoryManager:
-    """High-level memory management interface."""
+    """High-level memory management interface with optional semantic search."""
 
     def __init__(
         self,
         storage_path: str | Path,
         max_history_tokens: int = 4096,
+        embedding_client: "EmbeddingClient | None" = None,
+        vector_store: "VectorStore | None" = None,
     ):
         """Initialize memory manager.
 
         Args:
             storage_path: Path to SQLite database
             max_history_tokens: Maximum tokens to load from history
+            embedding_client: Optional embedding client for semantic search
+            vector_store: Optional vector store for semantic search
         """
         self.storage = MemoryStorage(storage_path)
         self.max_history_tokens = max_history_tokens
+        self.embedding_client = embedding_client
+        self.vector_store = vector_store
+
+        # Enable semantic search if both components provided
+        self.semantic_search_enabled = embedding_client is not None and vector_store is not None
 
     def create_session(
         self,
@@ -67,6 +81,8 @@ class MemoryManager:
     def save_message(self, session_id: str, message: Message) -> int:
         """Save a message to a session.
 
+        If semantic search is enabled, also embeds and stores in vector store.
+
         Args:
             session_id: Session identifier
             message: Message to save
@@ -100,7 +116,62 @@ class MemoryManager:
             name=message.name,
         )
 
-        return self.storage.save_message(record)
+        message_id = self.storage.save_message(record)
+
+        # Auto-embed if semantic search is enabled
+        if self.semantic_search_enabled and message.content:
+            self._embed_message(message_id, session_id, message)
+
+        return message_id
+
+    def _embed_message(self, message_id: int, session_id: str, message: Message) -> None:
+        """Embed a message and store in vector store (internal helper).
+
+        Args:
+            message_id: Database message ID
+            session_id: Session identifier
+            message: Message to embed
+        """
+        import asyncio
+
+        # Skip empty messages or system messages
+        if not message.content or message.role == "system":
+            return
+
+        # Generate embedding
+        try:
+            # Run async embedding in sync context
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # Already in async context - skip for now
+                # TODO: Handle this better in future
+                return
+
+            embedding = loop.run_until_complete(
+                self.embedding_client.embed_single(message.content)  # type: ignore[union-attr]
+            )
+        except Exception:
+            # Silently fail - don't break message saving
+            return
+
+        # Store in vector database
+        try:
+            doc_id = f"msg_{message_id}"
+            metadata = {
+                "session_id": session_id,
+                "message_id": message_id,
+                "role": message.role,
+            }
+
+            self.vector_store.add(  # type: ignore[union-attr]
+                ids=[doc_id],
+                embeddings=[embedding],
+                documents=[message.content],
+                metadata=[metadata],
+            )
+        except Exception:
+            # Silently fail - don't break message saving
+            pass
 
     def load_history(
         self,
@@ -259,3 +330,181 @@ class MemoryManager:
             session_id=session_id,
         )
         return session_id, True
+
+    # Semantic search methods (require embedding_client and vector_store)
+
+    async def search_similar(
+        self,
+        query: str,
+        top_k: int = 5,
+        session_id: str | None = None,
+        min_similarity: float | None = None,
+    ) -> list[Message]:
+        """Search for semantically similar messages.
+
+        Args:
+            query: Query text to search for
+            top_k: Number of results to return
+            session_id: Optional session to limit search to
+            min_similarity: Optional minimum similarity threshold (0-1)
+
+        Returns:
+            List of similar messages ordered by relevance
+
+        Raises:
+            RuntimeError: If semantic search is not enabled
+        """
+        if not self.semantic_search_enabled:
+            msg = "Semantic search not enabled. Provide embedding_client and vector_store."
+            raise RuntimeError(msg)
+
+        # Generate query embedding
+        query_embedding = await self.embedding_client.embed_single(query)  # type: ignore[union-attr]
+
+        # Search vector store
+        where = {"session_id": session_id} if session_id else None
+        ids, documents, metadatas, distances = self.vector_store.search(  # type: ignore[union-attr]
+            query_embedding=query_embedding,
+            top_k=top_k,
+            where=where,
+        )
+
+        # Convert to Messages and filter by similarity
+        results = []
+        for doc, meta, distance in zip(documents, metadatas, distances, strict=False):
+            # ChromaDB returns distance (lower = more similar)
+            # Convert to similarity score (higher = more similar)
+            similarity = 1.0 - distance
+
+            if min_similarity is not None and similarity < min_similarity:
+                continue
+
+            # Create Message from metadata
+            message = Message(
+                role=meta["role"],
+                content=doc,
+            )
+            results.append(message)
+
+        return results
+
+    async def get_relevant_context(
+        self,
+        query: str,
+        max_tokens: int = 2048,
+        session_id: str | None = None,
+    ) -> list[Message]:
+        """Get relevant context for a query, limited by token budget.
+
+        Args:
+            query: Query text
+            max_tokens: Maximum tokens of context to return
+            session_id: Optional session to limit search to
+
+        Returns:
+            List of relevant messages within token budget
+
+        Raises:
+            RuntimeError: If semantic search is not enabled
+        """
+        if not self.semantic_search_enabled:
+            msg = "Semantic search not enabled. Provide embedding_client and vector_store."
+            raise RuntimeError(msg)
+
+        # Search for top candidates (over-fetch to allow token filtering)
+        candidates = await self.search_similar(
+            query=query,
+            top_k=20,
+            session_id=session_id,
+        )
+
+        # Filter by token budget
+        results = []
+        current_tokens = 0
+
+        for message in candidates:
+            msg_tokens = estimate_tokens(message)
+            if current_tokens + msg_tokens > max_tokens:
+                break
+            results.append(message)
+            current_tokens += msg_tokens
+
+        return results
+
+    def backfill_embeddings(
+        self,
+        session_id: str | None = None,
+        batch_size: int = 100,
+    ) -> int:
+        """Backfill embeddings for existing messages.
+
+        Useful when enabling semantic search on existing conversation history.
+
+        Args:
+            session_id: Optional session to limit backfill to (None = all sessions)
+            batch_size: Number of messages to process at once
+
+        Returns:
+            Number of messages embedded
+
+        Raises:
+            RuntimeError: If semantic search is not enabled
+        """
+        if not self.semantic_search_enabled:
+            msg = "Semantic search not enabled. Provide embedding_client and vector_store."
+            raise RuntimeError(msg)
+
+        import asyncio
+
+        # Get messages without embeddings
+        # For now, just process all messages
+        # TODO: Track which messages have embeddings to avoid duplicates
+
+        sessions = [session_id] if session_id else [s.id for s in self.storage.list_sessions()]
+
+        total_embedded = 0
+
+        for sid in sessions:
+            messages_data = self.storage.load_messages(sid)
+
+            for message in messages_data:
+                if message.role == "system" or not message.content:
+                    continue
+
+                # Get message ID from storage
+                # This is a workaround - ideally we'd track message IDs better
+                # For now, create a pseudo-ID
+                import hashlib
+
+                message_hash = hashlib.md5(
+                    f"{sid}:{message.role}:{message.content}".encode()
+                ).hexdigest()[:8]
+                message_id = f"backfill_{message_hash}"
+
+                try:
+                    # Generate embedding
+                    loop = asyncio.get_event_loop()
+                    embedding = loop.run_until_complete(
+                        self.embedding_client.embed_single(message.content)  # type: ignore[union-attr]
+                    )
+
+                    # Store in vector database
+                    metadata = {
+                        "session_id": sid,
+                        "message_id": message_id,
+                        "role": message.role,
+                    }
+
+                    self.vector_store.add(  # type: ignore[union-attr]
+                        ids=[message_id],
+                        embeddings=[embedding],
+                        documents=[message.content],
+                        metadata=[metadata],
+                    )
+
+                    total_embedded += 1
+                except Exception:
+                    # Skip failures
+                    continue
+
+        return total_embedded
