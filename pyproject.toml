@@ -52,6 +52,11 @@ coqui = [
     "TTS>=0.22; python_version < '3.11'",
 ]
 
+# Docker support for Phase 4 (Security Layer)
+docker = [
+    "docker>=7.0",
+]
+
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
