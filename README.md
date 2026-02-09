@@ -157,6 +157,15 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 - RAG (Retrieval-Augmented Generation) for context-aware responses
 - Cross-session knowledge retrieval
 
+**Phase 3 (Complete):** Voice & Multi-Modal
+
+- Speech-to-text with Whisper (tiny to large-v3 models)
+- Text-to-speech with Piper (fast) and Coqui (high-quality)
+- Push-to-talk voice interface (press SPACE to record)
+- Voice API endpoints (REST + WebSocket streaming)
+- Real-time audio processing with sounddevice
+- Cross-platform audio I/O (macOS, Linux, Windows)
+
 ## Quick Start
 
 ### Prerequisites
@@ -199,6 +208,42 @@ Agent: I'll help you analyze Python files for requests usage and error handling.
 ```
 
 The agent autonomously plans the workflow, executes tools, and delivers results.
+
+### Voice Assistant
+
+Enable voice interaction with speech-to-text and text-to-speech:
+
+```bash
+# Start voice assistant (push-to-talk mode)
+harombe voice
+
+# Press and hold SPACE to record
+# Release SPACE to process speech
+# The agent responds with voice output
+```
+
+**Hardware Requirements:**
+
+- Microphone for audio input
+- Speakers/headphones for audio output
+- Recommended: 4GB+ VRAM for Whisper medium model
+- Minimum: 2GB VRAM for Whisper base model
+
+**Configuration** (edit `harombe.yaml`):
+
+```yaml
+voice:
+  enabled: true
+  stt:
+    model: base # tiny, base, small, medium, large-v3
+    language: null # Auto-detect, or specify: en, es, fr, etc.
+  tts:
+    engine: piper # piper (fast) or coqui (high-quality)
+    model: en_US-lessac-medium
+    speed: 1.0
+```
+
+See [`harombe.yaml.example`](harombe.yaml.example) for full configuration options and [`examples/09_voice_assistant.py`](examples/09_voice_assistant.py) for programmatic usage.
 
 ## Examples
 

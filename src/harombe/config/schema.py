@@ -201,6 +201,67 @@ class ClusterConfig(BaseModel):
     )
 
 
+class STTConfig(BaseModel):
+    """Speech-to-text configuration."""
+
+    model: str = Field(
+        default="base",
+        description="Whisper model size (tiny, base, small, medium, large-v2, large-v3)",
+    )
+    language: str | None = Field(
+        default=None,
+        description="Language code (e.g., 'en', 'es') or None for auto-detection",
+    )
+    device: str = Field(
+        default="auto",
+        description="Device to run on: 'auto', 'cpu', 'cuda', or 'mps'",
+    )
+    compute_type: str = Field(
+        default="default",
+        description="Computation precision: 'default', 'int8', 'float16', 'float32'",
+    )
+
+
+class TTSConfig(BaseModel):
+    """Text-to-speech configuration."""
+
+    engine: str = Field(
+        default="piper",
+        description="TTS engine: 'piper' (fast) or 'coqui' (high-quality)",
+    )
+    model: str = Field(
+        default="en_US-lessac-medium",
+        description="TTS model/voice name",
+    )
+    speed: float = Field(
+        default=1.0,
+        description="Speech speed multiplier",
+        ge=0.5,
+        le=2.0,
+    )
+    device: str = Field(
+        default="auto",
+        description="Device to run on: 'auto', 'cpu', 'cuda', or 'mps'",
+    )
+
+
+class VoiceConfig(BaseModel):
+    """Voice and multi-modal configuration."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable voice features (STT/TTS)",
+    )
+    stt: STTConfig = Field(
+        default_factory=STTConfig,
+        description="Speech-to-text configuration",
+    )
+    tts: TTSConfig = Field(
+        default_factory=TTSConfig,
+        description="Text-to-speech configuration",
+    )
+
+
 class HarombeConfig(BaseModel):
     """Root configuration schema for Harombe."""
 
@@ -216,4 +277,8 @@ class HarombeConfig(BaseModel):
     cluster: ClusterConfig | None = Field(
         default=None,
         description="Cluster configuration for multi-machine orchestration (Phase 1)",
+    )
+    voice: VoiceConfig = Field(
+        default_factory=VoiceConfig,
+        description="Voice and multi-modal configuration (Phase 3)",
     )

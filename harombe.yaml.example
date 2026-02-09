@@ -1,0 +1,97 @@
+# Example Harombe configuration
+# Copy to harombe.yaml and customize for your setup
+
+# Model configuration
+model:
+  name: auto  # "auto" for hardware-based selection, or specific model like "qwen3:8b"
+  quantization: Q4_K_M
+  context_length: 8192
+  temperature: 0.7
+
+# Ollama connection
+ollama:
+  host: http://localhost:11434
+  timeout: 120
+
+# Agent behavior
+agent:
+  max_steps: 10
+  system_prompt: "You are Harombe, a helpful AI assistant with access to tools and the ability to perform complex tasks."
+
+# Tool configuration
+tools:
+  shell: true  # Enable shell command execution
+  filesystem: true  # Enable file read/write
+  web_search: true  # Enable web search via DuckDuckGo
+  confirm_dangerous: true  # Require confirmation for risky operations
+
+# Server configuration
+server:
+  host: 127.0.0.1
+  port: 8000
+
+# Memory configuration (Phase 2)
+memory:
+  enabled: true
+  storage_path: "~/.harombe/memory.db"
+  max_history_tokens: 4096
+
+  # Vector store for semantic search
+  vector_store:
+    enabled: true
+    provider: chromadb  # chromadb or custom
+    persist_directory: "~/.harombe/chromadb"
+    collection_name: harombe_memory
+
+  # RAG configuration
+  rag:
+    enabled: true
+    top_k: 5
+    min_similarity: 0.7
+
+# Voice configuration (Phase 3)
+voice:
+  enabled: false  # Enable voice features
+
+  # Speech-to-text (Whisper)
+  stt:
+    model: base  # tiny, base, small, medium, large-v2, large-v3
+    language: null  # null for auto-detect, or "en", "es", "fr", etc.
+    device: auto  # auto, cpu, cuda, mps
+    compute_type: default  # default, int8, float16, float32
+
+  # Text-to-speech
+  tts:
+    engine: piper  # piper (fast, local) or coqui (high-quality)
+    model: en_US-lessac-medium  # For piper: en_US-lessac-medium, en_US-amy-medium
+                                 # For coqui: tts_models/en/ljspeech/tacotron2-DDC
+    speed: 1.0  # Speech speed (0.5-2.0)
+    device: auto  # auto, cpu, cuda, mps
+
+# Cluster configuration (Phase 1 - Multi-machine)
+# cluster:
+#   coordinator:
+#     host: 192.168.1.100
+#     port: 8001
+#
+#   discovery:
+#     enabled: true
+#     multicast_group: 224.0.0.251
+#     port: 5353
+#
+#   routing:
+#     strategy: capability  # capability, round_robin, least_loaded
+#
+#   nodes:
+#     - name: node1
+#       host: 192.168.1.101
+#       port: 8000
+#       capabilities:
+#         vram_gb: 24
+#         model_name: qwen3:14b
+#     - name: node2
+#       host: 192.168.1.102
+#       port: 8000
+#       capabilities:
+#         vram_gb: 8
+#         model_name: qwen3:4b
