@@ -21,6 +21,7 @@ from .audit_db import (
 )
 from .audit_logger import AuditLogger, SensitiveDataRedactor
 from .browser_manager import BrowserContainerManager, BrowserCredentials, BrowserSession
+from .browser_risk import get_browser_hitl_rules, get_sensitive_domains, get_trusted_domains
 from .docker_manager import DockerManager
 from .gateway import MCPGateway
 from .hitl import (
@@ -95,4 +96,7 @@ __all__ = [
     "create_injector",
     "create_prompt",
     "create_vault_backend",
+    "get_browser_hitl_rules",
+    "get_sensitive_domains",
+    "get_trusted_domains",
 ]
