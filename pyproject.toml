@@ -39,6 +39,8 @@ dependencies = [
     "chromadb>=0.4",  # Vector store (Phase 2.2)
     "numpy>=1.24",  # Required for embeddings
     "faster-whisper>=1.0",  # Speech-to-text (Phase 3)
+    "piper-tts>=1.2",  # Text-to-speech - fast (Phase 3)
+    "TTS>=0.22",  # Text-to-speech - high quality (Phase 3)
 ]
 
 [project.optional-dependencies]
