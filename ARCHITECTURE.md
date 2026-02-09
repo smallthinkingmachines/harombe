@@ -2,13 +2,14 @@
 
 > **Self-hosted agent framework for distributed AI**
 
-Harombe is designed as a five-layer system that abstracts hardware complexity and provides a unified interface for autonomous agent workloads across distributed infrastructure.
+Harombe is designed as a six-layer system that abstracts hardware complexity, enforces security boundaries, and provides a unified interface for autonomous agent workloads across distributed infrastructure.
 
 ## Design Philosophy
 
 **The Problem:** Building autonomous AI agents that can execute complex, multi-step tasks across heterogeneous hardware (Apple Silicon, NVIDIA, AMD, CPU) is complex. Existing solutions either lock you into cloud providers, limit you to single machines, or require extensive DevOps expertise.
 
 **The Solution:** Harombe provides a declarative, YAML-based agent framework that automatically:
+
 - Detects available hardware and recommends appropriate models
 - Routes workloads to appropriate nodes based on task complexity
 - Provides extensible tool execution for autonomous agents
@@ -24,12 +25,14 @@ Think of it as infrastructure-as-code for autonomous AI workloads on your own ha
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1f2937', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#4b5563', 'lineColor': '#666666', 'secondaryColor': '#374151', 'tertiaryColor': '#1f2937', 'edgeLabelBackground': 'transparent', 'clusterBkg': 'transparent', 'clusterBorder': '#4b5563', 'mainBkg': 'transparent', 'background': 'transparent', 'nodeBorder': '#4b5563', 'nodeTextColor': '#ffffff'}}}%%
 flowchart TB
-    L5["Layer 5: User Interface<br/>CLI • REST API • Status"]
+    L6["Layer 6: Clients<br/>Voice • iOS • Web • CLI"]
+    L5["Layer 5: Privacy Router<br/>Local/Cloud Boundary • PII Detection"]
     L4["Layer 4: Agent & Memory<br/>ReAct Loop • Tools • State"]
-    L3["Layer 3: Coordination<br/>Cluster • Router • Health • Metrics"]
-    L2["Layer 2: Inference<br/>Ollama • Remote • Protocol"]
-    L1["Layer 1: Hardware<br/>Detection • VRAM • Models"]
+    L3["Layer 3: Sitadèl (Security)<br/>🏰 MCP Gateway • Container Isolation • Audit"]
+    L2["Layer 2: Coordination<br/>Cluster • Router • Health • Metrics"]
+    L1["Layer 1: Runtimes<br/>llama.cpp • Whisper • TTS • Embeddings"]
 
+    L6 --> L5
     L5 --> L4
     L4 --> L3
     L3 --> L2
@@ -37,11 +40,13 @@ flowchart TB
 ```
 
 **Details:**
-- **Layer 5 (Interface):** CLI commands, REST API with SSE streaming, health checks
-- **Layer 4 (Agent):** ReAct agent loop, tool registry and execution, conversation state
-- **Layer 3 (Coordination):** Cluster manager, smart routing, health monitoring, metrics, circuit breakers, mDNS discovery
-- **Layer 2 (Inference):** LLM client protocol, Ollama backend, remote client, extensible for vLLM/llama.cpp
-- **Layer 1 (Hardware):** Auto-detection (Apple Silicon, NVIDIA, AMD, CPU), VRAM-based recommendations
+
+- **Layer 6 (Clients):** Voice interface, iOS/web apps, CLI commands, REST API with SSE streaming
+- **Layer 5 (Privacy Router - Phase 5):** Hybrid local/cloud AI, PII detection, context sanitization, configurable privacy boundary
+- **Layer 4 (Agent):** ReAct agent loop, tool registry and execution, conversation state, memory (SQL + vector)
+- **Layer 3 (Sitadèl - Phase 4):** 🏰 **NEW** - MCP Gateway, container isolation per tool, credential vault, audit logging, per-tool egress control, HITL gates
+- **Layer 2 (Coordination):** Cluster manager, smart routing, health monitoring, metrics, circuit breakers, mDNS discovery
+- **Layer 1 (Runtimes):** llama.cpp (LLM), Whisper (STT), Piper/Coqui (TTS), sentence-transformers (embeddings), hardware detection
 
 ---
 
@@ -50,10 +55,12 @@ flowchart TB
 **Purpose:** Detect available compute and recommend appropriate models.
 
 **Components:**
+
 - `hardware/detect.py` - GPU/VRAM detection for all major platforms
 - `config/defaults.py` - Model selection table based on VRAM
 
 **How it works:**
+
 1. Detects GPU type and VRAM
 2. Applies 85% safety margin (leave headroom for OS)
 3. Recommends largest model that fits (Qwen 3 family by default)
@@ -68,16 +75,19 @@ flowchart TB
 **Purpose:** Provide a unified interface to multiple LLM backends.
 
 **Key Insight:** Use OpenAI SDK (not Ollama's Python package) because:
+
 - Works with any OpenAI-compatible endpoint
 - Makes it easy to add vLLM, llama.cpp, or cloud providers later
 - Consistent tool calling API
 
 **Components:**
+
 - `llm/client.py` - Protocol defining `complete()` method
 - `llm/ollama.py` - Ollama backend via `/v1` endpoint
 - `llm/remote.py` - HTTP client for remote harombe nodes
 
 **Interface:**
+
 ```python
 async def complete(
     messages: List[Message],
@@ -93,6 +103,7 @@ async def complete(
 **Purpose:** Orchestrate distributed inference across heterogeneous nodes.
 
 **This is Harombe's core innovation.** No other open source project combines:
+
 - Hardware-agnostic clustering
 - Smart routing based on query complexity
 - Declarative YAML configuration
@@ -101,29 +112,34 @@ async def complete(
 ### Components
 
 #### Cluster Manager (`coordination/cluster.py`)
+
 - Node registry with health tracking
 - Tier-based selection (user-defined, not hardware-specific)
 - Load balancing across same-tier nodes
 - Graceful fallback when preferred tier unavailable
 
 #### Smart Router (`coordination/router.py`)
+
 - Complexity classifier (simple/medium/complex)
 - Analyzes query length, keywords, conversation context
 - Routes to appropriate tier automatically
 - Reasons about routing decisions (explainable)
 
 #### Circuit Breaker (`coordination/circuit_breaker.py`)
+
 - Prevents cascading failures
 - Three states: Closed (healthy), Open (failing), Half-Open (testing)
 - Exponential backoff with configurable thresholds
 
 #### Metrics Collector (`coordination/metrics.py`)
+
 - Tracks latency, throughput, success rates per node
 - Cluster-wide aggregation
 - Error history with circular buffer
 - REST API endpoint (`/metrics`) and CLI (`harombe cluster metrics`)
 
 #### Service Discovery (`coordination/discovery.py`)
+
 - mDNS for local network auto-discovery
 - Finds `_harombe._tcp.local` services
 - Auto-registers discovered nodes
@@ -133,28 +149,28 @@ async def complete(
 ```yaml
 cluster:
   routing:
-    prefer_local: true          # Minimize latency
+    prefer_local: true # Minimize latency
     fallback_strategy: graceful # Try other tiers if unavailable
-    load_balance: true          # Distribute across same-tier nodes
+    load_balance: true # Distribute across same-tier nodes
 
   nodes:
     - name: laptop
       host: localhost
       port: 8000
       model: qwen2.5:3b
-      tier: 0  # Fast/local
+      tier: 0 # Fast/local
 
     - name: workstation
       host: 192.168.1.100
       port: 8000
       model: qwen2.5:14b
-      tier: 1  # Balanced
+      tier: 1 # Balanced
 
     - name: server
       host: server.local
       port: 8000
       model: qwen2.5:72b
-      tier: 2  # Powerful
+      tier: 2 # Powerful
 ```
 
 **Tiers are user-controlled**, not hardware-determined. You decide what counts as "fast", "medium", or "powerful" based on your needs.
@@ -162,14 +178,114 @@ cluster:
 ### Routing Example
 
 **Query:** "What's the weather?"
+
 - **Classification:** Simple (short, no context, common query)
 - **Recommended Tier:** 0 (fast/local)
 - **Selected Node:** `laptop` (lowest latency)
 
 **Query:** "Refactor this Python code to use async/await, explain the benefits, and write unit tests"
+
 - **Classification:** Complex (long, multiple steps, code generation)
 - **Recommended Tier:** 2 (powerful)
 - **Selected Node:** `server` (largest model)
+
+---
+
+## Layer 3.5: Sitadèl (Security) — Phase 4
+
+**Purpose:** Enforce security boundaries for tool execution and credential management.
+
+**🏰 Sitadèl** (Creole "Citadelle") is harombe's security layer, named for the Citadelle Laferrière. Research completed February 2026 revealed a critical insight: **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer through containers, network policies, and gateways.
+
+### The Capability-Container Pattern
+
+Every tool runs in its own isolated container. The agent talks to an **MCP Gateway** that routes requests to purpose-built capability containers. The agent never touches raw credentials, host filesystems, or unrestricted networks.
+
+```
+┌─────────────────────────────────────────────────┐
+│  Agent Container (ReAct loop, LLM)              │
+│  Can ONLY talk to MCP Gateway                   │
+├─────────────────────────────────────────────────┤
+│  MCP Gateway (auth, audit, secret-scanning)     │
+├──────────┬──────────┬──────────┬────────────────┤
+│ Browser  │ Files    │ Code     │ API MCP        │
+│ (pre-auth│ (scoped  │ (gVisor  │ Servers        │
+│ cookies) │ volumes) │ sandbox) │ (containerized)│
+└──────────┴──────────┴──────────┴────────────────┘
+```
+
+### Security Components
+
+**Container Isolation (Phase 4):**
+
+- Docker for Phase 1 (current: basic confirmation prompts)
+- Each MCP server in own container with 1 CPU / 2GB RAM cap
+- gVisor for code execution (stronger sandbox)
+- Firecracker only if multi-tenant hosting needed
+
+**MCP Gateway:**
+
+- Request authentication and authorization
+- Secret scanning before responses reach agent
+- Full audit trail of all tool calls
+- Per-service egress allowlists (firewall rules per container)
+
+**Credential Management:**
+
+- Phase 1: `.env` file injection (never in config, never in LLM context)
+- Phase 4: HashiCorp Vault or SOPS for encrypted secrets
+- Time-limited tokens
+- Automatic rotation
+
+**Browser Tools:**
+
+- Pre-authenticated persistent profile (cookies managed outside agent)
+- Accessibility-snapshot mode (structured elements, not raw DOM/CDP)
+- HttpOnly cookies + network isolation
+- Human-in-the-loop (HITL) for destructive actions (send email, delete, etc.)
+
+**Tool Poisoning Defense:**
+
+- Curated tool allowlist (no auto-discovery)
+- Gateway scans for injection attempts
+- Claude as default cloud model (\\<3% attack success rate in research)
+- Regular security audits
+
+### Configuration Example
+
+```toml
+[security]
+isolation = "docker"  # docker | gvisor | firecracker
+
+[security.mcp.servers.browser]
+egress_allow = ["mail.google.com", "calendar.google.com"]
+interaction_mode = "accessibility-snapshot"
+confirm_actions = ["send_email", "delete_*"]
+
+[security.mcp.servers.filesystem]
+mounts = ["/home/user/documents:ro"]
+egress_allow = []
+
+[security.mcp.servers.code-execution]
+sandbox = "gvisor"
+egress_allow = []
+cpu_limit = "1"
+memory_limit = "2g"
+
+[security.credentials]
+method = "env"  # env | vault | sops
+env_file = ".env.harombe"
+# vault_addr = "http://localhost:8200"  # Phase 4
+```
+
+### Key Decisions (Feb 2026 Security Research)
+
+1. **Container isolation is mandatory** for production use
+2. **MCP protocol alone is insufficient** — infrastructure-level enforcement required
+3. **Pre-authenticated browser profiles** are safer than giving agent raw credentials
+4. **Accessibility APIs** provide structured interaction without DOM access
+5. **Allowlists over blocklists** — explicit approval required for each tool
+6. **Audit everything** — full trail for compliance and debugging
 
 ---
 
@@ -219,11 +335,13 @@ async def shell(command: str, timeout: int = 30) -> str:
 ```
 
 The decorator:
+
 - Introspects type hints → generates JSON Schema
 - Registers in global registry
 - Marks dangerous operations
 
 **Built-in Tools:**
+
 - `shell` - Execute commands (dangerous)
 - `read_file` / `write_file` - Filesystem operations
 - `web_search` - DuckDuckGo search (no API key required)
@@ -233,6 +351,7 @@ The decorator:
 ### Memory (Phase 2)
 
 Future additions:
+
 - Long-term conversation memory
 - Vector store integration (e.g., Qdrant)
 - Knowledge base management
@@ -247,6 +366,7 @@ Future additions:
 ### CLI (`cli/`)
 
 **Commands:**
+
 - `harombe init` - Hardware detection + config generation
 - `harombe chat` - Interactive REPL with Rich formatting
 - `harombe start/stop/status` - Server lifecycle
@@ -254,6 +374,7 @@ Future additions:
 - `harombe cluster init/status/test/metrics` - Cluster management
 
 **Example:**
+
 ```bash
 $ harombe cluster status
 ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┓
@@ -267,6 +388,7 @@ $ harombe cluster status
 ### REST API (`server/`)
 
 **Endpoints:**
+
 - `GET /health` - Health check with model info
 - `POST /chat` - Non-streaming chat
 - `POST /chat/stream` - SSE streaming
@@ -274,6 +396,7 @@ $ harombe cluster status
 - `GET /metrics` - Performance metrics
 
 **Why both CLI and API?**
+
 - CLI for interactive use, exploration, debugging
 - API for integrations, automation, building on top
 
@@ -284,12 +407,14 @@ $ harombe cluster status
 **Zero-config works, but customization is easy.**
 
 Default behavior:
+
 1. Auto-detect hardware
 2. Recommend model
 3. Use sane defaults for everything
 4. `harombe chat` just works
 
 But if you want control:
+
 ```yaml
 model:
   name: qwen2.5:7b
@@ -317,6 +442,7 @@ cluster:
 ## Design Decisions
 
 ### Why Ollama?
+
 - Easiest local inference (one command: `ollama pull`)
 - Supports all major hardware (Metal, CUDA, ROCm, CPU)
 - OpenAI-compatible API
@@ -325,21 +451,25 @@ cluster:
 But we're not locked in - Layer 2 abstraction makes it easy to add other backends.
 
 ### Why OpenAI SDK (not Ollama Python package)?
+
 - Works with any OpenAI-compatible endpoint
 - Consistent tool calling interface
 - Future-proof: can point at vLLM, llama.cpp, cloud providers
 
 ### Why YAML (not TOML)?
+
 - Better for nested structures (cluster config)
 - Comments for documentation
 - More familiar to infrastructure engineers
 
 ### Why Tiers (not automatic hardware classification)?
+
 You know your workloads better than we do. A 14B model on a fast GPU might be "tier 1", but a 72B model on a slow GPU might also be "tier 1" for your use case.
 
 **User-controlled tiers = flexibility.**
 
 ### Why ReAct (not other agent patterns)?
+
 - Simple (~300 LOC)
 - Explainable (see reasoning)
 - Works well for tool use
@@ -350,16 +480,19 @@ You know your workloads better than we do. A 14B model on a fast GPU might be "t
 ## Performance Characteristics
 
 **Single-machine mode:**
+
 - Latency: First token in ~100-500ms (depends on model)
 - Throughput: Varies by hardware (M2 Pro: ~30 tokens/sec for 7B model)
 
 **Cluster mode:**
+
 - Network overhead: +10-50ms per hop
 - Smart routing minimizes unnecessary network calls
 - Load balancing improves overall throughput
 - Circuit breakers prevent cascading failures
 
 **Metrics example (3-node cluster):**
+
 ```
 Cluster Summary
   Total Requests:      1,247
@@ -373,6 +506,7 @@ Cluster Summary
 ## Failure Modes & Recovery
 
 ### Node Failure
+
 1. Circuit breaker detects repeated failures
 2. Opens circuit (stops sending traffic)
 3. Fallback strategy routes to other tiers
@@ -380,11 +514,13 @@ Cluster Summary
 5. Half-open state validates before full reopen
 
 ### Network Partition
+
 - Prefer local nodes (minimize network dependency)
 - Graceful degradation (single-machine mode still works)
 - No distributed consensus required (coordinator is authoritative)
 
 ### Model Errors
+
 - Retry with exponential backoff
 - Tool execution failures logged but don't crash agent
 - Max steps prevents infinite loops
@@ -394,18 +530,21 @@ Cluster Summary
 ## Future Roadmap
 
 ### Phase 2: Memory & Privacy
+
 - Long-term conversation memory
 - Vector store for semantic search
 - Privacy router (detect PII, route sensitive queries locally)
 - Knowledge base management
 
 ### Phase 3: Advanced Features
+
 - Voice I/O (STT/TTS)
 - Web UI with real-time updates
 - Plugin system for custom tools
 - Multi-modal support (vision, audio)
 
 ### Potential Additions
+
 - Speculative decoding across nodes
 - Model ensembles (multiple nodes vote)
 - Fine-tuning workflow integration
@@ -460,17 +599,20 @@ src/harombe/
 ## Testing Strategy
 
 **Unit tests:** Mock LLM responses, no Ollama required
+
 - `tests/test_agent.py` - Agent loop with mocked LLM
 - `tests/test_tools.py` - Tool registration and execution
 - `tests/test_metrics.py` - Metrics collection (99% coverage)
 
 **Integration tests:** Require running Ollama (marked as skipped by default)
+
 - `tests/test_server.py` - Full API tests
 - `tests/test_cli.py` - CLI commands
 
 **Coverage:** 51% overall (core logic well-covered, CLI commands less so)
 
 Run tests:
+
 ```bash
 pytest                    # All tests (2 skipped)
 pytest -v                # Verbose
@@ -484,6 +626,7 @@ pytest --cov             # With coverage report
 See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development setup and guidelines.
 
 **Key areas for contribution:**
+
 1. Additional LLM backends (vLLM, llama.cpp)
 2. More built-in tools
 3. Web UI
@@ -497,6 +640,7 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development setup and guidelines
 **Q: Why not use Ray, Kubernetes, etc?**
 
 A: Those are designed for production cloud deployments. Harombe targets enthusiasts running a mix of consumer hardware (laptops, desktops, old GPUs). We prioritize:
+
 - Zero-config setup
 - Declarative YAML (not code)
 - Privacy (no cloud required)
@@ -504,6 +648,7 @@ A: Those are designed for production cloud deployments. Harombe targets enthusia
 **Q: How is this different from Ollama alone?**
 
 A: Ollama is single-machine inference. Harombe adds:
+
 - Multi-machine orchestration
 - Smart routing based on query complexity
 - Agent loop with tool use
@@ -520,6 +665,7 @@ A: Hardware only. No API keys, no usage-based pricing. Your electricity bill is 
 **Q: Is this production-ready?**
 
 A: Phase 1 (multi-machine orchestration) is complete and stable. It's suitable for personal use and experimentation. For production, you'd want:
+
 - Authentication/authorization
 - More robust error handling
 - Monitoring/alerting

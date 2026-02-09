@@ -35,6 +35,8 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 > - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
 >
+> **Sitadèl (Phase 4):** Full security layer with container isolation, credential vaults, audit logging, and per-tool egress controls is planned. Current version uses basic confirmation prompts.
+>
 > See [SECURITY.md](SECURITY.md) for detailed security guidance.
 
 ## Usage Patterns
@@ -95,13 +97,29 @@ agents:
 
 ## Architecture
 
-harombe is a five-layer system designed for clarity and extensibility:
+harombe is a six-layer system designed for clarity, security, and extensibility:
 
-1. **Hardware Abstraction** - Auto-detects GPUs, recommends models
-2. **Inference Abstraction** - Unified interface to Ollama, remote nodes, future backends
-3. **Coordination** - Smart routing, health monitoring, metrics, load balancing
-4. **Agent & Memory** - ReAct loop with tool execution and state management
-5. **User Interface** - CLI and REST API
+```
+┌─────────────────────────────────────┐
+│  Layer 6: Clients                   │  Voice, iOS, Web, CLI
+├─────────────────────────────────────┤
+│  Layer 5: Privacy Router            │  Hybrid local/cloud AI
+│  Classifies queries by sensitivity  │  (Phase 4)
+├─────────────────────────────────────┤
+│  Layer 4: Agent & Memory            │  ReAct loop, tools, memory
+├─────────────────────────────────────┤
+│  Layer 3: Sitadèl (Security)        │  🏰 NEW
+│  MCP Gateway, container isolation   │  Credential vault, audit log
+│  Per-tool egress, HITL gates        │  Tool allowlist, secret scanning
+├─────────────────────────────────────┤
+│  Layer 2: Orchestration             │  Smart routing, health monitoring
+│  Cluster config, mDNS discovery     │  Circuit breakers, metrics
+├─────────────────────────────────────┤
+│  Layer 1: Runtimes                  │  llama.cpp, Whisper, TTS, embeddings
+└─────────────────────────────────────┘
+```
+
+**Layer 3: Sitadèl** (Creole "Citadelle") — harombe's security layer, named for the Citadelle Laferrière. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
@@ -714,27 +732,48 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 
 ### Phase 3: Voice & Multi-Modal (In Progress)
 
-- Whisper STT integration (speech-to-text)
-- TTS integration (text-to-speech)
+- ✅ Whisper STT integration (speech-to-text)
+- ✅ TTS integration (Piper fast, Coqui high-quality)
 - Voice client (push-to-talk or wake word)
+- Voice API endpoints (REST + WebSocket)
 - Progressive feedback during tool execution
-- Multi-modal support (vision, audio)
+- Multi-modal support (vision - future)
 
-### Phase 4: Privacy Router (Planned)
+### Phase 4: Sitadèl (Security Layer) (Planned)
 
-- Hybrid local/cloud AI with privacy boundary
-- PII detection and redaction
+**🏰 Capability-Container Pattern:**
+
+- Docker MCP Gateway with per-tool isolation
+- Containerized MCP servers with resource limits
+- Per-service egress allowlists
+- Credential isolation (`.env` injection → Vault/SOPS)
+- Pre-authenticated browser container (accessibility-snapshot mode)
+- Tool allowlist + destructive action confirmation
+- Full audit trail of agent decisions and tool calls
+
+**🏰 Security Hardening:**
+
+- gVisor sandbox for code execution
+- HttpOnly cookies + network isolation for browser tools
+- Secret scanning in gateway
+- Human-in-the-loop gates for sensitive operations
+
+### Phase 5: Privacy Router (Planned)
+
+- Hybrid local/cloud AI with configurable privacy boundary
+- PII detection and redaction before cloud calls
 - Context sanitization
-- Three modes: local-only, hybrid (default), cloud-assisted
+- Three modes: `local-only`, `hybrid` (default), `cloud-assisted`
 - User-configurable privacy policies
+- Integration with MCP Server Conceal and Pangea MCP Proxy
 
-### Phase 5: Community & Polish (Planned)
+### Phase 6: Community & Polish (Planned)
 
 - Web UI with real-time updates
-- Plugin system for custom tools
-- Distributed inference (single model across machines)
+- Plugin system for custom runtimes
+- Distributed inference (single model across machines via llama.cpp RPC)
 - iOS/web clients
-- Contributor documentation
+- Contributor documentation and tooling
 
 ## Troubleshooting
 
