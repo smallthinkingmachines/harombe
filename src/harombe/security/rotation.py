@@ -196,6 +196,7 @@ class SecretRotationManager:
         vault_backend: Any,  # VaultBackend instance
         generator: SecretGenerator | None = None,
         audit_logger: Any | None = None,
+        verification_tester: Any | None = None,
     ):
         """Initialize rotation manager.
 
@@ -203,10 +204,12 @@ class SecretRotationManager:
             vault_backend: Vault backend for secret storage
             generator: Secret generator (default: random)
             audit_logger: Audit logger instance (optional)
+            verification_tester: Verification tester for credential testing (optional)
         """
         self.vault = vault_backend
         self.generator = generator or SecretGenerator(generator_type="random")
         self.audit_logger = audit_logger
+        self.verification_tester = verification_tester
 
         # Rotation schedules
         self.schedules: dict[str, RotationSchedule] = {}
@@ -733,14 +736,34 @@ class SecretRotationManager:
         Returns:
             True if verification passed
         """
-        # TODO: Integrate with verification framework (Task 5.3.3)
-        # For now, just return True if no tests specified
+        # If no tests specified, consider verification passed
         if not policy.verification_tests:
             return True
 
-        # Placeholder for verification
-        logger.debug(f"Verification tests would run here: {policy.verification_tests}")
-        return True
+        # Use verification framework if available
+        if hasattr(self, "verification_tester") and self.verification_tester:
+            logger.info(f"Running {len(policy.verification_tests)} verification tests")
+            result = await self.verification_tester.verify(secret_path, policy.verification_tests)
+
+            if result.success:
+                logger.info(
+                    f"Verification passed: {result.passed_tests}/{result.total_tests} tests "
+                    f"({result.duration_ms:.1f}ms)"
+                )
+            else:
+                logger.warning(
+                    f"Verification failed: {result.error} "
+                    f"({result.failed_tests}/{result.total_tests} tests failed)"
+                )
+
+            return result.success
+        else:
+            # Verification framework not configured, log warning and pass
+            logger.warning(
+                f"Verification tests specified but no verification tester configured: "
+                f"{policy.verification_tests}"
+            )
+            return True
 
     async def _promote_secret(self, staging_path: str, production_path: str) -> None:
         """Promote staging secret to production atomically.
