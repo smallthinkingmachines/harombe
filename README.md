@@ -35,14 +35,15 @@ Build autonomous AI agents that orchestrate workloads across your hardware—one
 > - Run in sandboxed environments (Docker, VMs) when testing
 > - Keep `confirm_dangerous: true` in your configuration
 >
-> **Security Layer (Phase 4.1-4.5 Complete):** Core security infrastructure is now implemented:
+> **Security Layer (Phase 4.1-4.6 Complete):** Core security infrastructure is now implemented:
 >
 > - ✅ MCP Gateway with containerized tool isolation
 > - ✅ Comprehensive audit logging with SQLite
 > - ✅ Secret management (HashiCorp Vault, SOPS, env vars)
 > - ✅ Per-container network egress filtering
 > - ✅ Human-in-the-Loop (HITL) approval gates with risk classification
-> - ⏳ Browser pre-auth and code execution sandbox (Phase 4.6-4.8)
+> - ✅ Browser container with pre-authentication and accessibility-based interaction
+> - ⏳ Code execution sandbox (Phase 4.7-4.8)
 >
 > See [SECURITY.md](SECURITY.md) and [docs/security-quickstart.md](docs/security-quickstart.md) for detailed security guidance.
 
@@ -117,7 +118,8 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 ├─────────────────────────────────────┤
 │  Layer 3: Security                  │  Phase 4 Foundation: ✅ Complete
 │  ✅ MCP Gateway, container isolation│  ✅ Credential vault, audit log
-│  ✅ Per-tool egress, secret scanning│  ⏳ HITL gates, browser/code sandbox
+│  ✅ Per-tool egress, secret scanning│  ✅ HITL gates, browser pre-auth
+│  ⏳ Code execution sandbox (Phase 4.7-4.8)
 ├─────────────────────────────────────┤
 │  Layer 2: Orchestration             │  Smart routing, health monitoring
 │  Cluster config, mDNS discovery     │  Circuit breakers, metrics
@@ -175,17 +177,17 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
 **Phase 4 (Foundation Complete):** Security Layer
 
-Core security infrastructure implemented (Phase 4.1-4.4):
+Core security infrastructure implemented (Phase 4.1-4.6):
 
 - **MCP Protocol & Gateway** - JSON-RPC 2.0 protocol base, containerized MCP Gateway server
 - **Audit Logging** - SQLite-based comprehensive audit trail with sensitive data redaction
 - **Secret Management** - HashiCorp Vault, SOPS, and environment variable backends
 - **Network Isolation** - Per-container egress filtering with Docker networks and iptables
+- **Human-in-the-Loop Gates** - Risk-based approval workflows with CLI/API prompts
+- **Browser Container** - Pre-authenticated browser automation with accessibility-based interaction
 
-Remaining work (Phase 4.5-4.8):
+Remaining work (Phase 4.7-4.8):
 
-- Human-in-the-loop (HITL) confirmation gates
-- Browser container with pre-authenticated sessions
 - Code execution sandbox with gVisor
 - End-to-end security integration and testing
 
@@ -846,9 +848,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - ✅ **Audit Integration** - All approval decisions logged to audit trail
 - ✅ **Default-Deny Safety** - Auto-deny on timeout for security
 
-**Phase 4.6-4.8 (Planned):** Remaining security features
+**Phase 4.6 (Complete):** Browser Container with Pre-Authentication
 
-- ⏳ Pre-authenticated browser container (accessibility-snapshot mode)
+- ✅ **Browser Container Manager** - Playwright-based browser automation with session isolation
+- ✅ **Pre-Authentication Flow** - Credentials injected before agent access from vault backend
+- ✅ **Accessibility-Based Interaction** - Semantic tree instead of raw HTML/DOM
+- ✅ **Six Browser Tools** - navigate, click, type, read, screenshot, close_session
+- ✅ **Password Field Protection** - Auto-deny typing into password/secret fields
+- ✅ **HITL Integration** - 16 risk classification rules for browser operations
+- ✅ **Session Management** - Timeout-based and action-count-based expiration
+
+**Phase 4.7-4.8 (Planned):** Remaining security features
+
 - ⏳ Code execution sandbox with gVisor
 - ⏳ End-to-end security integration and testing
 
@@ -860,6 +871,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - [Network Isolation](docs/security-network.md)
 - [MCP Gateway Design](docs/mcp-gateway-design.md)
 - [HITL Gates Design](docs/hitl-design.md)
+- [Browser Container Usage](docs/browser-usage.md)
+- [Browser Container Design](docs/browser-container-design.md)
 
 ### Phase 5: Privacy Router (Planned)
 

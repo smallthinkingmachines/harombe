@@ -44,7 +44,7 @@ flowchart TB
 - **Layer 6 (Clients):** Voice interface, iOS/web apps, CLI commands, REST API with SSE streaming
 - **Layer 5 (Privacy Router - Phase 5):** Hybrid local/cloud AI, PII detection, context sanitization, configurable privacy boundary
 - **Layer 4 (Agent):** ReAct agent loop, tool registry and execution, conversation state, memory (SQL + vector)
-- **Layer 3 (Security - Phase 4 Foundation Complete):** MCP Gateway (✅), container isolation (✅), credential vault (✅), audit logging (✅), per-tool egress control (✅), HITL gates (⏳)
+- **Layer 3 (Security - Phase 4 Foundation Complete):** MCP Gateway (✅), container isolation (✅), credential vault (✅), audit logging (✅), per-tool egress control (✅), HITL gates (✅), browser pre-auth (✅)
 - **Layer 2 (Coordination):** Cluster manager, smart routing, health monitoring, metrics, circuit breakers, mDNS discovery
 - **Layer 1 (Runtimes):** llama.cpp (LLM), Whisper (STT), Piper/Coqui (TTS), sentence-transformers (embeddings), hardware detection
 
@@ -213,7 +213,7 @@ Every tool runs in its own isolated container. The agent talks to an **MCP Gatew
 │ Browser  │ Files    │ Code     │ API MCP        │
 │ (pre-auth│ (scoped  │ (gVisor  │ Servers        │
 │ cookies) │ volumes) │ sandbox) │ (containerized)│
-│    ⏳    │    ⏳    │    ⏳    │       ✅       │
+│    ✅    │    ⏳    │    ⏳    │       ✅       │
 └──────────┴──────────┴──────────┴────────────────┘
 ```
 
@@ -265,21 +265,27 @@ Every tool runs in its own isolated container. The agent talks to an **MCP Gatew
 - Suspicious pattern detection (port scanning, DNS tunneling, data exfiltration)
 - Support for CIDR blocks and IP ranges
 
-### Planned Security Components (Phase 4.5-4.8)
+### Advanced Security Components (Phase 4.5-4.6)
 
-**⏳ Human-in-the-Loop Gates (Phase 4.5):**
+**✅ Human-in-the-Loop Gates (Phase 4.5):**
 
 - Confirmation prompts for destructive actions
-- Risk-based approval workflows
-- Timeout-based auto-deny
+- Risk-based approval workflows (LOW/MEDIUM/HIGH/CRITICAL)
+- Timeout-based auto-deny for security
 - Audit trail of approvals/denials
+- CLI and API approval interfaces
 
-**⏳ Browser Container (Phase 4.6):**
+**✅ Browser Container (Phase 4.6):**
 
-- Pre-authenticated persistent profile (cookies managed outside agent)
+- Pre-authenticated persistent profile (credentials injected before agent access)
 - Accessibility-snapshot mode (structured elements, not raw DOM/CDP)
 - HttpOnly cookies + network isolation
-- Screenshot and element interaction tools
+- Playwright-based browser automation
+- Six browser tools: navigate, click, type, read, screenshot, close_session
+- Password field protection (auto-deny typing into password fields)
+- HITL integration with 16 risk classification rules
+
+### Planned Security Components (Phase 4.7-4.8)
 
 **⏳ Code Execution Sandbox (Phase 4.7):**
 
@@ -366,6 +372,9 @@ For detailed setup and usage:
 - [Secret Management](docs/security-credentials.md) - Vault, SOPS, and credential handling
 - [Network Isolation](docs/security-network.md) - Egress filtering and DNS control
 - [MCP Gateway Design](docs/mcp-gateway-design.md) - Gateway architecture
+- [HITL Gates Design](docs/hitl-design.md) - Human-in-the-loop approval system
+- [Browser Container Usage](docs/browser-usage.md) - Pre-authenticated browser automation
+- [Browser Container Design](docs/browser-container-design.md) - Browser architecture details
 - [Phase 4 Implementation Plan](docs/phase4-implementation-plan.md) - Complete roadmap
 
 ---
@@ -653,13 +662,13 @@ Cluster Summary
 - **Phase 4.2:** Audit logging with SQLite, sensitive data redaction
 - **Phase 4.3:** Secret management (Vault, SOPS, env vars)
 - **Phase 4.4:** Network isolation with egress filtering
+- **Phase 4.5:** Human-in-the-loop (HITL) approval gates with risk classification
+- **Phase 4.6:** Browser container with pre-authentication and accessibility-based interaction
 
 ## Future Roadmap
 
 ### Phase 4 Completion: Advanced Security
 
-- **Phase 4.5:** Human-in-the-loop (HITL) confirmation gates
-- **Phase 4.6:** Browser container with pre-authenticated sessions
 - **Phase 4.7:** Code execution sandbox with gVisor
 - **Phase 4.8:** End-to-end integration and testing
 
@@ -723,7 +732,11 @@ src/harombe/
 │   ├── vault.py          # Secret management backends
 │   ├── injection.py      # Secret injection
 │   ├── secrets.py        # Secret scanning
-│   └── network.py        # Network isolation
+│   ├── network.py        # Network isolation
+│   ├── hitl.py           # Human-in-the-loop gates
+│   ├── hitl_prompt.py    # Approval prompts (CLI/API)
+│   ├── browser_manager.py # Browser container manager
+│   └── browser_risk.py   # Browser risk classification
 ├── coordination/     # Layer 2: Multi-machine
 │   ├── cluster.py
 │   ├── router.py
