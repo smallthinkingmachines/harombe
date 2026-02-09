@@ -5,6 +5,13 @@ risk scoring, and trust management.
 """
 
 # Import core HITL classes
+# Import auto-approval
+from .auto_approval import (
+    ApprovalAction,
+    AutoApprovalDecision,
+    AutoApprovalEngine,
+    AutoApprovalRule,
+)
 from .core import (
     ApprovalDecision,
     ApprovalStatus,
@@ -23,8 +30,12 @@ from .risk_scorer import HistoricalRiskScorer, RiskScore
 from .trust import TrustLevel, TrustManager, TrustScore
 
 __all__ = [
+    "ApprovalAction",
     "ApprovalDecision",
     "ApprovalStatus",
+    "AutoApprovalDecision",
+    "AutoApprovalEngine",
+    "AutoApprovalRule",
     "HITLGate",
     "HITLRule",
     "HistoricalRiskScorer",
