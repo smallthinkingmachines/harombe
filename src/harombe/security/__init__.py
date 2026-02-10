@@ -1,14 +1,22 @@
-"""Security layer for harombe.
+"""Defense-in-depth security layer for harombe.
 
-Provides:
-- MCP Gateway for tool routing and security enforcement
-- Docker container management
-- Audit logging with sensitive data redaction
-- Security decision tracking
-- Credential vault integration (Vault, SOPS, env)
-- Secret scanning and detection
-- Secure environment variable injection
-- Human-in-the-Loop (HITL) approval gates
+Implements the Capability-Container Pattern where every tool runs in its own
+isolated container. The agent communicates through an MCP Gateway and never
+directly touches raw credentials, host filesystems, or unrestricted networks.
+
+Components:
+
+- **MCP Gateway** (:class:`MCPGateway`) - Centralized routing and security enforcement
+- **Container Management** (:class:`DockerManager`) - Container lifecycle with resource limits
+- **Audit Logging** (:class:`AuditLogger`, :class:`AuditDatabase`) - Immutable event trail with redaction
+- **Credential Vault** (:class:`HashiCorpVault`, :class:`SOPSBackend`, :class:`EnvVarBackend`) - Multi-backend secrets
+- **Secret Scanning** (:class:`SecretScanner`) - Pattern and entropy-based credential detection
+- **Network Isolation** (:class:`EgressFilter`, :class:`NetworkIsolationManager`) - Default-deny egress
+- **HITL Gates** (:class:`HITLGate`, :class:`RiskClassifier`) - Risk-based approval workflows
+- **Browser Container** (:class:`BrowserContainerManager`) - Pre-authenticated browser automation
+- **Sandbox** (:class:`SandboxManager`) - gVisor-based code execution sandbox
+- **Monitoring** (:class:`SecurityDashboard`, :class:`AlertRuleEngine`, :class:`SIEMIntegrator`) - Observability
+- **Compliance** (:class:`ComplianceReportGenerator`) - SOC 2, GDPR, PCI DSS report generation
 """
 
 from .alert_rules import (

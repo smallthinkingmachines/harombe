@@ -1,74 +1,50 @@
 # Harombe
 
-**Secure, intelligent AI agent framework with defense-in-depth security**
+**Self-hosted agent framework for distributed AI with defense-in-depth security**
 
-<div class="grid cards" markdown>
+## Table of Contents
 
-- :material-shield-check:{ .lg .middle } **Security First**
-
-  ***
-
-  Defense-in-depth security with gVisor sandboxing, credential management, network isolation, and comprehensive audit logging.
-
-  [:octicons-arrow-right-24: Security Architecture](security-architecture.md)
-
-- :material-robot:{ .lg .middle } **Intelligent Agents**
-
-  ***
-
-  Advanced AI agents with RAG memory, semantic search, and context-aware decision making.
-
-  [:octicons-arrow-right-24: Architecture Overview](architecture/overview.md)
-
-- :material-rocket-launch:{ .lg .middle } **Production Ready**
-
-  ***
-
-  Battle-tested performance, comprehensive monitoring, and zero-downtime deployments.
-
-  [:octicons-arrow-right-24: Deployment Guide](production-deployment-guide.md)
-
-- :material-code-braces:{ .lg .middle } **Developer Friendly**
-
-  ***
-
-  Clean APIs, extensive documentation, and active community support.
-
-  [:octicons-arrow-right-24: Quick Start](getting-started/quickstart.md)
-
-</div>
+- [What is Harombe?](#what-is-harombe)
+- [Quick Start](#quick-start)
+- [Architecture Overview](#architecture-overview)
+- [Security Layers](#security-layers)
+- [Performance Metrics](#performance-metrics)
+- [Use Cases](#use-cases)
+- [Development Phases](#development-phases)
+- [Community](#community)
 
 ## What is Harombe?
 
 Harombe is a **self-hosted AI agent framework** designed for secure, distributed AI workloads. It provides a complete security layer with defense-in-depth protection, enabling you to run autonomous AI agents safely in production environments.
 
-**Status**: Phase 4 Complete ✅ | Phase 5 In Planning 🚧
+**Status**: Phase 4 Complete ✅ | Phase 5 Complete ✅ | Phase 6 Complete ✅
 
 ### Key Features
 
-#### 🔒 Enterprise Security
+**Security**
 
 - **Zero-Trust Code Execution**: All code runs in gVisor-isolated sandboxes with syscall filtering (70 vs 300+ syscalls)
 - **Credential Security**: Secrets stored in HashiCorp Vault, never in code or logs (>99% detection rate)
 - **Network Isolation**: Default-deny egress with domain allowlisting and private IP blocking
-- **Complete Auditability**: Immutable audit trail with 0.56ms write latency (17.9x faster than target)
-- **Human-in-the-Loop**: Risk-based approval gates with 0.0001ms classification (500,000x faster than target)
+- **Complete Auditability**: Immutable audit trail with 0.56ms write latency
+- **Human-in-the-Loop**: Risk-based approval gates for high-risk operations
 
-#### 🧠 Advanced Intelligence
+**Intelligence**
 
 - **Semantic Memory**: RAG-powered context retrieval with vector embeddings
 - **Multi-Modal Support**: Text, voice, and browser automation
 - **Tool Integration**: Extensible tool system with MCP protocol support
 - **Context Management**: Intelligent context windowing and compression
+- **Privacy Router**: Hybrid local/cloud AI with PII detection and automatic routing
 
-#### 📊 Performance at Scale
+**Performance**
 
 - **High Throughput**: 601,249 operations/sec for HITL classification
 - **Low Latency**: <1ms for most security operations
-- **Minimal Overhead**: 0.32ms code execution overhead (312x better than target)
+- **Minimal Overhead**: 0.32ms code execution overhead
 - **Scalable**: Unlimited concurrent sandboxes (CPU/memory limited)
 
-#### ✅ Compliance Ready
+**Compliance**
 
 - **PCI DSS 4.0**: Requirements 3, 6, 8, 10 compliant
 - **GDPR**: Articles 5, 17, 25, 30, 32, 33 compliant
@@ -85,9 +61,11 @@ cd harombe
 # Install dependencies
 pip install -e ".[dev]"
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys
+# Initialize (detects hardware, recommends model)
+harombe init
+
+# Pull recommended model
+ollama pull qwen2.5:7b
 
 # Start interactive agent
 harombe chat
@@ -135,15 +113,15 @@ Harombe implements **five layers** of defense-in-depth security:
 
 ## Performance Metrics
 
-| Component           | Target | Actual         | Achievement        |
-| ------------------- | ------ | -------------- | ------------------ |
-| Audit Log Write     | <10ms  | **0.56ms**     | 17.9x faster ✅    |
-| Code Execution      | <100ms | **0.32ms**     | 312x faster ✅     |
-| HITL Classification | <50ms  | **0.0001ms**   | 500,000x faster ✅ |
-| Sandbox Creation    | <3s    | **2-3s**       | Meets target ✅    |
-| Throughput          | >1K/s  | **601K ops/s** | 601x higher ✅     |
+| Component           | Target | Actual         | Achievement     |
+| ------------------- | ------ | -------------- | --------------- |
+| Audit Log Write     | <10ms  | **0.56ms**     | 17.9x faster    |
+| Code Execution      | <100ms | **0.32ms**     | 312x faster     |
+| HITL Classification | <50ms  | **0.0001ms**   | 500,000x faster |
+| Sandbox Creation    | <3s    | **2-3s**       | Meets target    |
+| Throughput          | >1K/s  | **601K ops/s** | 601x higher     |
 
-[View Benchmarks →](phase4-8-performance-results.md){ .md-button }
+HITL classification achieves 500,000x improvement because the risk classifier uses simple rule matching rather than ML inference — this is a deliberate design choice favoring determinism and speed over complexity. See the [full benchmark methodology and reproduction steps](phases/phase4-8-performance-results.md) for details.
 
 ## Use Cases
 
@@ -181,10 +159,10 @@ Analyze and execute untrusted code safely:
 - ✅ **Phase 2**: RAG Integration (Embeddings, retrieval)
 - ✅ **Phase 3**: Voice Interface (Speech-to-text, text-to-speech)
 - ✅ **Phase 4**: Security Layer (Sandboxing, credentials, network, audit, HITL)
-- 🚧 **Phase 5**: Intelligence (ML anomaly detection, auto-approvals, secret rotation)
-- 📋 **Phase 6**: Advanced Security (Hardware security, WASM sandboxes, ZKP)
+- ✅ **Phase 5**: Intelligence (ML anomaly detection, auto-approvals, secret rotation, privacy router)
+- ✅ **Phase 6**: Advanced Security (Hardware security, isolation, ZKP, distributed cryptography)
 
-[View Roadmap →](phases/phase5-implementation-plan.md){ .md-button }
+[View Roadmap →](phases/index.md){ .md-button }
 
 ## Community
 
@@ -194,7 +172,7 @@ Analyze and execute untrusted code safely:
 
 ## License
 
-Harombe is open source software licensed under the MIT License.
+Harombe is open source software licensed under the [Apache 2.0 License](https://github.com/smallthinkingmachines/harombe/blob/main/LICENSE).
 
 ---
 

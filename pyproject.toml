@@ -78,6 +78,15 @@ dev = [
     "mkdocs-material>=9.5",
     "mkdocs-mermaid2-plugin>=1.1",
     "mkdocs-git-revision-date-localized-plugin>=1.2",
+    "mkdocstrings[python]>=0.24",
+]
+
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+    "mkdocs-mermaid2-plugin>=1.1",
+    "mkdocs-git-revision-date-localized-plugin>=1.2",
+    "mkdocstrings[python]>=0.24",
 ]
 
 [project.scripts]

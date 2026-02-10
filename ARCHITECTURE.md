@@ -4,6 +4,25 @@
 
 Harombe is designed as a six-layer system that abstracts hardware complexity, enforces security boundaries, and provides a unified interface for autonomous agent workloads across distributed infrastructure.
 
+## Table of Contents
+
+- [Design Philosophy](#design-philosophy)
+- [System Layers](#system-layers)
+- [Layer 1: Hardware Abstraction](#layer-1-hardware-abstraction)
+- [Layer 2: Inference Abstraction](#layer-2-inference-abstraction)
+- [Layer 3: Coordination](#layer-3-coordination-multi-machine)
+- [Layer 3.5: Security](#layer-35-security--phase-4-foundation-complete)
+- [Layer 4: Agent & Memory](#layer-4-agent--memory)
+- [Layer 5: User Interface](#layer-5-user-interface)
+- [Configuration Philosophy](#configuration-philosophy)
+- [Design Decisions](#design-decisions)
+- [Performance Characteristics](#performance-characteristics)
+- [Failure Modes & Recovery](#failure-modes--recovery)
+- [Completed Phases](#completed-phases)
+- [Future Roadmap](#future-roadmap)
+- [Code Organization](#code-organization)
+- [Testing Strategy](#testing-strategy)
+
 ## Design Philosophy
 
 **The Problem:** Building autonomous AI agents that can execute complex, multi-step tasks across heterogeneous hardware (Apple Silicon, NVIDIA, AMD, CPU) is complex. Existing solutions either lock you into cloud providers, limit you to single machines, or require extensive DevOps expertise.

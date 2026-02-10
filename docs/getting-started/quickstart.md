@@ -5,7 +5,7 @@ Get up and running with Harombe in 5 minutes.
 ## Prerequisites
 
 - Python 3.11, 3.12, or 3.13
-- Anthropic API key (for Claude)
+- [Ollama](https://ollama.ai) installed and running
 - Git
 
 ## Installation
@@ -21,14 +21,13 @@ pip install -e ".[dev]"
 
 ## Configuration
 
-Create a `.env` file with your API key:
+Initialize harombe (detects your hardware and recommends a model):
 
 ```bash
-# Copy example config
-cp .env.example .env
+harombe init
 
-# Add your API key
-echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
+# Pull the recommended model
+ollama pull qwen2.5:7b
 ```
 
 ## Your First Agent
@@ -60,31 +59,32 @@ Agent: The capital of France is Paris.
 You: exit
 ```
 
-### Programmatic Usage
+### Programmatic Usage (Ollama — Local)
 
 Create a simple Python script:
 
 ```python
 # example.py
 import asyncio
-from harombe.agent.runtime import AgentRuntime
-from harombe.agent.config import AgentConfig
+from harombe.agent.loop import Agent
+from harombe.llm.ollama import OllamaClient
+from harombe.tools.registry import get_enabled_tools
 
 async def main():
-    # Create agent configuration
-    config = AgentConfig(
-        name="MyAgent",
-        model="claude-sonnet-4-5-20250929",
-        max_iterations=10,
+    # Create a local LLM client via Ollama
+    llm = OllamaClient(model="qwen2.5:7b")
+    tools = get_enabled_tools(shell=True, filesystem=True, web_search=True)
+
+    # Create the agent
+    agent = Agent(
+        llm=llm,
+        tools=tools,
+        system_prompt="You are a helpful assistant.",
     )
 
-    # Initialize agent runtime
-    runtime = AgentRuntime(config)
-
     # Send a message
-    response = await runtime.run("What is 2 + 2?")
-
-    print(f"Agent: {response.final_answer}")
+    response = await agent.run("What is 2 + 2?")
+    print(f"Agent: {response}")
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -96,39 +96,76 @@ Run it:
 python example.py
 ```
 
+### Alternative: Cloud LLM (Anthropic)
+
+If you prefer to use a cloud provider instead of local inference, harombe also supports Anthropic's Claude:
+
+```bash
+# Set your API key
+export ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+```python
+# example_cloud.py
+import asyncio
+from harombe.agent.runtime import AgentRuntime
+from harombe.agent.config import AgentConfig
+
+async def main():
+    config = AgentConfig(
+        name="MyAgent",
+        model="claude-sonnet-4-5-20250929",
+        max_iterations=10,
+    )
+
+    runtime = AgentRuntime(config)
+    response = await runtime.run("What is 2 + 2?")
+    print(f"Agent: {response.final_answer}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
 ## Enable Memory (Optional)
 
 Harombe supports semantic memory with RAG:
 
 ```python
 import asyncio
-from harombe.agent.runtime import AgentRuntime
-from harombe.agent.config import AgentConfig
-from harombe.memory.semantic import SemanticMemory
+from harombe.agent.loop import Agent
+from harombe.llm.ollama import OllamaClient
+from harombe.memory.manager import MemoryManager
+from harombe.tools.registry import get_enabled_tools
 
 async def main():
-    # Initialize memory
-    memory = SemanticMemory(
-        collection_name="my_agent_memory",
-        persist_directory="./data/memory",
+    # Create memory manager
+    memory = MemoryManager(
+        storage_path="~/.harombe/memory.db",
+        max_history_tokens=4096,
     )
 
-    # Create agent with memory
-    config = AgentConfig(
-        name="MemoryAgent",
-        model="claude-sonnet-4-5-20250929",
-        memory=memory,
+    # Create or get session
+    session_id, created = memory.get_or_create_session(
+        session_id="my-conversation",
+        system_prompt="You are a helpful assistant.",
     )
 
-    runtime = AgentRuntime(config)
+    llm = OllamaClient(model="qwen2.5:7b")
+    tools = get_enabled_tools(shell=True, filesystem=True)
+
+    agent = Agent(
+        llm=llm,
+        tools=tools,
+        memory_manager=memory,
+        session_id=session_id,
+    )
 
     # First interaction - store info
-    await runtime.run("My favorite color is blue.")
+    await agent.run("My favorite color is blue.")
 
     # Second interaction - recall info
-    response = await runtime.run("What's my favorite color?")
-    print(f"Agent: {response.final_answer}")
-    # Output: Agent: Your favorite color is blue.
+    response = await agent.run("What's my favorite color?")
+    print(f"Agent: {response}")
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -165,8 +202,6 @@ vault server -dev
 
 ```bash
 # .env
-ANTHROPIC_API_KEY=sk-ant-...
-
 # Security features
 ENABLE_SANDBOXING=true
 SANDBOX_RUNTIME=runsc
@@ -224,7 +259,7 @@ if __name__ == "__main__":
 ### Execute Code
 
 ```python
-response = await runtime.run(
+response = await agent.run(
     "Write and execute Python code to calculate the factorial of 10"
 )
 ```
@@ -232,7 +267,7 @@ response = await runtime.run(
 ### File Operations
 
 ```python
-response = await runtime.run(
+response = await agent.run(
     "Read the file 'data.txt' and tell me how many lines it has"
 )
 ```
@@ -240,19 +275,8 @@ response = await runtime.run(
 ### Web Search
 
 ```python
-response = await runtime.run(
+response = await agent.run(
     "Search for the latest news about AI and summarize the top 3 results"
-)
-```
-
-### Complex Reasoning
-
-```python
-response = await runtime.run(
-    """
-    I have a meeting at 2pm PST. I'm currently in New York (EST).
-    What time should I set my alarm for?
-    """
 )
 ```
 
@@ -261,7 +285,7 @@ response = await runtime.run(
 - [Configuration Guide](configuration.md) - Learn about all configuration options
 - [Architecture Overview](../architecture/overview.md) - Understand how Harombe works
 - [Security Guide](../security-quickstart.md) - Enable security features
-- [API Reference](../api-reference/agent-api.md) - Detailed API documentation
+- [Glossary](../glossary.md) - Key terms and concepts
 
 ## Examples
 
@@ -273,24 +297,16 @@ Check out the `examples/` directory for more:
 - `examples/tool_usage.py` - Custom tool integration
 - `examples/voice_agent.py` - Voice-enabled agent
 
-## Getting Help
-
-Having trouble? Here are some resources:
-
-- **Documentation**: [Full documentation](https://smallthinkingmachines.github.io/harombe/)
-- **GitHub Issues**: [Report a bug](https://github.com/smallthinkingmachines/harombe/issues)
-- **Examples**: [See more examples](https://github.com/smallthinkingmachines/harombe/tree/main/examples)
-
 ## Troubleshooting
 
-### API Key Issues
+### Ollama Not Running
 
 ```bash
-# Verify API key is set
-echo $ANTHROPIC_API_KEY
+# Start Ollama server
+ollama serve
 
-# Or check .env file
-cat .env | grep ANTHROPIC_API_KEY
+# Verify it's running
+curl http://localhost:11434/api/tags
 ```
 
 ### Memory Issues

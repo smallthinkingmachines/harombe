@@ -127,23 +127,34 @@ def test_feature_name():
 
 ```
 harombe/
-├── src/harombe/          # Main package
-│   ├── cli/              # CLI commands
-│   ├── agent/            # ReAct agent loop
-│   ├── llm/              # LLM clients
-│   ├── tools/            # Tool implementations
-│   ├── config/           # Configuration
-│   ├── coordination/     # Cluster management
-│   ├── server/           # REST API
-│   └── hardware/         # Hardware detection
-├── tests/                # Test suite
-│   ├── test_agent.py
-│   ├── test_cluster.py
+├── src/harombe/           # Main package
+│   ├── agent/             # ReAct agent loop
+│   ├── cli/               # CLI commands (chat, init, doctor, etc.)
+│   ├── config/            # Configuration loading and schema
+│   ├── coordination/      # Cluster management, routing, discovery
+│   ├── embeddings/        # Embedding backends (Ollama, sentence-transformers)
+│   ├── hardware/          # GPU/VRAM detection
+│   ├── llm/               # LLM clients (Ollama, Anthropic, remote)
+│   ├── mcp/               # MCP protocol and servers
+│   ├── memory/            # Conversation memory (SQL + vector)
+│   ├── patterns/          # Multi-model collaboration patterns
+│   ├── privacy/           # Privacy router, PII detection, sanitization
+│   ├── security/          # MCP Gateway, audit, secrets, HITL, network
+│   ├── server/            # FastAPI REST API
+│   ├── tools/             # Tool implementations (shell, fs, web, browser)
+│   ├── vector/            # Vector store (ChromaDB)
+│   └── voice/             # STT (Whisper) and TTS (Coqui, Piper)
+├── tests/                 # Test suite
+│   ├── agent/
+│   ├── memory/
+│   ├── security/
 │   └── ...
-├── docs/
-│   ├── DEVELOPMENT.md    # Development guide
-│   └── CONTRIBUTING.md   # This file
-└── pyproject.toml        # Package config
+├── docs/                  # Documentation
+│   ├── getting-started/
+│   ├── phases/
+│   ├── decisions/
+│   └── api/
+└── pyproject.toml         # Package config
 ```
 
 ## What to Contribute
@@ -171,6 +182,10 @@ harombe/
 - Ensure all tests pass
 - Add a clear description of changes
 - Reference related issues if applicable
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](../CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 ## Need Help?
 

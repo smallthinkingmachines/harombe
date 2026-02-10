@@ -4,6 +4,23 @@
 
 Build autonomous AI agents that orchestrate workloads across your hardware—one machine or many—with zero cloud dependencies.
 
+## Table of Contents
+
+- [What is harombe?](#what-is-harombe)
+- [Usage Patterns](#usage-patterns)
+- [Architecture](#architecture)
+- [Current Status](#current-status)
+- [Quick Start](#quick-start)
+- [Examples](#examples)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Multi-Machine Clusters](#multi-machine-clusters-experimental)
+- [How It Works](#how-it-works)
+- [Roadmap](#roadmap)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Contributing](#contributing)
+
 ## What is harombe?
 
 **harombe** is a general-purpose agent framework that orchestrates heterogeneous consumer hardware (Apple Silicon, NVIDIA, AMD, CPU) into a unified system for autonomous task execution. Define your cluster in YAML, create custom tools, and let harombe route workloads to the right hardware based on task complexity.
@@ -111,24 +128,24 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 ┌─────────────────────────────────────┐
 │  Layer 6: Clients                   │  Voice, iOS, Web, CLI
 ├─────────────────────────────────────┤
-│  Layer 5: Privacy Router            │  Hybrid local/cloud AI
-│  Classifies queries by sensitivity  │  (Phase 5 - Planned)
+│  Layer 5: Privacy Router        ✅  │  Hybrid local/cloud AI
+│  PII detection, context sanitizer   │  local-only / hybrid / cloud
 ├─────────────────────────────────────┤
-│  Layer 4: Agent & Memory            │  ReAct loop, tools, memory
+│  Layer 4: Agent & Memory        ✅  │  ReAct loop, tools, memory
 ├─────────────────────────────────────┤
-│  Layer 3: Security                  │  Phase 4 Foundation: ✅ Complete
-│  ✅ MCP Gateway, container isolation│  ✅ Credential vault, audit log
-│  ✅ Per-tool egress, secret scanning│  ✅ HITL gates, browser pre-auth
-│  ⏳ Code execution sandbox (Phase 4.7-4.8)
+│  Layer 3: Security              ✅  │  Defense-in-depth complete
+│  MCP Gateway, container isolation   │  Credential vault, audit log
+│  Per-tool egress, secret scanning   │  HITL gates, browser pre-auth
+│  Code execution sandbox (gVisor)    │  Anomaly detection, SIEM
 ├─────────────────────────────────────┤
-│  Layer 2: Orchestration             │  Smart routing, health monitoring
+│  Layer 2: Orchestration         ✅  │  Smart routing, health monitoring
 │  Cluster config, mDNS discovery     │  Circuit breakers, metrics
 ├─────────────────────────────────────┤
-│  Layer 1: Runtimes                  │  llama.cpp, Whisper, TTS, embeddings
+│  Layer 1: Runtimes              ✅  │  llama.cpp, Whisper, TTS, embeddings
 └─────────────────────────────────────┘
 ```
 
-**Layer 3: Security** — Harombe's security layer foundation is now complete (Phase 4.1-4.4), providing container isolation, credential management, audit logging, and network egress filtering. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways). See [docs/security-quickstart.md](docs/security-quickstart.md) for setup instructions.
+**Layer 3: Security** — Harombe's security layer is complete (Phase 4-6), providing container isolation, credential management, audit logging, network egress filtering, anomaly detection, and SIEM integration. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways). See [docs/security-quickstart.md](docs/security-quickstart.md) for setup instructions.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
@@ -874,22 +891,24 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - [Browser Container Usage](docs/browser-usage.md)
 - [Browser Container Design](docs/browser-container-design.md)
 
-### Phase 5: Privacy Router (Planned)
+### Phase 5: Intelligence & Privacy (Complete)
 
-- Hybrid local/cloud AI with configurable privacy boundary
-- PII detection and redaction before cloud calls
-- Context sanitization
-- Three modes: `local-only`, `hybrid` (default), `cloud-assisted`
-- User-configurable privacy policies
-- Integration with MCP Server Conceal and Pangea MCP Proxy
+- ✅ ML-based anomaly detection with Isolation Forest (per-agent models)
+- ✅ Threat scoring, threat intelligence integration
+- ✅ Trust manager with historical risk scoring and auto-approval
+- ✅ Secret rotation with zero-downtime and emergency rotation
+- ✅ Certificate pinning, deep packet inspection, protocol filtering
+- ✅ SIEM integration (Splunk, Elasticsearch, Datadog)
+- ✅ Alert rules engine, compliance reports, security dashboard
+- ✅ Privacy Router: hybrid local/cloud AI with PII detection
+- ✅ Multi-model collaboration patterns
 
-### Phase 6: Community & Polish (Planned)
+### Phase 6: Advanced Security (Complete)
 
-- Web UI with real-time updates
-- Plugin system for custom runtimes
-- Distributed inference (single model across machines via llama.cpp RPC)
-- iOS/web clients
-- Contributor documentation and tooling
+- ✅ Hardware security module integration
+- ✅ Enhanced isolation mechanisms
+- ✅ Zero-knowledge proof support
+- ✅ Distributed cryptography primitives
 
 ## Troubleshooting
 

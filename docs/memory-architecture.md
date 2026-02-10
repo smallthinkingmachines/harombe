@@ -1,5 +1,15 @@
 # Conversation Memory System Design
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Goals](#goals)
+- [Architecture](#architecture)
+- [Memory Strategies](#memory-strategies)
+- [Integration Points](#integration-points)
+- [Implementation Plan](#implementation-plan)
+- [Phase 2.2: Semantic Search & RAG](#phase-22-semantic-search--rag)
+
 ## Overview
 
 The conversation memory system enables harombe agents to maintain context across sessions, remember past interactions, and provide continuity in multi-turn conversations.

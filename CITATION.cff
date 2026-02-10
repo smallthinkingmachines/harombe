@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Harombe: Self-hosted Agent Framework for Distributed AI"
+authors:
+  - family-names: Ledan
+    given-names: Ricardo
+version: 0.1.0
+date-released: 2026-02-10
+license: Apache-2.0
+url: "https://github.com/smallthinkingmachines/harombe"
+repository-code: "https://github.com/smallthinkingmachines/harombe"
+keywords:
+  - ai-agents
+  - distributed-computing
+  - security
+  - privacy
+  - self-hosted
+  - ollama
