@@ -473,6 +473,47 @@ class PrivacyConfig(BaseModel):
     )
 
 
+class PatternsConfig(BaseModel):
+    """Multi-model collaboration pattern configuration (Phase 6)."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable a collaboration pattern on top of the privacy router",
+    )
+    pattern: Literal[
+        "none",
+        "smart_escalation",
+        "privacy_handshake",
+        "data_minimization",
+        "specialized_routing",
+        "sliding_privacy",
+        "debate",
+    ] = Field(
+        default="none",
+        description="Which collaboration pattern to use",
+    )
+    confidence_threshold: float = Field(
+        default=0.5,
+        description="(smart_escalation) Minimum confidence to accept local answer",
+        ge=0.0,
+        le=1.0,
+    )
+    privacy_level: float = Field(
+        default=0.5,
+        description="(sliding_privacy) Privacy dial: 0.0 = all cloud, 1.0 = all local",
+        ge=0.0,
+        le=1.0,
+    )
+    cloud_threshold: Literal["medium", "complex"] = Field(
+        default="complex",
+        description="(specialized_routing) Minimum complexity to route to cloud",
+    )
+    include_contextual: bool = Field(
+        default=True,
+        description="(data_minimization) Include CONTEXTUAL sentences in addition to ESSENTIAL",
+    )
+
+
 class SecurityConfig(BaseModel):
     """Security layer configuration (Phase 4)."""
 
@@ -533,4 +574,8 @@ class HarombeConfig(BaseModel):
     privacy: PrivacyConfig = Field(
         default_factory=PrivacyConfig,
         description="Privacy routing for hybrid local/cloud AI (Phase 5)",
+    )
+    patterns: PatternsConfig = Field(
+        default_factory=PatternsConfig,
+        description="Multi-model collaboration patterns (Phase 6)",
     )
