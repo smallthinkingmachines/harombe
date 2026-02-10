@@ -1,5 +1,7 @@
 """Tests for ZKP-based operation authorization."""
 
+import base64
+
 import pytest
 
 from harombe.security.zkp.authorization import (
@@ -214,10 +216,12 @@ class TestZKPAuthorizationVerifier:
         """Tampered capability claim fails verification."""
         provider, verifier, _ = registered_agent
         claim = provider.prove_capability("agent-1", "read")
-        # Tamper with the proof response
+        # Tamper with the proof response by flipping a bit in the raw bytes
         resp = claim.proof_data.get("response", "")
         if resp:
-            claim.proof_data["response"] = "A" + resp[1:]
+            raw = bytearray(base64.b64decode(resp))
+            raw[0] ^= 0x01
+            claim.proof_data["response"] = base64.b64encode(bytes(raw)).decode()
         assert verifier.verify_capability(claim) is False
 
     def test_verify_capability_unknown_agent(self, verifier):
@@ -269,7 +273,9 @@ class TestZKPAuthorizationVerifier:
         claim = provider.prove_group_membership("agent-1", "admin")
         resp = claim.proof_data.get("response", "")
         if resp:
-            claim.proof_data["response"] = "B" + resp[1:]
+            raw = bytearray(base64.b64decode(resp))
+            raw[0] ^= 0x01
+            claim.proof_data["response"] = base64.b64encode(bytes(raw)).decode()
         assert verifier.verify_group_membership(claim) is False
 
     def test_verify_group_membership_unknown_agent(self, verifier):
