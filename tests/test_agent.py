@@ -318,3 +318,304 @@ async def test_agent_state():
     assert len(state.messages) == 4
     assert state.messages[3].role == "tool"
     assert state.messages[3].tool_call_id == "call_1"
+
+
+@pytest.mark.asyncio
+async def test_agent_unknown_tool():
+    """Test agent handles unknown tool calls gracefully."""
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[ToolCall(id="call_1", name="nonexistent_tool", arguments={"x": 1})],
+            ),
+            CompletionResponse(content="I couldn't use that tool."),
+        ]
+    )
+
+    agent = Agent(llm=mock_llm, tools=[], max_steps=10)
+    await agent.run("Use a tool")
+
+    # The tool result should contain an error about unknown tool
+    tool_result_msg = mock_llm.calls[1]["messages"][-1]
+    assert "Unknown tool" in tool_result_msg.content
+
+
+@pytest.mark.asyncio
+async def test_agent_tool_raises_exception():
+    """Test agent handles tool execution errors."""
+
+    async def broken_tool(arg: str) -> str:
+        raise RuntimeError("tool exploded")
+
+    tool_obj = Tool(
+        schema=ToolSchema(
+            name="broken",
+            description="A broken tool",
+            parameters=[ToolParameter(name="arg", type="string", description="Arg")],
+        ),
+        fn=broken_tool,
+    )
+
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[ToolCall(id="call_1", name="broken", arguments={"arg": "test"})],
+            ),
+            CompletionResponse(content="Error occurred."),
+        ]
+    )
+
+    agent = Agent(llm=mock_llm, tools=[tool_obj], max_steps=10)
+    await agent.run("Use broken tool")
+
+    tool_result_msg = mock_llm.calls[1]["messages"][-1]
+    assert "Error" in tool_result_msg.content
+    assert "tool exploded" in tool_result_msg.content
+
+
+@pytest.mark.asyncio
+async def test_agent_tool_invalid_arguments():
+    """Test agent handles invalid tool arguments."""
+
+    async def typed_tool(count: int) -> str:
+        return str(count)
+
+    tool_obj = Tool(
+        schema=ToolSchema(
+            name="typed",
+            description="Typed tool",
+            parameters=[ToolParameter(name="count", type="integer", description="Count")],
+        ),
+        fn=typed_tool,
+    )
+
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[
+                    ToolCall(id="call_1", name="typed", arguments={"wrong_param": "value"})
+                ],
+            ),
+            CompletionResponse(content="Error with arguments."),
+        ]
+    )
+
+    agent = Agent(llm=mock_llm, tools=[tool_obj], max_steps=10)
+    await agent.run("Use typed tool")
+
+    tool_result_msg = mock_llm.calls[1]["messages"][-1]
+    assert "Error" in tool_result_msg.content
+
+
+@pytest.mark.asyncio
+async def test_agent_dangerous_tool_user_declines():
+    """Test dangerous tool when user declines."""
+
+    async def dangerous_op(action: str) -> str:
+        return f"Executed: {action}"
+
+    dangerous_tool = Tool(
+        schema=ToolSchema(
+            name="dangerous",
+            description="Dangerous operation",
+            parameters=[ToolParameter(name="action", type="string", description="Action")],
+            dangerous=True,
+        ),
+        fn=dangerous_op,
+    )
+
+    def decline_callback(name: str, desc: str, args: dict[str, Any]) -> bool:
+        return False
+
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[
+                    ToolCall(id="call_1", name="dangerous", arguments={"action": "delete"})
+                ],
+            ),
+            CompletionResponse(content="Operation cancelled."),
+        ]
+    )
+
+    agent = Agent(
+        llm=mock_llm,
+        tools=[dangerous_tool],
+        confirm_dangerous=True,
+        confirm_callback=decline_callback,
+    )
+    await agent.run("Do something dangerous")
+
+    tool_result_msg = mock_llm.calls[1]["messages"][-1]
+    assert "declined" in tool_result_msg.content.lower() or "CANCELLED" in tool_result_msg.content
+
+
+@pytest.mark.asyncio
+async def test_agent_confirm_disabled():
+    """Test that dangerous tools execute without confirmation when disabled."""
+
+    async def dangerous_op(action: str) -> str:
+        return f"Executed: {action}"
+
+    dangerous_tool = Tool(
+        schema=ToolSchema(
+            name="dangerous",
+            description="Dangerous",
+            parameters=[ToolParameter(name="action", type="string", description="Action")],
+            dangerous=True,
+        ),
+        fn=dangerous_op,
+    )
+
+    mock_llm = MockLLM(
+        [
+            CompletionResponse(
+                content="",
+                tool_calls=[
+                    ToolCall(id="call_1", name="dangerous", arguments={"action": "delete"})
+                ],
+            ),
+            CompletionResponse(content="Done."),
+        ]
+    )
+
+    agent = Agent(
+        llm=mock_llm,
+        tools=[dangerous_tool],
+        confirm_dangerous=False,
+    )
+    await agent.run("Execute dangerous")
+
+    tool_result_msg = mock_llm.calls[1]["messages"][-1]
+    assert "Executed" in tool_result_msg.content
+
+
+@pytest.mark.asyncio
+async def test_agent_with_cluster_manager():
+    """Test agent uses cluster manager for LLM selection."""
+    from unittest.mock import MagicMock
+
+    mock_llm = MockLLM([CompletionResponse(content="Response from cluster.")])
+
+    cluster = MagicMock()
+    cluster.select_node_smart.return_value = (None, None)
+
+    agent = Agent(
+        llm=mock_llm,
+        tools=[],
+        cluster_manager=cluster,
+    )
+
+    result = await agent.run("Hello cluster")
+    assert result == "Response from cluster."
+
+
+@pytest.mark.asyncio
+async def test_agent_with_memory_manager():
+    """Test agent saves/loads with memory manager."""
+    from unittest.mock import MagicMock
+
+    mock_llm = MockLLM([CompletionResponse(content="Remembered response.")])
+
+    memory = MagicMock()
+    memory.load_history.return_value = []
+
+    agent = Agent(
+        llm=mock_llm,
+        tools=[],
+        memory_manager=memory,
+        session_id="test-session",
+    )
+
+    result = await agent.run("Save this")
+
+    memory.load_history.assert_called_once_with("test-session")
+    assert memory.save_message.called
+    assert result == "Remembered response."
+
+
+@pytest.mark.asyncio
+async def test_agent_rag_context_formatting():
+    """Test RAG context formatting method."""
+    mock_llm = MockLLM([CompletionResponse(content="ok")])
+
+    agent = Agent(llm=mock_llm, tools=[])
+
+    # Empty context
+    msg = agent._format_message_with_context("hello", [])
+    assert msg == "hello"
+
+    # With context
+    context = [
+        Message(role="user", content="Previous question"),
+        Message(role="assistant", content="Previous answer"),
+    ]
+    msg = agent._format_message_with_context("new question", context)
+    assert "RELEVANT CONTEXT" in msg
+    assert "Previous question" in msg
+    assert "Previous answer" in msg
+    assert "new question" in msg
+
+
+@pytest.mark.asyncio
+async def test_agent_rag_context_truncates_long_messages():
+    """Test that RAG context truncates long messages."""
+    mock_llm = MockLLM([CompletionResponse(content="ok")])
+    agent = Agent(llm=mock_llm, tools=[])
+
+    long_content = "x" * 300
+    context = [Message(role="user", content=long_content)]
+    msg = agent._format_message_with_context("q", context)
+    assert "..." in msg
+
+
+@pytest.mark.asyncio
+async def test_agent_system_prompt_preserved():
+    """Test that agent preserves system prompt."""
+    mock_llm = MockLLM([CompletionResponse(content="ok")])
+
+    agent = Agent(llm=mock_llm, tools=[], system_prompt="You are a pirate.")
+    await agent.run("Ahoy!")
+
+    first_message = mock_llm.calls[0]["messages"][0]
+    assert first_message.role == "system"
+    assert "pirate" in first_message.content
+
+
+@pytest.mark.asyncio
+async def test_agent_max_steps_forces_final_without_tools():
+    """Test that max_steps reached triggers final call without tools."""
+    responses = [
+        CompletionResponse(
+            content="thinking",
+            tool_calls=[ToolCall(id=f"c{i}", name="search", arguments={"query": "q"})],
+        )
+        for i in range(5)
+    ]
+    responses.append(CompletionResponse(content="Final."))
+
+    mock_llm = MockLLM(responses)
+
+    async def mock_search(query: str) -> str:
+        return "results"
+
+    search_tool = Tool(
+        schema=ToolSchema(
+            name="search",
+            description="Search",
+            parameters=[ToolParameter(name="query", type="string", description="Q")],
+        ),
+        fn=mock_search,
+    )
+
+    agent = Agent(llm=mock_llm, tools=[search_tool], max_steps=2)
+    await agent.run("Keep going")
+
+    # max_steps=2: step 1 with tools, step 2 without tools
+    assert mock_llm.call_count == 2
+    # Last call should have tools=None
+    assert mock_llm.calls[-1]["tools"] is None
