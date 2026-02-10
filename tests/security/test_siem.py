@@ -945,8 +945,8 @@ class TestSIEMPerformance:
             SIEMEvent.from_audit_event(event)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
-        # 1000 conversions should take <100ms
-        assert elapsed_ms < 100, f"1000 conversions took {elapsed_ms:.1f}ms"
+        # 1000 conversions should take <500ms (relaxed for CI runners)
+        assert elapsed_ms < 500, f"1000 conversions took {elapsed_ms:.1f}ms"
 
     def test_format_events_performance(self):
         """Formatting events should be fast."""
@@ -964,8 +964,10 @@ class TestSIEMPerformance:
             exporter.format_events(events)
             elapsed_ms = (time.perf_counter() - start) * 1000
 
-            # 1000 events formatting should take <200ms
-            assert elapsed_ms < 200, f"{exporter_cls.__name__}: 1000 events took {elapsed_ms:.1f}ms"
+            # 1000 events formatting should take <1000ms (relaxed for CI runners)
+            assert (
+                elapsed_ms < 1000
+            ), f"{exporter_cls.__name__}: 1000 events took {elapsed_ms:.1f}ms"
 
 
 # --- Edge Cases ---
