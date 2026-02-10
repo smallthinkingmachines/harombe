@@ -417,6 +417,62 @@ class HITLConfig(BaseModel):
     )
 
 
+class CloudLLMConfig(BaseModel):
+    """Cloud LLM provider configuration for privacy router."""
+
+    provider: Literal["anthropic"] = Field(
+        default="anthropic",
+        description="Cloud LLM provider",
+    )
+    model: str = Field(
+        default="claude-sonnet-4-20250514",
+        description="Cloud model name",
+    )
+    api_key_env: str = Field(
+        default="ANTHROPIC_API_KEY",
+        description="Environment variable name containing the API key",
+    )
+    max_tokens: int = Field(
+        default=4096,
+        description="Maximum tokens for cloud responses",
+        ge=1,
+    )
+    timeout: int = Field(
+        default=120,
+        description="Request timeout in seconds",
+        ge=1,
+    )
+
+
+class PrivacyConfig(BaseModel):
+    """Privacy routing configuration (Phase 5)."""
+
+    mode: Literal["local-only", "hybrid", "cloud-assisted"] = Field(
+        default="local-only",
+        description="Routing mode: 'local-only' (default, no cloud), 'hybrid' (cloud for public queries), 'cloud-assisted' (cloud with sanitization)",
+    )
+    cloud_llm: CloudLLMConfig = Field(
+        default_factory=CloudLLMConfig,
+        description="Cloud LLM provider configuration",
+    )
+    custom_patterns: dict[str, str] = Field(
+        default_factory=dict,
+        description="Additional PII regex patterns {name: pattern_string}",
+    )
+    custom_restricted_keywords: list[str] = Field(
+        default_factory=list,
+        description="Additional keywords that force local-only routing",
+    )
+    audit_routing: bool = Field(
+        default=True,
+        description="Log routing decisions to audit system",
+    )
+    reconstruct_responses: bool = Field(
+        default=True,
+        description="Restore original values in cloud responses after sanitization",
+    )
+
+
 class SecurityConfig(BaseModel):
     """Security layer configuration (Phase 4)."""
 
@@ -473,4 +529,8 @@ class HarombeConfig(BaseModel):
     security: SecurityConfig = Field(
         default_factory=SecurityConfig,
         description="Security layer with capability containers (Phase 4)",
+    )
+    privacy: PrivacyConfig = Field(
+        default_factory=PrivacyConfig,
+        description="Privacy routing for hybrid local/cloud AI (Phase 5)",
     )

@@ -12,7 +12,7 @@ from rich.prompt import Confirm, Prompt
 # Import tools to register them
 from harombe.agent.loop import Agent
 from harombe.config.loader import load_config
-from harombe.llm.ollama import OllamaClient
+from harombe.privacy.router import PrivacyRouter, create_privacy_router
 from harombe.tools.registry import get_enabled_tools
 
 console = Console()
@@ -53,13 +53,8 @@ async def _async_chat(config):
     Args:
         config: Harombe configuration
     """
-    # Initialize LLM client
-    llm = OllamaClient(
-        model=config.model.name,
-        base_url=config.ollama.host + "/v1",
-        timeout=config.ollama.timeout,
-        temperature=config.model.temperature,
-    )
+    # Initialize LLM client (privacy router or plain Ollama depending on config)
+    llm = create_privacy_router(config)
 
     # Get enabled tools
     tools = get_enabled_tools(
@@ -98,7 +93,7 @@ async def _async_chat(config):
 
             # Handle slash commands
             if user_input.startswith("/"):
-                if _handle_slash_command(user_input, config):
+                if _handle_slash_command(user_input, config, llm):
                     break  # Exit if command returns True
                 continue
 
@@ -120,7 +115,7 @@ async def _async_chat(config):
     console.print("\n[cyan]Goodbye![/cyan]")
 
 
-def _handle_slash_command(command: str, config) -> bool:
+def _handle_slash_command(command: str, config, llm=None) -> bool:
     """Handle slash commands.
 
     Args:
@@ -143,6 +138,7 @@ def _handle_slash_command(command: str, config) -> bool:
         console.print("  /model     - Show current model")
         console.print("  /tools     - List enabled tools")
         console.print("  /config    - Show configuration")
+        console.print("  /privacy   - Show privacy routing stats")
 
     elif cmd == "/clear":
         console.clear()
@@ -169,6 +165,19 @@ def _handle_slash_command(command: str, config) -> bool:
         console.print(f"  Max steps: {config.agent.max_steps}")
         console.print(f"  Temperature: {config.model.temperature}")
         console.print(f"  Confirm dangerous: {config.tools.confirm_dangerous}")
+        console.print(f"  Privacy mode: {config.privacy.mode}")
+
+    elif cmd == "/privacy":
+        console.print("\n[bold]Privacy routing:[/bold]")
+        console.print(f"  Mode: {config.privacy.mode}")
+        if isinstance(llm, PrivacyRouter):
+            stats = llm.get_stats()
+            console.print(f"  Total requests: {stats['total_requests']}")
+            console.print(f"  Routed to local: {stats['local_count']}")
+            console.print(f"  Routed to cloud: {stats['cloud_count']}")
+            console.print(f"  Cloud (sanitized): {stats['cloud_sanitized_count']}")
+        else:
+            console.print("  Router: local-only (no cloud backend)")
 
     else:
         console.print(f"[red]Unknown command: {command}[/red]")
