@@ -12,31 +12,27 @@
         <meta name="author" content="Small Thinking Machines">
       
       
-        <link rel="canonical" href="https://smallthinkingmachines.github.io/harombe/security-quickstart/">
+        <link rel="canonical" href="https://smallthinkingmachines.github.io/harombe/guides/cluster-setup/">
       
       
-        <link rel="prev" href="../security/overview/">
-      
-      
-        <link rel="next" href="../security-architecture/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Quick Start - Harombe Documentation</title>
+        <title>Multi-Node Cluster Setup Guide - Harombe Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -55,11 +51,11 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../css/timeago.css">
+      <link rel="stylesheet" href="../../css/timeago.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -84,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#harombe-security-layer-quick-start-guide" class="md-skip">
+        <a href="#multi-node-cluster-setup-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +98,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Harombe Documentation" class="md-header__button md-logo" aria-label="Harombe Documentation" data-md-component="logo">
+    <a href="../.." title="Harombe Documentation" class="md-header__button md-logo" aria-label="Harombe Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quick Start
+              Multi-Node Cluster Setup Guide
             
           </span>
         </div>
@@ -240,7 +236,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -261,7 +257,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../getting-started/installation/" class="md-tabs__link">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
           
   
   
@@ -283,7 +279,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../architecture/overview/" class="md-tabs__link">
+        <a href="../../architecture/overview/" class="md-tabs__link">
           
   
   
@@ -301,13 +297,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../security/overview/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../security/overview/" class="md-tabs__link">
           
   
   
@@ -329,7 +323,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../production-deployment-guide/" class="md-tabs__link">
+        <a href="../../production-deployment-guide/" class="md-tabs__link">
           
   
   
@@ -351,7 +345,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../phases/" class="md-tabs__link">
+        <a href="../../phases/" class="md-tabs__link">
           
   
   
@@ -373,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../glossary/" class="md-tabs__link">
+        <a href="../../glossary/" class="md-tabs__link">
           
   
   
@@ -395,7 +389,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../browser-usage/" class="md-tabs__link">
+        <a href="../../browser-usage/" class="md-tabs__link">
           
   
   
@@ -417,7 +411,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../CONTRIBUTING/" class="md-tabs__link">
+        <a href="../../CONTRIBUTING/" class="md-tabs__link">
           
   
   
@@ -453,7 +447,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Harombe Documentation" class="md-nav__button md-logo" aria-label="Harombe Documentation" data-md-component="logo">
+    <a href="../.." title="Harombe Documentation" class="md-nav__button md-logo" aria-label="Harombe Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -483,7 +477,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -572,7 +566,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/installation/" class="md-nav__link">
+      <a href="../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -600,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/quickstart/" class="md-nav__link">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
         
   
   
@@ -628,7 +622,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/configuration/" class="md-nav__link">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
         
   
   
@@ -731,7 +725,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/overview/" class="md-nav__link">
+      <a href="../../architecture/overview/" class="md-nav__link">
         
   
   
@@ -759,7 +753,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../memory-architecture/" class="md-nav__link">
+      <a href="../../memory-architecture/" class="md-nav__link">
         
   
   
@@ -787,7 +781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../vector-store-architecture/" class="md-nav__link">
+      <a href="../../vector-store-architecture/" class="md-nav__link">
         
   
   
@@ -815,7 +809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../voice-architecture/" class="md-nav__link">
+      <a href="../../voice-architecture/" class="md-nav__link">
         
   
   
@@ -843,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../mcp-gateway-design/" class="md-nav__link">
+      <a href="../../mcp-gateway-design/" class="md-nav__link">
         
   
   
@@ -871,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security-architecture/" class="md-nav__link">
+      <a href="../../security-architecture/" class="md-nav__link">
         
   
   
@@ -903,10 +897,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -932,22 +924,21 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
@@ -965,7 +956,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -983,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security/overview/" class="md-nav__link">
+      <a href="../../security/overview/" class="md-nav__link">
         
   
   
@@ -1008,37 +999,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quick Start
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../security-quickstart/" class="md-nav__link">
         
   
   
@@ -1054,325 +1018,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-install-harombe" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Install Harombe
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-configure-security-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Configure Security Layer
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-start-containers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Start Containers
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-verify-installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Verify Installation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step 4: Verify Installation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#check-gateway-health" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Check Gateway Health
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#check-readiness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Check Readiness
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#view-logs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        View Logs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-test-mcp-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Test MCP Request
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#common-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Common Commands
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Common Commands">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#docker-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Docker Management
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#individual-container-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Individual Container Commands
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#containers-wont-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Containers Won't Start
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#health-checks-failing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Health Checks Failing
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#gateway-not-responding" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Gateway Not Responding
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stopping-the-stack" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stopping the Stack
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resource-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resource Usage
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security-notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Security Notes
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Security Notes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#production-ready-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Production-Ready Features
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#experimental-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Experimental Features
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#not-yet-implemented" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Not Yet Implemented
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting Help
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What's Next?
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1385,7 +1030,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security-architecture/" class="md-nav__link">
+      <a href="../../security-architecture/" class="md-nav__link">
         
   
   
@@ -1413,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security-phase4.1-foundation/" class="md-nav__link">
+      <a href="../../security-phase4.1-foundation/" class="md-nav__link">
         
   
   
@@ -1453,13 +1098,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1468,7 +1110,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
             
   
   
@@ -1504,7 +1146,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../code-sandbox-design/" class="md-nav__link">
+      <a href="../../code-sandbox-design/" class="md-nav__link">
         
   
   
@@ -1532,7 +1174,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../browser-container-design/" class="md-nav__link">
+      <a href="../../browser-container-design/" class="md-nav__link">
         
   
   
@@ -1568,7 +1210,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security-credentials/" class="md-nav__link">
+      <a href="../../security-credentials/" class="md-nav__link">
         
   
   
@@ -1596,7 +1238,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security-network/" class="md-nav__link">
+      <a href="../../security-network/" class="md-nav__link">
         
   
   
@@ -1624,7 +1266,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../audit-logging/" class="md-nav__link">
+      <a href="../../audit-logging/" class="md-nav__link">
         
   
   
@@ -1652,7 +1294,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../hitl-design/" class="md-nav__link">
+      <a href="../../hitl-design/" class="md-nav__link">
         
   
   
@@ -1747,7 +1389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../production-deployment-guide/" class="md-nav__link">
+      <a href="../../production-deployment-guide/" class="md-nav__link">
         
   
   
@@ -1775,7 +1417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase4-8-performance-results/" class="md-nav__link">
+      <a href="../../phases/phase4-8-performance-results/" class="md-nav__link">
         
   
   
@@ -1841,7 +1483,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../phases/" class="md-nav__link ">
+            <a href="../../phases/" class="md-nav__link ">
               
   
   
@@ -1885,7 +1527,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase0-implementation-summary/" class="md-nav__link">
+      <a href="../../phases/phase0-implementation-summary/" class="md-nav__link">
         
   
   
@@ -1973,7 +1615,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase4-implementation-plan/" class="md-nav__link">
+      <a href="../../phases/phase4-implementation-plan/" class="md-nav__link">
         
   
   
@@ -2001,7 +1643,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase4-8-integration-plan/" class="md-nav__link">
+      <a href="../../phases/phase4-8-integration-plan/" class="md-nav__link">
         
   
   
@@ -2107,7 +1749,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-implementation-plan/" class="md-nav__link">
+      <a href="../../phases/phase5-implementation-plan/" class="md-nav__link">
         
   
   
@@ -2135,7 +1777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-completion/" class="md-nav__link">
+      <a href="../../phases/phase5-completion/" class="md-nav__link">
         
   
   
@@ -2225,7 +1867,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-1.1-anomaly-detection/" class="md-nav__link">
+      <a href="../../phases/phase5-1.1-anomaly-detection/" class="md-nav__link">
         
   
   
@@ -2253,7 +1895,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-1.3-threat-scoring/" class="md-nav__link">
+      <a href="../../phases/phase5-1.3-threat-scoring/" class="md-nav__link">
         
   
   
@@ -2281,7 +1923,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-1.4-threat-intelligence/" class="md-nav__link">
+      <a href="../../phases/phase5-1.4-threat-intelligence/" class="md-nav__link">
         
   
   
@@ -2381,7 +2023,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-2.1-historical-risk-scoring/" class="md-nav__link">
+      <a href="../../phases/phase5-2.1-historical-risk-scoring/" class="md-nav__link">
         
   
   
@@ -2409,7 +2051,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-2.2-trust-manager/" class="md-nav__link">
+      <a href="../../phases/phase5-2.2-trust-manager/" class="md-nav__link">
         
   
   
@@ -2437,7 +2079,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-2.3-auto-approval/" class="md-nav__link">
+      <a href="../../phases/phase5-2.3-auto-approval/" class="md-nav__link">
         
   
   
@@ -2465,7 +2107,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-2.4-context-engine/" class="md-nav__link">
+      <a href="../../phases/phase5-2.4-context-engine/" class="md-nav__link">
         
   
   
@@ -2565,7 +2207,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-3.1-rotation/" class="md-nav__link">
+      <a href="../../phases/phase5-3.1-rotation/" class="md-nav__link">
         
   
   
@@ -2593,7 +2235,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-3.2-zero-downtime/" class="md-nav__link">
+      <a href="../../phases/phase5-3.2-zero-downtime/" class="md-nav__link">
         
   
   
@@ -2621,7 +2263,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-3.3-verification/" class="md-nav__link">
+      <a href="../../phases/phase5-3.3-verification/" class="md-nav__link">
         
   
   
@@ -2649,7 +2291,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-3.4-emergency-rotation/" class="md-nav__link">
+      <a href="../../phases/phase5-3.4-emergency-rotation/" class="md-nav__link">
         
   
   
@@ -2749,7 +2391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-4.1-cert-pinning/" class="md-nav__link">
+      <a href="../../phases/phase5-4.1-cert-pinning/" class="md-nav__link">
         
   
   
@@ -2777,7 +2419,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-4.2-dpi/" class="md-nav__link">
+      <a href="../../phases/phase5-4.2-dpi/" class="md-nav__link">
         
   
   
@@ -2805,7 +2447,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-4.3-protocol-filter/" class="md-nav__link">
+      <a href="../../phases/phase5-4.3-protocol-filter/" class="md-nav__link">
         
   
   
@@ -2833,7 +2475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-4.4-traffic-anomaly/" class="md-nav__link">
+      <a href="../../phases/phase5-4.4-traffic-anomaly/" class="md-nav__link">
         
   
   
@@ -2933,7 +2575,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-5.1-siem-integration/" class="md-nav__link">
+      <a href="../../phases/phase5-5.1-siem-integration/" class="md-nav__link">
         
   
   
@@ -2961,7 +2603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-5.2-alert-rules/" class="md-nav__link">
+      <a href="../../phases/phase5-5.2-alert-rules/" class="md-nav__link">
         
   
   
@@ -2989,7 +2631,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-5.3-compliance-reports/" class="md-nav__link">
+      <a href="../../phases/phase5-5.3-compliance-reports/" class="md-nav__link">
         
   
   
@@ -3017,7 +2659,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../phases/phase5-5.4-dashboard/" class="md-nav__link">
+      <a href="../../phases/phase5-5.4-dashboard/" class="md-nav__link">
         
   
   
@@ -3097,7 +2739,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../api/" class="md-nav__link ">
+            <a href="../../api/" class="md-nav__link ">
               
   
   
@@ -3139,7 +2781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../glossary/" class="md-nav__link">
+      <a href="../../glossary/" class="md-nav__link">
         
   
   
@@ -3204,7 +2846,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../decisions/" class="md-nav__link ">
+            <a href="../../decisions/" class="md-nav__link ">
               
   
   
@@ -3248,7 +2890,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../decisions/001-ollama-openai-sdk/" class="md-nav__link">
+      <a href="../../decisions/001-ollama-openai-sdk/" class="md-nav__link">
         
   
   
@@ -3276,7 +2918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../decisions/002-yaml-configuration/" class="md-nav__link">
+      <a href="../../decisions/002-yaml-configuration/" class="md-nav__link">
         
   
   
@@ -3304,7 +2946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../decisions/003-capability-container-pattern/" class="md-nav__link">
+      <a href="../../decisions/003-capability-container-pattern/" class="md-nav__link">
         
   
   
@@ -3332,7 +2974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../decisions/004-sqlite-audit-logging/" class="md-nav__link">
+      <a href="../../decisions/004-sqlite-audit-logging/" class="md-nav__link">
         
   
   
@@ -3360,7 +3002,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../decisions/005-privacy-first-local-inference/" class="md-nav__link">
+      <a href="../../decisions/005-privacy-first-local-inference/" class="md-nav__link">
         
   
   
@@ -3465,7 +3107,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../browser-usage/" class="md-nav__link">
+      <a href="../../browser-usage/" class="md-nav__link">
         
   
   
@@ -3493,7 +3135,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../code-sandbox-usage/" class="md-nav__link">
+      <a href="../../code-sandbox-usage/" class="md-nav__link">
         
   
   
@@ -3521,7 +3163,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../voice-setup/" class="md-nav__link">
+      <a href="../../voice-setup/" class="md-nav__link">
         
   
   
@@ -3620,7 +3262,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CONTRIBUTING/" class="md-nav__link">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
         
   
   
@@ -3648,7 +3290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../DEVELOPMENT/" class="md-nav__link">
+      <a href="../../DEVELOPMENT/" class="md-nav__link">
         
   
   
@@ -3676,7 +3318,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../documentation-site-proposal/" class="md-nav__link">
+      <a href="../../documentation-site-proposal/" class="md-nav__link">
         
   
   
@@ -3704,7 +3346,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../documentation-site-summary/" class="md-nav__link">
+      <a href="../../documentation-site-summary/" class="md-nav__link">
         
   
   
@@ -3759,6 +3401,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3770,10 +3423,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-1-install-harombe" class="md-nav__link">
+  <a href="#architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Install Harombe
+        Architecture
       
     </span>
   </a>
@@ -3781,44 +3434,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-2-configure-security-layer" class="md-nav__link">
+  <a href="#step-1-set-up-worker-nodes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Configure Security Layer
+        Step 1: Set Up Worker Nodes
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-start-containers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Start Containers
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-verify-installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Verify Installation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step 4: Verify Installation">
+    <nav class="md-nav" aria-label="Step 1: Set Up Worker Nodes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#check-gateway-health" class="md-nav__link">
+  <a href="#install-harombe" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Check Gateway Health
+        Install Harombe
       
     </span>
   </a>
@@ -3826,10 +3457,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#check-readiness" class="md-nav__link">
+  <a href="#pull-the-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Check Readiness
+        Pull the model
       
     </span>
   </a>
@@ -3837,10 +3468,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#view-logs" class="md-nav__link">
+  <a href="#configure-the-node" class="md-nav__link">
     <span class="md-ellipsis">
       
-        View Logs
+        Configure the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-its-accessible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify it's accessible
       
     </span>
   </a>
@@ -3853,10 +3506,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-5-test-mcp-request" class="md-nav__link">
+  <a href="#step-2-configure-the-coordinator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 5: Test MCP Request
+        Step 2: Configure the Coordinator
       
     </span>
   </a>
@@ -3864,41 +3517,46 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#common-commands" class="md-nav__link">
+  <a href="#step-3-verify-the-cluster" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Common Commands
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Common Commands">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#docker-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Docker Management
+        Step 3: Verify the Cluster
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#individual-container-commands" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#step-4-use-the-cluster" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Individual Container Commands
+        Step 4: Use the Cluster
       
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#tier-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier Guidelines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fallback-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fallback Behavior
+      
+    </span>
+  </a>
   
 </li>
       
@@ -3915,10 +3573,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#containers-wont-start" class="md-nav__link">
+  <a href="#node-shows-unavailable" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Containers Won't Start
+        Node shows "unavailable"
       
     </span>
   </a>
@@ -3926,10 +3584,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#health-checks-failing" class="md-nav__link">
+  <a href="#high-latency" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Health Checks Failing
+        High latency
       
     </span>
   </a>
@@ -3937,10 +3595,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gateway-not-responding" class="md-nav__link">
+  <a href="#circuit-breaker-open" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Gateway Not Responding
+        Circuit breaker open
       
     </span>
   </a>
@@ -3953,104 +3611,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#security-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stopping-the-stack" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stopping the Stack
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resource-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resource Usage
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security-notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Security Notes
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Security Notes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#production-ready-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Production-Ready Features
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#experimental-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Experimental Features
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#not-yet-implemented" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Not Yet Implemented
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Getting Help
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What's Next?
+        Security Considerations
       
     </span>
   </a>
@@ -4077,280 +3641,201 @@
   
 
 
-<h1 id="harombe-security-layer-quick-start-guide">Harombe Security Layer - Quick Start Guide<a class="headerlink" href="#harombe-security-layer-quick-start-guide" title="Permanent link">&para;</a></h1>
-<p>Get the Phase 4.1 security layer running in under 5 minutes.</p>
+<h1 id="multi-node-cluster-setup-guide">Multi-Node Cluster Setup Guide<a class="headerlink" href="#multi-node-cluster-setup-guide" title="Permanent link">&para;</a></h1>
+<p>Step-by-step guide for setting up a 2-3 node Harombe cluster.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Harombe clusters route queries to different nodes based on task complexity. Simple questions go to fast/lightweight nodes, while complex analysis tasks go to powerful nodes with larger models.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>On each machine:</p>
 <ul>
-<li>Docker and Docker Compose installed</li>
-<li>Python 3.11+ installed</li>
-<li>At least 6GB RAM available for containers</li>
+<li>Python 3.11+</li>
+<li><a href="https://ollama.ai">Ollama</a> installed and running</li>
+<li>Network connectivity between all machines (port 8000 by default)</li>
 </ul>
-<h2 id="step-1-install-harombe">Step 1: Install Harombe<a class="headerlink" href="#step-1-install-harombe" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Clone repository</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/smallthinkingmachines/harombe.git
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>harombe
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Install with Docker support</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docker]&quot;</span>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────┐
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  Coordinator (your laptop)      │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  - Runs harombe chat            │
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  - Routes queries to nodes      │
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  - Handles failover             │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└───────┬──────────┬──────────────┘
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        │          │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        ▼          ▼
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>┌──────────┐  ┌──────────┐
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  Node A  │  │  Node B  │
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  Tier 0  │  │  Tier 2  │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  3b model│  │  72b model│
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>└──────────┘  └──────────┘
 </span></code></pre></div>
-<h2 id="step-2-configure-security-layer">Step 2: Configure Security Layer<a class="headerlink" href="#step-2-configure-security-layer" title="Permanent link">&para;</a></h2>
-<p>Create or edit <code>harombe.yaml</code>:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">security</span><span class="p">:</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">isolation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">gateway</span><span class="p">:</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8100</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">containers</span><span class="p">:</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">browser</span><span class="p">:</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">harombe/browser:latest</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">filesystem</span><span class="p">:</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">harombe/filesystem:latest</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="nt">code_exec</span><span class="p">:</span>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">harombe/code-exec:latest</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">    </span><span class="nt">web_search</span><span class="p">:</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">      </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">harombe/web-search:latest</span>
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<h2 id="step-1-set-up-worker-nodes">Step 1: Set Up Worker Nodes<a class="headerlink" href="#step-1-set-up-worker-nodes" title="Permanent link">&para;</a></h2>
+<p>Repeat on each machine that will serve as a worker node.</p>
+<h3 id="install-harombe">Install Harombe<a class="headerlink" href="#install-harombe" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>harombe
 </span></code></pre></div>
-<h2 id="step-3-start-containers">Step 3: Start Containers<a class="headerlink" href="#step-3-start-containers" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>docker
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Build containers</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>docker-compose<span class="w"> </span>build
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Start all services</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Check status</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>docker-compose<span class="w"> </span>ps
+<h3 id="pull-the-model">Pull the model<a class="headerlink" href="#pull-the-model" title="Permanent link">&para;</a></h3>
+<p>Choose a model appropriate for this node's hardware:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Lightweight node (4-8GB VRAM)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ollama<span class="w"> </span>pull<span class="w"> </span>qwen2.5:3b
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Medium node (16GB VRAM)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>ollama<span class="w"> </span>pull<span class="w"> </span>qwen2.5:14b
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Powerful node (48GB+ VRAM)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>ollama<span class="w"> </span>pull<span class="w"> </span>qwen2.5:72b
 </span></code></pre></div>
-<p>All containers should show <code>healthy</code> status after 10-15 seconds.</p>
-<h2 id="step-4-verify-installation">Step 4: Verify Installation<a class="headerlink" href="#step-4-verify-installation" title="Permanent link">&para;</a></h2>
-<h3 id="check-gateway-health">Check Gateway Health<a class="headerlink" href="#check-gateway-health" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>http://localhost:8100/health
+<h3 id="configure-the-node">Configure the node<a class="headerlink" href="#configure-the-node" title="Permanent link">&para;</a></h3>
+<p>Create <code>~/.harombe/harombe.yaml</code>:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">model</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qwen2.5:14b</span><span class="w"> </span><span class="c1"># The model this node runs</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nt">server</span><span class="p">:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0.0.0</span><span class="w"> </span><span class="c1"># Listen on all interfaces</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nt">ollama</span><span class="p">:</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://localhost:11434</span>
 </span></code></pre></div>
-<p>Expected response:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span><span class="p">,</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">&quot;uptime&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&quot;containers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">&quot;browser-container:3000&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">&quot;filesystem-container:3001&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">&quot;code-exec-container:3002&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">&quot;web-search-container:3003&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="p">}</span>
+<h3 id="start-the-node">Start the node<a class="headerlink" href="#start-the-node" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>harombe<span class="w"> </span>start
 </span></code></pre></div>
-<h3 id="check-readiness">Check Readiness<a class="headerlink" href="#check-readiness" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>http://localhost:8100/ready
+<h3 id="verify-its-accessible">Verify it's accessible<a class="headerlink" href="#verify-its-accessible" title="Permanent link">&para;</a></h3>
+<p>From another machine:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>http://&lt;node-ip&gt;:8000/health
 </span></code></pre></div>
-<p>Expected response:</p>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;ready&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">&quot;containers_healthy&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">&quot;containers_total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">}</span>
+<p>You should see:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ok&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;qwen2.5:14b&quot;</span><span class="w"> </span><span class="p">}</span>
 </span></code></pre></div>
-<h3 id="view-logs">View Logs<a class="headerlink" href="#view-logs" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># All containers</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>docker-compose<span class="w"> </span>logs<span class="w"> </span>-f
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Specific container</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>gateway
+<h2 id="step-2-configure-the-coordinator">Step 2: Configure the Coordinator<a class="headerlink" href="#step-2-configure-the-coordinator" title="Permanent link">&para;</a></h2>
+<p>On the machine where you'll run <code>harombe chat</code>, create <code>~/.harombe/harombe.yaml</code>:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">model</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qwen2.5:7b</span><span class="w"> </span><span class="c1"># Local model (optional, for simple queries)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nt">agent</span><span class="p">:</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">max_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nt">tools</span><span class="p">:</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="nt">filesystem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="nt">web_search</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="nt">confirm_dangerous</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="nt">cluster</span><span class="p">:</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="nt">routing</span><span class="p">:</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span><span class="nt">prefer_local</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Use lowest-latency node when possible</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="nt">fallback_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">graceful</span><span class="w"> </span><span class="c1"># Fall back to other tiers if preferred unavailable</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span><span class="nt">load_balance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Distribute across same-tier nodes</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">  </span><span class="nt">nodes</span><span class="p">:</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">laptop</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qwen2.5:7b</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">      </span><span class="nt">tier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># Fast: simple queries</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">workstation</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.1.100</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qwen2.5:14b</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">      </span><span class="nt">tier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"> </span><span class="c1"># Medium: balanced workloads</span>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">server</span>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.1.200</span>
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8000</span>
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qwen2.5:72b</span>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="w">      </span><span class="nt">tier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1"># Powerful: complex analysis</span>
 </span></code></pre></div>
-<h2 id="step-5-test-mcp-request">Step 5: Test MCP Request<a class="headerlink" href="#step-5-test-mcp-request" title="Permanent link">&para;</a></h2>
-<p>Send a test JSON-RPC request:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8100/mcp<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="s1">    &quot;jsonrpc&quot;: &quot;2.0&quot;,</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="s1">    &quot;id&quot;: &quot;test-1&quot;,</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="s1">    &quot;method&quot;: &quot;tools/call&quot;,</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="s1">    &quot;params&quot;: {</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="s1">      &quot;name&quot;: &quot;web_search&quot;,</span>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="s1">      &quot;arguments&quot;: {&quot;query&quot;: &quot;test&quot;}</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="s1">    }</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="s1">  }&#39;</span>
+<h2 id="step-3-verify-the-cluster">Step 3: Verify the Cluster<a class="headerlink" href="#step-3-verify-the-cluster" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Check cluster status</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>harombe<span class="w"> </span>cluster<span class="w"> </span>status
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Test connectivity to all nodes</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>harombe<span class="w"> </span>cluster<span class="w"> </span><span class="nb">test</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># View performance metrics</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>harombe<span class="w"> </span>cluster<span class="w"> </span>metrics
 </span></code></pre></div>
-<p><strong>Note:</strong> This will fail until MCP server implementations are complete (Phase 4.6-4.7), but you'll see the gateway correctly route the request.</p>
-<h2 id="common-commands">Common Commands<a class="headerlink" href="#common-commands" title="Permanent link">&para;</a></h2>
-<h3 id="docker-management">Docker Management<a class="headerlink" href="#docker-management" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>docker
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Start all containers</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>make<span class="w"> </span>up
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># Stop all containers</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>make<span class="w"> </span>down
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="c1"># View logs</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>make<span class="w"> </span>logs
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="c1"># Restart all containers</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>make<span class="w"> </span>restart
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="c1"># Rebuild and restart</span>
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>make<span class="w"> </span>rebuild
-</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>
-</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="c1"># Check health</span>
-</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>make<span class="w"> </span>health
+<p>Expected output from <code>harombe cluster status</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┓
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>┃ Name        ┃ Host                    ┃ Tier ┃ Model         ┃ Status    ┃ Latency ┃
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━┩
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>│ laptop      │ localhost:8000          │ 0    │ qwen2.5:7b    │ available │ 1.2ms   │
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>│ workstation │ 192.168.1.100:8000      │ 1    │ qwen2.5:14b   │ available │ 5.3ms   │
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>│ server      │ 192.168.1.200:8000      │ 2    │ qwen2.5:72b   │ available │ 12.1ms  │
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>└─────────────┴─────────────────────────┴──────┴───────────────┴───────────┴─────────┘
 </span></code></pre></div>
-<h3 id="individual-container-commands">Individual Container Commands<a class="headerlink" href="#individual-container-commands" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Open shell in gateway</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>make<span class="w"> </span>shell-gateway
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># View browser logs</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>make<span class="w"> </span>logs-browser
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Rebuild filesystem container</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>make<span class="w"> </span>rebuild-filesystem
+<h2 id="step-4-use-the-cluster">Step 4: Use the Cluster<a class="headerlink" href="#step-4-use-the-cluster" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>harombe<span class="w"> </span>chat
 </span></code></pre></div>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="containers-wont-start">Containers Won't Start<a class="headerlink" href="#containers-wont-start" title="Permanent link">&para;</a></h3>
-<p><strong>Check logs:</strong></p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker-compose<span class="w"> </span>logs<span class="w"> </span>&lt;container-name&gt;
-</span></code></pre></div>
-<p><strong>Common issues:</strong></p>
+<p>The router automatically selects the best node:</p>
 <ul>
-<li>Port 8100 already in use</li>
-<li>Insufficient memory (need 6GB+)</li>
-<li>Docker daemon not running</li>
+<li><strong>"What is Python?"</strong> → Tier 0 (laptop, fast response)</li>
+<li><strong>"Explain async/await in Python"</strong> → Tier 1 (workstation, balanced)</li>
+<li><strong>"Refactor this code, write tests, and explain trade-offs"</strong> → Tier 2 (server, powerful model)</li>
 </ul>
-<h3 id="health-checks-failing">Health Checks Failing<a class="headerlink" href="#health-checks-failing" title="Permanent link">&para;</a></h3>
-<p><strong>Test health endpoint directly:</strong></p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>harombe-gateway<span class="w"> </span>curl<span class="w"> </span>http://localhost:8100/health
-</span></code></pre></div>
-<p><strong>Increase health check timeout:</strong>
-Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>.</p>
-<h3 id="gateway-not-responding">Gateway Not Responding<a class="headerlink" href="#gateway-not-responding" title="Permanent link">&para;</a></h3>
-<p><strong>Verify gateway is running:</strong></p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker-compose<span class="w"> </span>ps<span class="w"> </span>gateway
-</span></code></pre></div>
-<p><strong>Check gateway logs:</strong></p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker-compose<span class="w"> </span>logs<span class="w"> </span>gateway
-</span></code></pre></div>
-<p><strong>Test from inside container:</strong></p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>harombe-gateway<span class="w"> </span>curl<span class="w"> </span>http://localhost:8100/health
-</span></code></pre></div>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Read the Architecture:</strong> <a href="../security-phase4.1-foundation/">Phase 4.1 Foundation</a></li>
-<li><strong>Understand MCP Protocol:</strong> <a href="../mcp-gateway-design/">MCP Gateway Design</a></li>
-<li><strong>Configure Security:</strong> <a href="../phases/phase4-implementation-plan/">Phase 4 Implementation Plan</a></li>
-<li><strong>Wait for MCP Servers:</strong> Browser/Filesystem/Code execution servers coming in Phase 4.6-4.7</li>
-</ol>
-<h2 id="stopping-the-stack">Stopping the Stack<a class="headerlink" href="#stopping-the-stack" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nb">cd</span><span class="w"> </span>docker
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Stop containers</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>docker-compose<span class="w"> </span>down
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="c1"># Stop and remove volumes</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>docker-compose<span class="w"> </span>down<span class="w"> </span>-v
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="c1"># Complete cleanup (removes images)</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>docker-compose<span class="w"> </span>down<span class="w"> </span>-v<span class="w"> </span>--rmi<span class="w"> </span>all
-</span></code></pre></div>
-<h2 id="resource-usage">Resource Usage<a class="headerlink" href="#resource-usage" title="Permanent link">&para;</a></h2>
-<p>Typical resource consumption:</p>
+<h2 id="tier-guidelines">Tier Guidelines<a class="headerlink" href="#tier-guidelines" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Container</th>
-<th>CPU (idle)</th>
-<th>Memory (idle)</th>
-<th>Memory (peak)</th>
+<th>Tier</th>
+<th>Use Case</th>
+<th>Typical Hardware</th>
+<th>Model Size</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Gateway</td>
-<td>&lt;1%</td>
-<td>~100 MB</td>
-<td>~200 MB</td>
+<td>0</td>
+<td>Simple queries, quick factual answers</td>
+<td>Laptop, Mac Mini</td>
+<td>1-7B</td>
 </tr>
 <tr>
-<td>Browser</td>
-<td>&lt;5%</td>
-<td>~200 MB</td>
-<td>~1.5 GB</td>
+<td>1</td>
+<td>Moderate analysis, explanations</td>
+<td>Desktop, workstation</td>
+<td>7-30B</td>
 </tr>
 <tr>
-<td>Filesystem</td>
-<td>&lt;1%</td>
-<td>~50 MB</td>
-<td>~300 MB</td>
-</tr>
-<tr>
-<td>Code Exec</td>
-<td>&lt;1%</td>
-<td>~80 MB</td>
-<td>~800 MB</td>
-</tr>
-<tr>
-<td>Web Search</td>
-<td>&lt;1%</td>
-<td>~40 MB</td>
-<td>~150 MB</td>
-</tr>
-<tr>
-<td><strong>Total</strong></td>
-<td>~10%</td>
-<td>~470 MB</td>
-<td>~3 GB</td>
+<td>2</td>
+<td>Complex reasoning, code generation, large context</td>
+<td>Server, cloud GPU</td>
+<td>30-72B+</td>
 </tr>
 </tbody>
 </table>
-<h2 id="security-notes">Security Notes<a class="headerlink" href="#security-notes" title="Permanent link">&para;</a></h2>
-<h3 id="production-ready-features">Production-Ready Features<a class="headerlink" href="#production-ready-features" title="Permanent link">&para;</a></h3>
-<p>✅ Container isolation with Docker
-✅ Non-root execution (UID 1000)
-✅ Capability dropping
-✅ Network isolation (filesystem/code-exec)
-✅ Resource limits per container
-✅ Audit logging with SQLite (Phase 4.2)
-✅ Secret management — Vault, SOPS, env vars (Phase 4.3)
-✅ Network egress filtering — iptables, domain allowlists (Phase 4.4)
-✅ HITL confirmation gates — risk-based approvals (Phase 4.5)
-✅ Browser container with pre-authentication (Phase 4.6)</p>
-<h3 id="experimental-features">Experimental Features<a class="headerlink" href="#experimental-features" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p>These features are implemented but have <strong>not been validated in production</strong> or undergone independent security audit.</p>
-</blockquote>
-<p>⚗️ Zero-knowledge proof support — Protocol models only, not integrated end-to-end
-⚗️ Hardware security modules (TPM/SGX/SEV-SNP) — Software simulation; requires specific hardware
-⚗️ Compliance reporting (SOC 2, GDPR) — Heuristic templates, not audit-grade
-⚗️ Confidential compute — Design only, requires AMD SEV-SNP or Intel TDX hardware</p>
-<h3 id="not-yet-implemented">Not Yet Implemented<a class="headerlink" href="#not-yet-implemented" title="Permanent link">&para;</a></h3>
-<p>⏳ Code execution sandbox with gVisor (Phase 4.7)
-⏳ End-to-end security integration testing (Phase 4.8)</p>
-<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
+<p>Tiers are <strong>user-defined</strong> — assign based on your judgment.</p>
+<h2 id="fallback-behavior">Fallback Behavior<a class="headerlink" href="#fallback-behavior" title="Permanent link">&para;</a></h2>
+<p>When the preferred tier is unavailable:</p>
 <ul>
-<li><strong>Documentation:</strong> <a href="../">docs/</a></li>
-<li><strong>Issues:</strong> https://github.com/smallthinkingmachines/harombe/issues</li>
-<li><strong>Docker Help:</strong> <code>cd docker &amp;&amp; make help</code></li>
+<li><strong>Graceful</strong> (default): Tries adjacent tiers. If tier 2 is down, tries tier 1, then tier 0.</li>
+<li><strong>Strict</strong>: Only uses the recommended tier. Returns an error if unavailable.</li>
 </ul>
-<h2 id="whats-next">What's Next?<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<p>This is the <strong>foundation</strong> for the security layer. Complete MCP server implementations and additional security features are coming in:</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="node-shows-unavailable">Node shows "unavailable"<a class="headerlink" href="#node-shows-unavailable" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Check if the node is running</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>curl<span class="w"> </span>http://&lt;node-ip&gt;:8000/health
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Check Ollama is running on the node</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>curl<span class="w"> </span>http://&lt;node-ip&gt;:11434/api/tags
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># Check firewall/network</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>ping<span class="w"> </span>&lt;node-ip&gt;
+</span></code></pre></div>
+<h3 id="high-latency">High latency<a class="headerlink" href="#high-latency" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Phase 4.2:</strong> Audit logging</li>
-<li><strong>Phase 4.3:</strong> Secret management</li>
-<li><strong>Phase 4.4:</strong> Network isolation</li>
-<li><strong>Phase 4.5:</strong> HITL gates</li>
-<li><strong>Phase 4.6:</strong> Browser container</li>
-<li><strong>Phase 4.7:</strong> Code execution container</li>
-<li><strong>Phase 4.8:</strong> Full integration and testing</li>
+<li>Ensure nodes are on the same network (LAN preferred)</li>
+<li>Check for network congestion</li>
+<li>Use <code>harombe cluster metrics</code> to identify bottlenecks</li>
 </ul>
-<p>Track progress in <a href="../phases/phase4-implementation-plan/">phase4-implementation-plan.md</a>.</p>
+<h3 id="circuit-breaker-open">Circuit breaker open<a class="headerlink" href="#circuit-breaker-open" title="Permanent link">&para;</a></h3>
+<p>After repeated failures, the circuit breaker prevents traffic to a failing node. It automatically tests recovery after 60 seconds. Check the node's health and restart if necessary.</p>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Cluster traffic is <strong>unencrypted by default</strong>. Use SSH tunnels or VPN for sensitive data.</li>
+<li>Set <code>auth_token</code> on remote nodes for basic authentication.</li>
+<li>Run nodes behind a firewall — don't expose port 8000 to the internet.</li>
+</ul>
 
 
 
@@ -4383,7 +3868,7 @@ Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="February 9, 2026 04:07:49 UTC"><span class="timeago" datetime="2026-02-09T04:07:49+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="February 9, 2026 04:07:49 UTC">2026-02-09</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="February 10, 2026 14:11:40 UTC"><span class="timeago" datetime="2026-02-10T14:11:40+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="February 10, 2026 14:11:40 UTC">2026-02-10</span>
   </span>
 
     
@@ -4415,44 +3900,6 @@ Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>
       
         <footer class="md-footer">
   
-    
-      
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
-        
-          
-          <a href="../security/overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-            </div>
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              <div class="md-ellipsis">
-                Overview
-              </div>
-            </div>
-          </a>
-        
-        
-          
-          <a href="../security-architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Security">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                Security
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
-        
-      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -4496,14 +3943,14 @@ Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../js/timeago.min.js"></script>
+        <script src="../../js/timeago.min.js"></script>
       
-        <script src="../js/timeago_mkdocs_material.js"></script>
+        <script src="../../js/timeago_mkdocs_material.js"></script>
       
     
   </body>
