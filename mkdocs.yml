@@ -149,7 +149,20 @@ nav:
               - Alert Rules: phases/phase5-5.2-alert-rules.md
               - Compliance Reports: phases/phase5-5.3-compliance-reports.md
               - Dashboard: phases/phase5-5.4-dashboard.md
+  - User Guides:
+      - Browser Usage: browser-usage.md
+      - Code Sandbox: code-sandbox-usage.md
+      - Voice Setup: voice-setup.md
+      - Cluster Setup: guides/cluster-setup.md
+      - Security Hardening: guides/security-hardening.md
+  - Examples:
+      - Multi-Node Cluster: examples/multi-node-cluster.md
+      - Private Research Assistant: examples/private-research-assistant.md
+      - Secure Code Analysis: examples/secure-code-analysis.md
   - Reference:
+      - Roadmap: roadmap.md
+      - Troubleshooting: troubleshooting.md
+      - Security Whitepaper: security-whitepaper.md
       - Glossary: glossary.md
       - API Reference: api/index.md
       - Architecture Decisions:
@@ -159,10 +172,6 @@ nav:
           - "ADR-003: Capability-Container Pattern": decisions/003-capability-container-pattern.md
           - "ADR-004: SQLite Audit Logging": decisions/004-sqlite-audit-logging.md
           - "ADR-005: Privacy-First Local Inference": decisions/005-privacy-first-local-inference.md
-  - User Guides:
-      - Browser Usage: browser-usage.md
-      - Code Sandbox: code-sandbox-usage.md
-      - Voice Setup: voice-setup.md
   - Development:
       - Contributing: CONTRIBUTING.md
       - Development Setup: DEVELOPMENT.md

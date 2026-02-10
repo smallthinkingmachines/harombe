@@ -52,4 +52,4 @@ If you get permission errors during tool execution:
 
 - Check existing [Issues](https://github.com/smallthinkingmachines/harombe/issues)
 - Start a [Discussion](https://github.com/smallthinkingmachines/harombe/discussions)
-- Review the [Security Policy](../SECURITY.md) for security concerns
+- Review the [Security Policy](https://github.com/smallthinkingmachines/harombe/blob/main/SECURITY.md) for security concerns

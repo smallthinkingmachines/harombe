@@ -494,7 +494,7 @@ class AuditLogger:
         proof_type: str,
         correlation_id: str | None = None,
         **kwargs: Any,
-    ):
+    ) -> Any | None:
         """Generate a ZKP audit proof and persist it.
 
         Args:
@@ -560,7 +560,7 @@ class AuditLogger:
         """Synchronous version of generate_proof."""
         return self.generate_proof(proof_type, correlation_id, **kwargs)
 
-    def verify_proof(self, claim) -> bool:
+    def verify_proof(self, claim: Any) -> bool:
         """Verify a ZKP audit proof.
 
         Args:
