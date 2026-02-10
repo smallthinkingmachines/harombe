@@ -6,6 +6,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 import httpx
 
@@ -68,7 +69,7 @@ class ClusterManager:
         self._nodes: dict[str, NodeConfig] = {}
         self._health: dict[str, NodeHealth] = {}
         self._clients: dict[str, RemoteLLMClient] = {}
-        self._monitoring_task: asyncio.Task | None = None
+        self._monitoring_task: asyncio.Task[None] | None = None
         self.health_check_interval = health_check_interval
 
         # Circuit breaker for failing nodes
@@ -121,7 +122,7 @@ class ClusterManager:
         )
 
         # Create client for this node
-        self._clients[node.name] = RemoteLLMClient(
+        self._clients[node.name] = RemoteLLMClient(  # type: ignore[abstract]
             host=node.host,
             port=node.port,
             auth_token=node.auth_token,
@@ -292,7 +293,7 @@ class ClusterManager:
 
         check_interval = interval or self.health_check_interval
 
-        async def monitor():
+        async def monitor() -> None:
             while True:
                 await self.check_all_health()
                 await asyncio.sleep(check_interval)
@@ -379,7 +380,7 @@ class ClusterManager:
 
         return node, decision
 
-    def get_metrics(self, node_name: str | None = None) -> dict:
+    def get_metrics(self, node_name: str | None = None) -> dict[str, Any]:
         """
         Get performance metrics.
 
@@ -455,7 +456,7 @@ class ClusterManager:
         # Clean up metrics
         self._metrics.reset_node_metrics(name)
 
-    def list_nodes(self) -> list[dict[str, any]]:
+    def list_nodes(self) -> list[dict[str, Any]]:
         """
         List all registered nodes with their status.
 
@@ -493,8 +494,10 @@ class ClusterManager:
         for client in self._clients.values():
             await client.close()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "ClusterManager":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any
+    ) -> None:
         await self.close()

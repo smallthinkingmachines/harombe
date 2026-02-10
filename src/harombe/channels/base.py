@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @dataclass
@@ -14,7 +14,7 @@ class ChannelMessage:
     user_id: str
     channel_id: str
     thread_id: str | None = None
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
 
 
 @runtime_checkable

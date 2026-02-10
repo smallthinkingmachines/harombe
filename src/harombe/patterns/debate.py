@@ -109,7 +109,9 @@ class Debate(PatternBase):
                 ),
             )
         ]
-        final = await self.cloud_client.complete(synthesis_msg, tools, temperature, max_tokens)
+        final: CompletionResponse = await self.cloud_client.complete(
+            synthesis_msg, tools, temperature, max_tokens
+        )
 
         self.metrics.record_request(target="cloud", latency_ms=self._elapsed_ms(start))
         return final

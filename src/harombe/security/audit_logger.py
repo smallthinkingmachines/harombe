@@ -41,7 +41,7 @@ class SensitiveDataRedactor:
     """
 
     # Common patterns for sensitive data
-    PATTERNS: ClassVar[dict[str, re.Pattern]] = {
+    PATTERNS: ClassVar[dict[str, re.Pattern[str]]] = {
         "api_key": re.compile(
             r"(?i)(api[_-]?key|apikey|access[_-]?token|secret[_-]?key|bearer)\s*[:=]\s*['\"]?([a-zA-Z0-9_\-]{20,})",
             re.IGNORECASE,
@@ -139,7 +139,7 @@ class SensitiveDataRedactor:
             "client_secret",
         }
 
-        result = {}
+        result: dict[str, Any] = {}
         for key, value in data.items():
             # Check if key is sensitive
             key_lower = key.lower().replace("-", "_")
@@ -221,7 +221,7 @@ class AuditLogger:
         self.redact_sensitive = redact_sensitive
         self.enable_zkp = enable_zkp
         self._write_queue: asyncio.Queue[Any] = asyncio.Queue()
-        self._writer_task: asyncio.Task | None = None
+        self._writer_task: asyncio.Task[None] | None = None
         self._proof_generator: Any | None = None
         self._proof_verifier: Any | None = None
 
@@ -473,7 +473,7 @@ class AuditLogger:
 
         self._write_queue.put_nowait(("event", event))
 
-    def _get_proof_generator(self):
+    def _get_proof_generator(self) -> Any:
         """Lazily create and return the ZKP proof generator."""
         if self._proof_generator is None:
             from harombe.security.zkp.audit_proofs import AuditProofGenerator
@@ -481,7 +481,7 @@ class AuditLogger:
             self._proof_generator = AuditProofGenerator()
         return self._proof_generator
 
-    def _get_proof_verifier(self):
+    def _get_proof_verifier(self) -> Any:
         """Lazily create and return the ZKP proof verifier."""
         if self._proof_verifier is None:
             from harombe.security.zkp.audit_proofs import AuditProofVerifier
@@ -556,7 +556,7 @@ class AuditLogger:
         proof_type: str,
         correlation_id: str | None = None,
         **kwargs: Any,
-    ):
+    ) -> Any | None:
         """Synchronous version of generate_proof."""
         return self.generate_proof(proof_type, correlation_id, **kwargs)
 
@@ -572,7 +572,7 @@ class AuditLogger:
         if not self.enable_zkp:
             return False
         verifier = self._get_proof_verifier()
-        return verifier.verify_claim(claim)
+        return bool(verifier.verify_claim(claim))
 
     # Synchronous methods for sync contexts
     def start_request_sync(

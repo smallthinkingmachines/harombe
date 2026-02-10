@@ -285,10 +285,10 @@ def _check_condition(event: AuditEvent, condition: AlertCondition) -> bool:
     if condition.operator == "eq":
         # Handle StrEnum comparison
         actual_str = actual.value if isinstance(actual, StrEnum) else actual
-        return actual_str == expected
+        return bool(actual_str == expected)
     elif condition.operator == "ne":
         actual_str = actual.value if isinstance(actual, StrEnum) else actual
-        return actual_str != expected
+        return bool(actual_str != expected)
     elif condition.operator == "contains":
         if isinstance(actual, str) and isinstance(expected, str):
             return expected in actual
@@ -296,15 +296,15 @@ def _check_condition(event: AuditEvent, condition: AlertCondition) -> bool:
     elif condition.operator == "in":
         if isinstance(expected, list):
             actual_str = actual.value if isinstance(actual, StrEnum) else actual
-            return actual_str in expected
+            return bool(actual_str in expected)
         return False
     elif condition.operator == "gt":
         if actual is not None and expected is not None:
-            return actual > expected
+            return bool(actual > expected)
         return False
     elif condition.operator == "lt":
         if actual is not None and expected is not None:
-            return actual < expected
+            return bool(actual < expected)
         return False
     return False
 

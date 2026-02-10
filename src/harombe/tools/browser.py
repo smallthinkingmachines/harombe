@@ -103,9 +103,11 @@ class BrowserTools:
         """
         try:
             session = self.browser_manager._get_session(session_id)
+            if session.page is None:
+                return {"success": False, "error": "No page in session"}
 
             # Build locator
-            locator = session.page.get_by_role(role, name=name)
+            locator = session.page.get_by_role(role, name=name)  # type: ignore[arg-type]
 
             # Get count
             count = await locator.count()
@@ -181,6 +183,8 @@ class BrowserTools:
         """
         try:
             session = self.browser_manager._get_session(session_id)
+            if session.page is None:
+                return {"success": False, "error": "No page in session"}
 
             # Security check: Deny password field typing
             if name and any(
@@ -194,7 +198,7 @@ class BrowserTools:
                 }
 
             # Build locator
-            locator = session.page.get_by_role(role, name=name)
+            locator = session.page.get_by_role(role, name=name)  # type: ignore[arg-type]
 
             # Get count
             count = await locator.count()
@@ -269,6 +273,8 @@ class BrowserTools:
         """
         try:
             session = self.browser_manager._get_session(session_id)
+            if session.page is None:
+                return {"success": False, "error": "No page in session"}
 
             # Get accessibility snapshot
             snapshot = await self.browser_manager._get_accessibility_snapshot(session.page)
@@ -277,11 +283,11 @@ class BrowserTools:
             text_content = await session.page.inner_text("body")
 
             # Get interactive elements
-            interactive_elements = []
+            interactive_elements: list[dict[str, Any]] = []
             if snapshot:
                 interactive_elements = self._extract_interactive_elements(snapshot)
 
-            result = {
+            result: dict[str, Any] = {
                 "success": True,
                 "url": session.page.url,
                 "title": await session.page.title(),
@@ -364,6 +370,8 @@ class BrowserTools:
         """
         try:
             session = self.browser_manager._get_session(session_id)
+            if session.page is None:
+                return {"success": False, "error": "No page in session"}
 
             # Take screenshot
             screenshot_bytes = await session.page.screenshot(full_page=full_page)

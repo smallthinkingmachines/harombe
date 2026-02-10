@@ -32,7 +32,7 @@ def create_mcp_server(
     """
     server = Server(server_name)
 
-    @server.list_tools()
+    @server.list_tools()  # type: ignore
     async def list_tools() -> list[MCPTool]:
         """Return all registered tools in MCP format."""
         mcp_tools: list[MCPTool] = []
@@ -46,7 +46,7 @@ def create_mcp_server(
             )
         return mcp_tools
 
-    @server.call_tool()
+    @server.call_tool()  # type: ignore
     async def call_tool(name: str, arguments: dict[str, Any] | None) -> list[TextContent]:
         """Execute a tool and return the result."""
         if name not in tools:

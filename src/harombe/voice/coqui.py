@@ -47,7 +47,7 @@ class CoquiTTS(TTSEngine):
             return
 
         try:
-            from TTS.api import TTS  # type: ignore[import-not-found]
+            from TTS.api import TTS
         except ImportError as e:
             msg = (
                 "Coqui TTS not installed. "
@@ -118,7 +118,7 @@ class CoquiTTS(TTSEngine):
         speed: float,
     ) -> list[float]:
         """Synchronous synthesis (runs in thread pool)."""
-        import numpy as np  # type: ignore[import-not-found]
+        import numpy as np
 
         # Prepare kwargs
         kwargs = {}

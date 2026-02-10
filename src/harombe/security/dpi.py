@@ -124,7 +124,7 @@ class NetworkPacket(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         """Initialize packet and calculate size if not provided."""
         if "size" not in data and "payload" in data:
             data["size"] = len(data["payload"])
@@ -164,7 +164,7 @@ class MaliciousPattern(BaseModel):
     """
 
     name: str
-    pattern: re.Pattern
+    pattern: re.Pattern[str]
     severity: IssueSeverity
     issue_type: IssueType
     description: str
@@ -436,12 +436,14 @@ class DeepPacketInspector:
         Returns:
             List of security issues for detected secrets
         """
-        issues = []
+        issues: list[SecurityIssue] = []
 
         if not payload_text:
             return issues
 
         # Scan for secrets
+        if self.secret_scanner is None:
+            return issues
         secrets = self.secret_scanner.scan(payload_text)
 
         for secret in secrets:
@@ -469,7 +471,7 @@ class DeepPacketInspector:
         Returns:
             List of security issues for matched patterns
         """
-        issues = []
+        issues: list[SecurityIssue] = []
 
         if not payload_text:
             return issues
@@ -572,7 +574,7 @@ class DeepPacketInspector:
             return 0.0
 
         # Count character frequencies
-        freq = {}
+        freq: dict[str, int] = {}
         for char in text:
             freq[char] = freq.get(char, 0) + 1
 

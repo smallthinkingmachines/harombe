@@ -207,14 +207,14 @@ class DotEnvLoader:
         import re
 
         # Expand ${VAR} style
-        def replace_braces(match: re.Match) -> str:
+        def replace_braces(match: re.Match[str]) -> str:
             var_name = match.group(1)
             return variables.get(var_name, os.getenv(var_name, ""))
 
         value = re.sub(r"\$\{([A-Z_][A-Z0-9_]*)\}", replace_braces, value)
 
         # Expand $VAR style
-        def replace_simple(match: re.Match) -> str:
+        def replace_simple(match: re.Match[str]) -> str:
             var_name = match.group(1)
             return variables.get(var_name, os.getenv(var_name, ""))
 

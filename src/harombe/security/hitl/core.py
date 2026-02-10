@@ -215,7 +215,7 @@ class PendingApproval:
         self.created_at = time.time()
         self.status = ApprovalStatus.PENDING
         self.decision: ApprovalDecision | None = None
-        self._future: asyncio.Future | None = None
+        self._future: asyncio.Future[Any] | None = None
 
     def is_expired(self) -> bool:
         """Check if approval request has expired."""
@@ -276,7 +276,7 @@ class HITLGate:
         self,
         operation: Operation,
         user: str | None = None,
-        prompt_callback: Callable | None = None,
+        prompt_callback: Callable[..., Any] | None = None,
     ) -> ApprovalDecision:
         """
         Check if operation requires approval and get decision.
@@ -342,7 +342,9 @@ class HITLGate:
 
         return decision
 
-    async def _prompt_user(self, pending: PendingApproval, prompt_callback: Callable) -> None:
+    async def _prompt_user(
+        self, pending: PendingApproval, prompt_callback: Callable[..., Any]
+    ) -> None:
         """Prompt user for approval."""
         try:
             decision = await prompt_callback(pending.operation, pending.risk_level, pending.timeout)

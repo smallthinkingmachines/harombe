@@ -3,6 +3,7 @@
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
 
 @dataclass
@@ -181,7 +182,7 @@ class MetricsCollector:
         self._node_metrics.clear()
         self._active_requests.clear()
 
-    def get_cluster_summary(self) -> dict[str, any]:
+    def get_cluster_summary(self) -> dict[str, Any]:
         """
         Get summary statistics for the entire cluster.
 

@@ -18,7 +18,7 @@ console = Console()
 
 
 @app.command()
-def version():
+def version() -> None:
     """Show harombe version."""
     console.print(f"harombe version {__version__}")
 
@@ -30,7 +30,7 @@ def init(
         False, "--non-interactive", "-y", help="Use defaults without prompting"
     ),
     model: str = typer.Option(None, "--model", "-m", help="Specify model name"),
-):
+) -> None:
     """Initialize harombe configuration with hardware detection."""
     from harombe.cli.init_cmd import init_command
 
@@ -45,7 +45,7 @@ def chat(
         "-c",
         help="Path to config file (default: ~/.harombe/harombe.yaml)",
     ),
-):
+) -> None:
     """Start interactive chat session."""
     from harombe.cli.chat import chat_command
 
@@ -61,7 +61,7 @@ def start(
         help="Path to config file",
     ),
     detach: bool = typer.Option(False, "--detach", "-d", help="Run server in background"),
-):
+) -> None:
     """Start harombe API server."""
     from harombe.cli.server_cmd import start_command
 
@@ -69,7 +69,7 @@ def start(
 
 
 @app.command()
-def stop():
+def stop() -> None:
     """Stop harombe API server."""
     from harombe.cli.server_cmd import stop_command
 
@@ -77,7 +77,7 @@ def stop():
 
 
 @app.command()
-def status():
+def status() -> None:
     """Check harombe server status."""
     from harombe.cli.server_cmd import status_command
 
@@ -85,7 +85,7 @@ def status():
 
 
 @app.command()
-def doctor():
+def doctor() -> None:
     """Run system health checks and diagnostics."""
     from harombe.cli.doctor import doctor_command
 
@@ -98,7 +98,7 @@ app.add_typer(plugin_app, name="plugin")
 
 
 @plugin_app.command("list")
-def plugin_list():
+def plugin_list() -> None:
     """List all installed plugins."""
     from harombe.cli.plugin_cmd import list_plugins
 
@@ -108,7 +108,7 @@ def plugin_list():
 @plugin_app.command("info")
 def plugin_info(
     name: str = typer.Argument(..., help="Plugin name"),
-):
+) -> None:
     """Show detailed information about a plugin."""
     from harombe.cli.plugin_cmd import info_plugin
 
@@ -118,7 +118,7 @@ def plugin_info(
 @plugin_app.command("enable")
 def plugin_enable(
     name: str = typer.Argument(..., help="Plugin name"),
-):
+) -> None:
     """Enable a plugin."""
     from harombe.cli.plugin_cmd import enable_plugin
 
@@ -128,7 +128,7 @@ def plugin_enable(
 @plugin_app.command("disable")
 def plugin_disable(
     name: str = typer.Argument(..., help="Plugin name"),
-):
+) -> None:
     """Disable a plugin."""
     from harombe.cli.plugin_cmd import disable_plugin
 
@@ -165,7 +165,7 @@ def mcp_serve(
         "-c",
         help="Path to config file",
     ),
-):
+) -> None:
     """Start MCP server to expose harombe tools."""
     from harombe.cli.mcp_cmd import serve_command
 
@@ -183,7 +183,7 @@ app.add_typer(audit_app, name="audit")
 
 
 @cluster_app.command("init")
-def cluster_init():
+def cluster_init() -> None:
     """Generate cluster configuration template."""
     from harombe.cli.cluster_cmd import cluster_init_command
 
@@ -198,7 +198,7 @@ def cluster_status(
         "-c",
         help="Path to config file",
     ),
-):
+) -> None:
     """Show cluster status and node health."""
     from harombe.cli.cluster_cmd import cluster_status_command
 
@@ -213,7 +213,7 @@ def cluster_test(
         "-c",
         help="Path to config file",
     ),
-):
+) -> None:
     """Test connectivity to all cluster nodes."""
     from harombe.cli.cluster_cmd import cluster_test_command
 
@@ -234,7 +234,7 @@ def cluster_metrics(
         "-n",
         help="Show metrics for specific node only",
     ),
-):
+) -> None:
     """Show cluster performance metrics."""
     from harombe.cli.cluster_cmd import cluster_metrics_command
 
@@ -273,7 +273,7 @@ def audit_events(
         "-f",
         help="Output format (table, json, csv)",
     ),
-):
+) -> None:
     """Query audit events."""
     from harombe.cli.audit_cmd import query_events
 
@@ -318,7 +318,7 @@ def audit_tools(
         "-f",
         help="Output format (table, json, csv)",
     ),
-):
+) -> None:
     """Query tool execution logs."""
     from harombe.cli.audit_cmd import query_tools
 
@@ -362,7 +362,7 @@ def audit_security(
         "-f",
         help="Output format (table, json, csv)",
     ),
-):
+) -> None:
     """Query security decisions."""
     from harombe.cli.audit_cmd import query_security
 
@@ -389,7 +389,7 @@ def audit_stats(
         "-h",
         help="Only show stats from last N hours",
     ),
-):
+) -> None:
     """Show audit log statistics."""
     from harombe.cli.audit_cmd import stats
 
@@ -420,7 +420,7 @@ def audit_export(
         "-f",
         help="Export format (json, csv)",
     ),
-):
+) -> None:
     """Export audit logs to file."""
     from pathlib import Path
 
@@ -446,7 +446,7 @@ def voice(
         "--tts-model",
         help="TTS model name",
     ),
-):
+) -> None:
     """Start interactive voice assistant (push-to-talk)."""
     import asyncio
 
@@ -455,7 +455,7 @@ def voice(
     asyncio.run(voice_command(stt_model=stt_model, tts_engine=tts_engine, tts_model=tts_model))
 
 
-def main():
+def main() -> None:
     """Entry point for the CLI."""
     try:
         app()

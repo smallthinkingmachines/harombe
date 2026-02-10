@@ -57,13 +57,15 @@ class SpecializedRouting(PatternBase):
         complexity = self.classifier.classify_query(query, messages)
 
         if complexity.value >= self.cloud_threshold.value:
-            resp = await self.cloud_client.complete(messages, tools, temperature, max_tokens)
+            result: CompletionResponse = await self.cloud_client.complete(
+                messages, tools, temperature, max_tokens
+            )
             self.metrics.record_request(target="cloud", latency_ms=self._elapsed_ms(start))
         else:
-            resp = await self.local_client.complete(messages, tools, temperature, max_tokens)
+            result = await self.local_client.complete(messages, tools, temperature, max_tokens)
             self.metrics.record_request(target="local", latency_ms=self._elapsed_ms(start))
 
-        return resp
+        return result
 
     async def stream_complete(
         self,

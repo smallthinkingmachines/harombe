@@ -18,7 +18,9 @@ from harombe.hardware.detect import (
 console = Console()
 
 
-def init_command(force: bool = False, non_interactive: bool = False, model: str | None = None):
+def init_command(
+    force: bool = False, non_interactive: bool = False, model: str | None = None
+) -> None:
     """Initialize harombe configuration.
 
     Args:
@@ -46,7 +48,7 @@ def init_command(force: bool = False, non_interactive: bool = False, model: str 
     asyncio.run(_async_init(non_interactive=non_interactive, model_override=model))
 
 
-async def _async_init(non_interactive: bool = False, model_override: str | None = None):
+async def _async_init(non_interactive: bool = False, model_override: str | None = None) -> None:
     """Async initialization logic.
 
     Args:

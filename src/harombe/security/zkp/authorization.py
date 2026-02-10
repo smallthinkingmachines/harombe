@@ -34,6 +34,7 @@ Example:
 import functools
 import hashlib
 import logging
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
@@ -95,7 +96,7 @@ def _group_secret(agent_id: str, group: str, ctx: ZKPContext) -> int:
 
 def _proof_to_dict(proof: Any) -> dict[str, Any]:
     """Serialize a ``Proof`` to a JSON-safe dict."""
-    return proof.model_dump(mode="json")
+    return dict(proof.model_dump(mode="json"))
 
 
 def _dict_to_proof(data: dict[str, Any]) -> Any:
@@ -516,7 +517,7 @@ class ZKPAuthorizationVerifier:
         if handler is None:
             logger.warning("Unknown proof type: %s", claim.proof_type)
             return False
-        return handler(claim)
+        return bool(handler(claim))
 
 
 # ---------------------------------------------------------------------------
@@ -534,7 +535,7 @@ class ZKPGateDecorator:
     def __init__(self, verifier: ZKPAuthorizationVerifier) -> None:
         self._verifier = verifier
 
-    def require_capability(self, capability: str):
+    def require_capability(self, capability: str) -> Callable[..., Any]:
         """Return a decorator that requires a valid capability claim.
 
         The decorated function must accept an
@@ -545,9 +546,9 @@ class ZKPGateDecorator:
                 the required capability.
         """
 
-        def decorator(fn):
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
             @functools.wraps(fn)
-            def wrapper(claim: AuthorizationClaim, *args, **kwargs):
+            def wrapper(claim: AuthorizationClaim, *args: Any, **kwargs: Any) -> Any:
                 if claim.proof_type != "capability":
                     msg = f"Expected capability claim, " f"got {claim.proof_type}"
                     raise PermissionError(msg)
@@ -567,7 +568,7 @@ class ZKPGateDecorator:
 
         return decorator
 
-    def require_trust_level(self, level: int):
+    def require_trust_level(self, level: int) -> Callable[..., Any]:
         """Return a decorator that requires a valid trust-level claim.
 
         The decorated function must accept an
@@ -578,9 +579,9 @@ class ZKPGateDecorator:
                 the required trust level.
         """
 
-        def decorator(fn):
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
             @functools.wraps(fn)
-            def wrapper(claim: AuthorizationClaim, *args, **kwargs):
+            def wrapper(claim: AuthorizationClaim, *args: Any, **kwargs: Any) -> Any:
                 if claim.proof_type != "trust_level":
                     msg = f"Expected trust_level claim, " f"got {claim.proof_type}"
                     raise PermissionError(msg)

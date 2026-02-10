@@ -79,12 +79,14 @@ class SlidingPrivacy(PatternBase):
         start = self._start_timer()
 
         if self._should_use_local(messages):
-            resp = await self.local_client.complete(messages, tools, temperature, max_tokens)
+            result: CompletionResponse = await self.local_client.complete(
+                messages, tools, temperature, max_tokens
+            )
             self.metrics.record_request(target="local", latency_ms=self._elapsed_ms(start))
         else:
-            resp = await self.cloud_client.complete(messages, tools, temperature, max_tokens)
+            result = await self.cloud_client.complete(messages, tools, temperature, max_tokens)
             self.metrics.record_request(target="cloud", latency_ms=self._elapsed_ms(start))
-        return resp
+        return result
 
     async def stream_complete(
         self,

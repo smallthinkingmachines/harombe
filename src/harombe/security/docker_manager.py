@@ -108,6 +108,19 @@ class DockerManager:
         self._docker: Any = None  # docker.DockerClient
         self._containers: dict[str, Any] = {}  # name -> container object
 
+    @property
+    def client(self) -> Any:
+        """Public accessor for the Docker client. Lazily initializes."""
+        return self._get_client()
+
+    async def start(self) -> None:
+        """Initialize Docker client connection."""
+        self._get_client()
+
+    async def stop(self) -> None:
+        """Close Docker client connection."""
+        self.close()
+
     def _get_client(self) -> Any:
         """Get or create Docker client.
 
@@ -122,7 +135,7 @@ class DockerManager:
             try:
                 import docker
 
-                self._docker = docker.from_env()
+                self._docker = docker.from_env()  # type: ignore[attr-defined]
                 logger.info("Connected to Docker daemon")
             except ImportError as e:
                 msg = "Docker SDK not installed. " "Install with: pip install 'harombe[docker]'"
@@ -180,7 +193,7 @@ class DockerManager:
             # Check if container already exists
             if config.name in self._containers:
                 logger.warning(f"Container '{config.name}' already exists")
-                return self._containers[config.name].id
+                return str(self._containers[config.name].id)
 
             # Prepare port mapping
             ports = {}
@@ -214,7 +227,7 @@ class DockerManager:
             self._containers[config.name] = container
             logger.info(f"Created container '{config.name}' (id={container.short_id})")
 
-            return container.id
+            return str(container.id)
 
         except Exception as e:
             logger.error(f"Failed to create container '{config.name}': {e}")
@@ -362,7 +375,7 @@ class DockerManager:
 
         try:
             container = self._containers[name]
-            logs = container.logs(tail=tail).decode("utf-8")
+            logs: str = container.logs(tail=tail).decode("utf-8")
             return logs
         except Exception as e:
             logger.error(f"Failed to get logs for '{name}': {e}")
@@ -386,7 +399,7 @@ class DockerManager:
 
         try:
             container = self._containers[name]
-            stats = container.stats(stream=False)
+            stats: dict[str, Any] = container.stats(stream=False)
             return stats
         except Exception as e:
             logger.error(f"Failed to get stats for '{name}': {e}")

@@ -23,7 +23,7 @@ async def web_search(query: str, max_results: int = 5) -> str:
         max_results = min(max(1, max_results), 10)
 
         # Run synchronous DDGS in thread pool
-        def _search():
+        def _search() -> list[dict[str, str]]:
             with DDGS() as ddgs:
                 return list(ddgs.text(query, max_results=max_results))
 

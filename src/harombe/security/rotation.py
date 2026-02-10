@@ -756,7 +756,7 @@ class SecretRotationManager:
                     f"({result.failed_tests}/{result.total_tests} tests failed)"
                 )
 
-            return result.success
+            return bool(result.success)
         else:
             # Verification framework not configured, log warning and pass
             logger.warning(

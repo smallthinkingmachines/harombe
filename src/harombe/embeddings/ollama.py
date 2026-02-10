@@ -1,6 +1,6 @@
 """Ollama embedding client (local, via Ollama API)."""
 
-import httpx  # type: ignore[import-not-found]
+import httpx
 
 
 class OllamaEmbedding:

@@ -1,11 +1,11 @@
 """Remote LLM client for distributed inference."""
 
 from dataclasses import asdict
+from typing import Any
 
 import httpx
 
 from harombe.llm.client import CompletionResponse, LLMClient, Message, ToolCall
-from harombe.tools.base import ToolSchema
 
 
 class RemoteLLMClient(LLMClient):
@@ -18,7 +18,7 @@ class RemoteLLMClient(LLMClient):
 
     def __init__(
         self, host: str, port: int = 8000, timeout: int = 120, auth_token: str | None = None
-    ):
+    ) -> None:
         """
         Initialize remote LLM client.
 
@@ -36,51 +36,30 @@ class RemoteLLMClient(LLMClient):
     async def complete(
         self,
         messages: list[Message],
-        tools: list[ToolSchema] | None = None,
-        temperature: float = 0.7,
+        tools: list[dict[str, Any]] | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> CompletionResponse:
         """
         Send completion request to remote node.
 
         Args:
             messages: Conversation history
-            tools: Available tool schemas
+            tools: Available tools in OpenAI function format
             temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
 
         Returns:
             CompletionResponse from remote node
         """
-        headers = {}
+        headers: dict[str, str] = {}
         if self.auth_token:
             headers["Authorization"] = f"Bearer {self.auth_token}"
 
-        # Convert tools to JSON Schema format
-        tools_json = None
-        if tools:
-            tools_json = [
-                {
-                    "type": "function",
-                    "function": {
-                        "name": tool.name,
-                        "description": tool.description,
-                        "parameters": {
-                            "type": "object",
-                            "properties": tool.parameters,
-                            "required": [
-                                name
-                                for name, param in tool.parameters.items()
-                                if param.get("required", False)
-                            ],
-                        },
-                    },
-                }
-                for tool in tools
-            ]
-
-        payload = {
+        payload: dict[str, Any] = {
             "messages": [asdict(msg) for msg in messages],
-            "tools": tools_json,
-            "temperature": temperature,
+            "tools": tools,
+            "temperature": temperature or 0.7,
         }
 
         response = await self._client.post(
@@ -103,12 +82,14 @@ class RemoteLLMClient(LLMClient):
             finish_reason=data.get("finish_reason", "stop"),
         )
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the HTTP client."""
         await self._client.aclose()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "RemoteLLMClient":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any
+    ) -> None:
         await self.close()

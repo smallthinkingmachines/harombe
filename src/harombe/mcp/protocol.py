@@ -109,7 +109,7 @@ class MCPResponse(BaseModel):
         """Create a success response."""
         return cls(
             id=request_id,
-            result=MCPResult(content=content),
+            result=MCPResult(content=content, is_error=False),
         )
 
     @classmethod
@@ -158,7 +158,7 @@ class ReadinessStatus(BaseModel):
 
 def create_text_content(text: str) -> ContentItem:
     """Helper to create text content item."""
-    return ContentItem(type="text", text=text)
+    return ContentItem(type="text", text=text, mime_type=None)
 
 
 def create_error_response(

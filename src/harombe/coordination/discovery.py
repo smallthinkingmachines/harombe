@@ -22,7 +22,7 @@ class HarombeServiceListener:
             on_service_discovered: Callback when a new harombe service is found
         """
         self.on_service_discovered = on_service_discovered
-        self.discovered_services = set()
+        self.discovered_services: set[str] = set()
         self._tasks: set[Any] = set()
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
@@ -48,7 +48,8 @@ class HarombeServiceListener:
             properties = {}
             if info.properties:
                 properties = {
-                    k.decode("utf-8"): v.decode("utf-8") for k, v in info.properties.items()
+                    k.decode("utf-8"): v.decode("utf-8") if v is not None else ""
+                    for k, v in info.properties.items()
                 }
 
             node_name = properties.get("name", name.split(".")[0])
@@ -107,7 +108,7 @@ class ServiceDiscovery:
         self.browser = ServiceBrowser(
             self.azeroconf.zeroconf,
             self.service_type,
-            listener,
+            listener,  # type: ignore[arg-type]
         )
 
     async def announce_service(
@@ -165,8 +166,10 @@ class ServiceDiscovery:
             await self.azeroconf.async_close()
             self.azeroconf = None
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "ServiceDiscovery":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any
+    ) -> None:
         await self.stop()

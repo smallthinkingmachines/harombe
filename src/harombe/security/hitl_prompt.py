@@ -5,6 +5,7 @@ Provides user-facing approval prompts with timeout handling.
 """
 
 import asyncio
+from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
@@ -157,9 +158,9 @@ class CLIApprovalPrompt:
 class APIApprovalPrompt:
     """API-based approval prompts (for web UI, etc.)."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize API approval prompt."""
-        self.pending_prompts = {}
+        self.pending_prompts: dict[str, Any] = {}
 
     def create_prompt(
         self,
@@ -167,7 +168,7 @@ class APIApprovalPrompt:
         operation: Operation,
         risk_level: RiskLevel,
         timeout: int,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Create API approval prompt data.
 

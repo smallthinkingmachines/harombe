@@ -32,6 +32,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -137,7 +138,7 @@ class QuorumRequest(BaseModel):
     votes: list[QuorumVote] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     expires_at: datetime | None = None
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class QuorumManager:
@@ -235,7 +236,7 @@ class QuorumManager:
         description: str,
         requester_id: str,
         policy: QuorumPolicy | None = None,
-        metadata: dict | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> QuorumRequest:
         """Create a new quorum approval request.
 
@@ -441,7 +442,7 @@ class QuorumManager:
 
         return expired_ids
 
-    def get_vote_summary(self, request_id: str) -> dict:
+    def get_vote_summary(self, request_id: str) -> dict[str, Any]:
         """Return a summary of votes for a request.
 
         Args:
@@ -518,7 +519,7 @@ class QuorumManager:
             )
 
 
-def create_distributed_secrets() -> dict:
+def create_distributed_secrets() -> dict[str, Any]:
     """Create a complete set of distributed security components.
 
     Factory function that instantiates and returns the core

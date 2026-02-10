@@ -350,7 +350,7 @@ class SIEMIntegrator:
         self._configs = configs or []
         self._exporters: dict[SIEMPlatform, SIEMExporter] = {}
         self._buffers: dict[SIEMPlatform, list[SIEMEvent]] = {}
-        self._flush_task: asyncio.Task | None = None
+        self._flush_task: asyncio.Task[None] | None = None
         self._running = False
         self._lock = asyncio.Lock()
 

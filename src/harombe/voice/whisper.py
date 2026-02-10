@@ -47,7 +47,7 @@ class WhisperSTT(STTEngine):
             return
 
         try:
-            from faster_whisper import WhisperModel  # type: ignore[import-not-found]
+            from faster_whisper import WhisperModel
         except ImportError as e:
             msg = "faster-whisper not installed. Install with: " "pip install faster-whisper"
             raise ImportError(msg) from e

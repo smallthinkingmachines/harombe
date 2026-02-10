@@ -7,7 +7,7 @@ from rich.console import Console
 console = Console()
 
 
-def start_command(config_path: str | None = None, detach: bool = False):
+def start_command(config_path: str | None = None, detach: bool = False) -> None:
     """Start the harombe API server.
 
     Args:
@@ -47,13 +47,13 @@ def start_command(config_path: str | None = None, detach: bool = False):
     )
 
 
-def stop_command():
+def stop_command() -> None:
     """Stop the harombe API server."""
     console.print("[yellow]Server stop command not yet implemented[/yellow]")
     console.print("For now, use Ctrl+C to stop the server process")
 
 
-def status_command():
+def status_command() -> None:
     """Check harombe server status."""
     console.print("[yellow]Server status command not yet implemented[/yellow]")
     console.print("Try: [bold]curl http://localhost:8000/health[/bold]")

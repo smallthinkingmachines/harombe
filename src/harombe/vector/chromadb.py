@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-import chromadb  # type: ignore[import-not-found]
+import chromadb
 
 
 class ChromaDBVectorStore:
@@ -64,9 +64,9 @@ class ChromaDBVectorStore:
 
         self.collection.add(
             ids=ids,
-            embeddings=embeddings,
+            embeddings=embeddings,  # type: ignore[arg-type]
             documents=documents,
-            metadatas=metadata,
+            metadatas=metadata,  # type: ignore[arg-type]
         )
 
     def search(
@@ -86,7 +86,7 @@ class ChromaDBVectorStore:
             Tuple of (ids, documents, metadatas, distances)
         """
         results = self.collection.query(
-            query_embeddings=[query_embedding],
+            query_embeddings=[query_embedding],  # type: ignore[arg-type]
             n_results=top_k,
             where=where,
         )
@@ -97,7 +97,7 @@ class ChromaDBVectorStore:
         metadatas = results["metadatas"][0] if results["metadatas"] else []
         distances = results["distances"][0] if results["distances"] else []
 
-        return ids, documents, metadatas, distances
+        return ids, documents, metadatas, distances  # type: ignore[return-value]
 
     def delete(self, ids: list[str]) -> None:
         """Delete embeddings by ID.
@@ -136,7 +136,7 @@ class ChromaDBVectorStore:
         documents = results["documents"] if results["documents"] else []
         metadatas = results["metadatas"] if results["metadatas"] else []
 
-        return ids_result, documents, metadatas
+        return ids_result, documents, metadatas  # type: ignore[return-value]
 
     def count(self) -> int:
         """Get total number of embeddings in the store.
@@ -176,7 +176,7 @@ class ChromaDBVectorStore:
 
         self.collection.update(
             ids=ids,
-            embeddings=embeddings,
+            embeddings=embeddings,  # type: ignore[arg-type]
             documents=documents,
-            metadatas=metadata,
+            metadatas=metadata,  # type: ignore[arg-type]
         )

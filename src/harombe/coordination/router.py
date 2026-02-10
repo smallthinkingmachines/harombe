@@ -65,7 +65,7 @@ class ComplexityClassifier:
         "brief",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize classifier."""
         pass
 

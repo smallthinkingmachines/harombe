@@ -6,7 +6,6 @@ from httpx import HTTPStatusError, Response
 
 from harombe.llm.client import CompletionResponse, Message
 from harombe.llm.remote import RemoteLLMClient
-from harombe.tools.base import ToolSchema
 
 
 @pytest.mark.asyncio
@@ -59,12 +58,17 @@ async def test_remote_llm_complete_with_tools():
 
     messages = [Message(role="user", content="List files")]
     tools = [
-        ToolSchema(
-            name="shell",
-            description="Execute shell command",
-            parameters={"command": {"type": "string"}},
-            dangerous=True,
-        )
+        {
+            "type": "function",
+            "function": {
+                "name": "shell",
+                "description": "Execute shell command",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"command": {"type": "string"}},
+                },
+            },
+        }
     ]
 
     response = await client.complete(messages, tools=tools)

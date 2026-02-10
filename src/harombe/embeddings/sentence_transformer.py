@@ -3,7 +3,7 @@
 import asyncio
 from typing import Any
 
-import numpy as np  # type: ignore[import-not-found]
+import numpy as np
 
 
 class SentenceTransformerEmbedding:
@@ -40,7 +40,7 @@ class SentenceTransformerEmbedding:
             return
 
         try:
-            from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
+            from sentence_transformers import SentenceTransformer
         except ImportError as e:
             msg = (
                 "sentence-transformers is required for local embeddings. "

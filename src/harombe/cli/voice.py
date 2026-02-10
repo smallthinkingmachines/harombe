@@ -48,7 +48,7 @@ class VoiceClient:
     async def run(self) -> None:
         """Run the interactive voice client."""
         try:
-            import sounddevice as sd  # type: ignore[import-not-found]
+            import sounddevice as sd
         except ImportError as e:
             msg = "sounddevice not installed. Install with: pip install sounddevice"
             raise ImportError(msg) from e
@@ -63,7 +63,7 @@ class VoiceClient:
         )
 
         # Start keyboard listener in separate thread
-        from pynput import keyboard  # type: ignore[import-untyped]
+        from pynput import keyboard
 
         def on_press(key: Any) -> None:
             if key == keyboard.Key.space and not self._recording:

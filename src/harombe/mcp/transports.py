@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from mcp.server.stdio import stdio_server
 from mcp.server.streamable_http import StreamableHTTPServerTransport
@@ -48,7 +48,7 @@ async def run_streamable_http_server(
 
     transport = StreamableHTTPServerTransport("/mcp")
 
-    async def handle_mcp(scope, receive, send):
+    async def handle_mcp(scope: Any, receive: Any, send: Any) -> None:
         async with transport.connect() as (read_stream, write_stream):
             await server.run(read_stream, write_stream, server.create_initialization_options())
 

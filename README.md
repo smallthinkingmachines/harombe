@@ -2,7 +2,7 @@
 
 **The full-stack agent framework that runs entirely on your hardware.**
 
-> Manages the complete agent lifecycle — tool execution in containers, network-level security, voice I/O, persistent memory with semantic search, and multi-node cluster routing. `pip install harombe`. No cloud required.
+> Manages the complete agent lifecycle — tool execution in containers, network-level security, voice I/O, persistent memory with semantic search, and multi-node cluster routing. No cloud required.
 
 [![CI](https://github.com/smallthinkingmachines/harombe/actions/workflows/ci.yml/badge.svg)](https://github.com/smallthinkingmachines/harombe/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)

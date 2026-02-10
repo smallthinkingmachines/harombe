@@ -15,13 +15,12 @@ repos:
       - id: ruff-format
         exclude: ^examples/sample_code/
 
-  # Mypy - Type checking (advisory only, non-blocking)
-  # Many dependencies lack type stubs (httpx, fastapi, openai, etc.)
+  # Mypy - Type checking (blocking)
   - repo: local
     hooks:
       - id: mypy
         name: mypy
-        entry: bash -c 'mypy src || true'
+        entry: bash -c 'mypy src'
         language: system
         types: [python]
         pass_filenames: false

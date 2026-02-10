@@ -323,7 +323,7 @@ class SoftwareTPM(TPMBackend):
             raise ValueError(f"Algorithm {algorithm.value} does not support signing")
 
         logger.debug(f"Signed data with key {key_handle.key_id}")
-        return signature
+        return bytes(signature)
 
     async def verify(self, key_handle: TPMKeyHandle, data: bytes, signature: bytes) -> bool:
         """Verify a signature using an RSA or ECDSA key.
@@ -397,6 +397,7 @@ class SoftwareTPM(TPMBackend):
         self._ensure_initialized()
 
         nonce = os.urandom(12)
+        assert self._master_seal_key is not None
         aesgcm = AESGCM(self._master_seal_key)
 
         # AES-GCM appends the tag to the ciphertext
@@ -434,6 +435,7 @@ class SoftwareTPM(TPMBackend):
         """
         self._ensure_initialized()
 
+        assert self._master_seal_key is not None
         aesgcm = AESGCM(self._master_seal_key)
 
         # Reconstruct ciphertext + tag for AESGCM

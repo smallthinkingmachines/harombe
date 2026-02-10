@@ -109,11 +109,14 @@ class SmartEscalation(PatternBase):
 
         if confidence >= self.confidence_threshold:
             self.metrics.record_request(target="local", latency_ms=self._elapsed_ms(start))
-            return local_response
+            result: CompletionResponse = local_response
+            return result
 
         # Escalate to cloud
         self.metrics.record_escalation()
-        cloud_response = await self.cloud_client.complete(messages, tools, temperature, max_tokens)
+        cloud_response: CompletionResponse = await self.cloud_client.complete(
+            messages, tools, temperature, max_tokens
+        )
         self.metrics.record_request(target="cloud", latency_ms=self._elapsed_ms(start))
         return cloud_response
 

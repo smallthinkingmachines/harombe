@@ -394,7 +394,7 @@ class TrafficAnomalyDetector:
         ml_score = self._ml_detect(connection, source)
 
         # Combine scores: 60% statistical, 40% ML
-        stat_score = np.mean(list(deviation_scores.values())) if deviation_scores else 0.0
+        stat_score = float(np.mean(list(deviation_scores.values()))) if deviation_scores else 0.0
         combined_score = float(min(1.0, 0.6 * stat_score + 0.4 * ml_score))
 
         is_anomaly = combined_score > self.anomaly_threshold

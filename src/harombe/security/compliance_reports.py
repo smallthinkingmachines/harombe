@@ -1110,8 +1110,9 @@ def _check_breach_notification(data: dict[str, Any]) -> tuple[ControlStatus, lis
     if breach_indicator_count > 0:
         findings.append(
             Finding(
+                title="Breach indicator events detected",
                 severity="info",
-                message=f"{breach_indicator_count} security error events detected for breach assessment",
+                description=f"{breach_indicator_count} security error events detected for breach assessment",
             )
         )
 

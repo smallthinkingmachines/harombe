@@ -34,7 +34,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .audit_logger import AuditLogger, SecurityDecision
+from .audit_db import SecurityDecision
+from .audit_logger import AuditLogger
 
 logger = logging.getLogger(__name__)
 
@@ -299,7 +300,7 @@ class DNSResolver:
             import socket
 
             result = socket.getaddrinfo(domain, None)
-            ips = list({addr[4][0] for addr in result})
+            ips = list({str(addr[4][0]) for addr in result})
             return ips
         except Exception as e:
             logger.error(f"Basic DNS resolution failed for {domain}: {e}")
@@ -721,7 +722,7 @@ class NetworkIsolationManager:
             try:
                 import docker
 
-                self._docker = docker.from_env()
+                self._docker = docker.from_env()  # type: ignore[attr-defined]
                 logger.info("Connected to Docker daemon for network management")
             except ImportError as e:
                 msg = "Docker SDK not installed. Install with: pip install 'harombe[docker]'"

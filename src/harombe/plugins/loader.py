@@ -10,9 +10,11 @@ Uses _TOOLS dict diffing to capture which tools a plugin registers.
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 from harombe.plugins.manifest import LoadedPlugin, PluginManifest, PluginPermissions
 from harombe.tools.registry import _TOOLS
@@ -33,7 +35,7 @@ class PluginLoader:
         self._plugins: dict[str, LoadedPlugin] = {}
         self._container_manager = None
 
-    def set_container_manager(self, manager) -> None:
+    def set_container_manager(self, manager: Any) -> None:
         """Set the container manager for container-isolated plugins.
 
         Args:
@@ -62,12 +64,12 @@ class PluginLoader:
             if sys.version_info >= (3, 12):
                 from importlib.metadata import entry_points
 
-                eps = entry_points(group="harombe.plugins")
+                eps: Any = entry_points(group="harombe.plugins")
             else:
                 from importlib.metadata import entry_points
 
                 all_eps = entry_points()
-                eps = all_eps.get("harombe.plugins", [])
+                eps: Any = all_eps.get("harombe.plugins", [])
         except Exception:
             logger.debug("No entry points found for harombe.plugins")
             return
@@ -79,7 +81,7 @@ class PluginLoader:
 
             self._load_entry_point(ep)
 
-    def _load_entry_point(self, ep) -> None:
+    def _load_entry_point(self, ep: Any) -> None:
         """Load a single entry point plugin."""
         # Snapshot current tools
         before = set(_TOOLS.keys())
@@ -323,13 +325,16 @@ class PluginLoader:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 # We're inside an async context; store reference to track the task
-                task = asyncio.ensure_future(self._container_manager.start_plugin(config))
-                task.add_done_callback(lambda t: t.result() if not t.cancelled() else None)
+                if self._container_manager is not None:
+                    task = asyncio.ensure_future(self._container_manager.start_plugin(config))
+                    task.add_done_callback(lambda t: t.result() if not t.cancelled() else None)
             else:
-                loop.run_until_complete(self._container_manager.start_plugin(config))
+                if self._container_manager is not None:
+                    loop.run_until_complete(self._container_manager.start_plugin(config))
         except RuntimeError:
             # No event loop; create one
-            asyncio.run(self._container_manager.start_plugin(config))
+            if self._container_manager is not None:
+                asyncio.run(self._container_manager.start_plugin(config))
 
         plugin = LoadedPlugin(
             manifest=manifest,
@@ -345,7 +350,7 @@ class PluginLoader:
         return plugin
 
 
-def _parse_permissions(data: dict) -> PluginPermissions:
+def _parse_permissions(data: dict[str, Any]) -> PluginPermissions:
     """Parse permissions dict into PluginPermissions."""
     return PluginPermissions(
         network_domains=data.get("network_domains", []),

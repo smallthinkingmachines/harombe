@@ -117,7 +117,7 @@ class ContextAwareEngine:
         self.auto_approval_engine = AutoApprovalEngine(trust_manager, risk_scorer)
 
         # Statistics
-        self.stats = {
+        self.stats: dict[str, Any] = {
             "total_decisions": 0,
             "auto_approved": 0,
             "require_approval": 0,
@@ -181,7 +181,7 @@ class ContextAwareEngine:
 
         # Step 2: Check for anomalies
         anomaly_result = None
-        if self.enable_anomaly_detection:
+        if self.enable_anomaly_detection and self.anomaly_detector is not None:
             components_evaluated.append("anomaly_detection")
             event = self._operation_to_event(operation, user_id, context)
             anomaly_result = self.anomaly_detector.detect(user_id, event)
@@ -212,7 +212,7 @@ class ContextAwareEngine:
 
         # Step 3: Score threat level
         threat_score = None
-        if self.enable_threat_scoring:
+        if self.enable_threat_scoring and self.threat_scorer is not None:
             components_evaluated.append("threat_scoring")
             event = self._operation_to_event(operation, user_id, context)
             threat_score = await self.threat_scorer.score_event(user_id, event)
@@ -273,7 +273,7 @@ class ContextAwareEngine:
         self.stats["require_approval"] += 1
 
         # Gather context for explanation
-        metadata = {}
+        metadata: dict[str, Any] = {}
         reason_parts = []
 
         if anomaly_result:

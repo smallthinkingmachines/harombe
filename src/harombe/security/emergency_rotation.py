@@ -233,7 +233,7 @@ class EmergencyRotationTrigger:
             return [event.metadata["secret_path"]]
 
         if "secret_paths" in event.metadata:
-            return event.metadata["secret_paths"]
+            return list(event.metadata["secret_paths"])
 
         # Try to infer from event type
         if (

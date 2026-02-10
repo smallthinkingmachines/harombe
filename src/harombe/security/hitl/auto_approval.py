@@ -160,7 +160,7 @@ class AutoApprovalEngine:
         self.rules.sort(key=lambda r: r.priority, reverse=True)
 
         # Statistics
-        self.stats = {
+        self.stats: dict[str, Any] = {
             "total_evaluations": 0,
             "auto_approved": 0,
             "required_approval": 0,

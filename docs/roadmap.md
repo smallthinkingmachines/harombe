@@ -139,6 +139,10 @@
 - Zero-knowledge proof support — Integrated with audit pipeline for privacy-preserving compliance proofs
 - Distributed cryptography primitives — _Shamir secret sharing and MPC implemented; requires security audit_
 
+## Code Quality
+
+- **Mypy strict mode** (Complete): Zero errors across 155 source files with `strict = true`, enforced as a blocking check in CI and pre-commit
+
 ## Documentation
 
 - [Security Quick Start](security-quickstart.md)

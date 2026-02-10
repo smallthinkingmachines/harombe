@@ -13,7 +13,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from harombe.channels.base import ChannelMessage
 
@@ -39,7 +39,7 @@ class DiscordAdapter:
         """
         self.bot_token = bot_token
         self.agent = agent
-        self._client = None
+        self._client: Any = None
 
     async def start(self) -> None:
         """Start the Discord bot."""
@@ -54,12 +54,12 @@ class DiscordAdapter:
         intents.message_content = True
         self._client = discord.Client(intents=intents)
 
-        @self._client.event
-        async def on_ready():
+        @self._client.event  # type: ignore
+        async def on_ready() -> None:
             logger.info("Discord bot connected as %s", self._client.user)
 
-        @self._client.event
-        async def on_message(message):
+        @self._client.event  # type: ignore
+        async def on_message(message: Any) -> None:
             # Don't respond to ourselves
             if message.author == self._client.user:
                 return

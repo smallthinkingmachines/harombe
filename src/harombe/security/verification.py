@@ -191,7 +191,7 @@ class RotationVerificationTester:
 
         error = None if all_passed else f"{failed_tests} of {total_tests} tests failed"
 
-        result = VerificationResult(
+        verification_result = VerificationResult(
             success=all_passed,
             tests=results,
             total_tests=total_tests,
@@ -201,8 +201,8 @@ class RotationVerificationTester:
             error=error,
         )
 
-        logger.info(f"Verification result: {result}")
-        return result
+        logger.info(f"Verification result: {verification_result}")
+        return verification_result
 
 
 # Built-in Verification Tests

@@ -52,7 +52,7 @@ class ThreatScore:
 class ThreatRuleEngine:
     """Rule-based threat detection engine."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize rule engine."""
         self.rules = self._load_rules()
 

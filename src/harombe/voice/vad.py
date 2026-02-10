@@ -203,4 +203,4 @@ class VoiceActivityDetector:
         sum_sq = sum(s * s for s in samples)
         rms = (sum_sq / n_samples) ** 0.5 / 32768.0
 
-        return rms >= self._config.energy_threshold
+        return bool(rms >= self._config.energy_threshold)

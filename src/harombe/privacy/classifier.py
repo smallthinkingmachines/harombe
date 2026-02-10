@@ -18,7 +18,7 @@ from .models import PIIEntity, SensitivityLevel, SensitivityResult
 class SensitivityClassifier:
     """Classifies text sensitivity for privacy-aware routing."""
 
-    PII_PATTERNS: ClassVar[dict[str, re.Pattern]] = {
+    PII_PATTERNS: ClassVar[dict[str, re.Pattern[str]]] = {
         "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
         "phone": re.compile(r"\b(?:\+1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
         "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
@@ -127,17 +127,17 @@ class SensitivityClassifier:
 
         # 3. Scan for PII patterns
         for pii_type, pattern in self._pii_patterns.items():
-            for match in pattern.finditer(text_to_scan):
+            for pii_match in pattern.finditer(text_to_scan):
                 entities.append(
                     PIIEntity(
                         type=pii_type,
-                        value=match.group(0),
-                        start=match.start(),
-                        end=match.end(),
+                        value=pii_match.group(0),
+                        start=pii_match.start(),
+                        end=pii_match.end(),
                         confidence=0.9,
                     )
                 )
-                pii_locations.append((match.start(), match.end()))
+                pii_locations.append((pii_match.start(), pii_match.end()))
                 reasons.append(f"PII detected: {pii_type}")
 
         # Determine level based on findings

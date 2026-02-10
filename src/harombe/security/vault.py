@@ -142,12 +142,14 @@ class HashiCorpVault(VaultBackend):
             timeout=30.0,
         )
 
-        self._renewal_task: asyncio.Task | None = None
+        self._renewal_task: asyncio.Task[None] | None = None
         self._token_ttl: int | None = None
 
     def _get_headers(self) -> dict[str, str]:
         """Get HTTP headers for Vault requests."""
-        headers = {"X-Vault-Token": self.vault_token}
+        headers: dict[str, str] = {}
+        if self.vault_token:
+            headers["X-Vault-Token"] = self.vault_token
         if self.vault_namespace:
             headers["X-Vault-Namespace"] = self.vault_namespace
         return headers
@@ -219,9 +221,9 @@ class HashiCorpVault(VaultBackend):
 
             # Return the "value" field if it exists, otherwise return first value
             if "value" in secret_data:
-                return secret_data["value"]
+                return str(secret_data["value"])
             elif secret_data:
-                return next(iter(secret_data.values()))
+                return str(next(iter(secret_data.values())))
 
             return None
 
@@ -283,7 +285,8 @@ class HashiCorpVault(VaultBackend):
             raise ValueError(f"Failed to list secrets: {response.status_code}")
 
         data = response.json()
-        return data.get("data", {}).get("keys", [])
+        keys: list[str] = data.get("data", {}).get("keys", [])
+        return keys
 
     async def rotate_secret(self, key: str) -> None:
         """Rotate a secret by creating a new version.

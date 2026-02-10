@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -17,11 +17,17 @@ from harombe.config.loader import load_config
 from harombe.privacy.router import PrivacyRouter, create_privacy_router
 from harombe.tools.registry import get_enabled_tools_v2
 
+if TYPE_CHECKING:
+    from harombe.config.schema import HarombeConfig
+    from harombe.llm.client import LLMClient
+    from harombe.mcp.manager import MCPManager
+    from harombe.tools.base import Tool
+
 console = Console()
 logger = logging.getLogger(__name__)
 
 
-def chat_command(config_path: str | None = None):
+def chat_command(config_path: str | None = None) -> None:
     """Start interactive chat session.
 
     Args:
@@ -50,7 +56,7 @@ def chat_command(config_path: str | None = None):
     asyncio.run(_async_chat(config))
 
 
-async def _async_chat(config):
+async def _async_chat(config: HarombeConfig) -> None:
     """Async chat loop.
 
     Args:
@@ -73,7 +79,7 @@ async def _async_chat(config):
 
     # Wire up delegation if enabled
     if config.delegation.enabled and config.agents:
-        delegation_tool = _create_delegation(config, llm)
+        delegation_tool = _create_delegation(config, llm)  # type: ignore[arg-type]
         if delegation_tool:
             tools.append(delegation_tool)
 
@@ -93,7 +99,7 @@ async def _async_chat(config):
 
     # Create agent
     agent = Agent(
-        llm=llm,
+        llm=llm,  # type: ignore[arg-type]
         tools=tools,
         max_steps=config.agent.max_steps,
         system_prompt=config.agent.system_prompt,
@@ -113,7 +119,7 @@ async def _async_chat(config):
 
             # Handle slash commands
             if user_input.startswith("/"):
-                if _handle_slash_command(user_input, config, llm):
+                if _handle_slash_command(user_input, config, llm):  # type: ignore[arg-type]
                     break  # Exit if command returns True
                 continue
 
@@ -135,7 +141,7 @@ async def _async_chat(config):
     console.print("\n[cyan]Goodbye![/cyan]")
 
 
-def _load_plugins(config) -> None:
+def _load_plugins(config: HarombeConfig) -> None:
     """Load plugins based on configuration."""
     from harombe.plugins.loader import PluginLoader
     from harombe.plugins.sandbox import apply_plugin_permissions
@@ -164,7 +170,7 @@ def _load_plugins(config) -> None:
         logger.info("Loaded %d plugins with %d tools", len(loaded), total_tools)
 
 
-def _create_delegation(config, llm):
+def _create_delegation(config: HarombeConfig, llm: LLMClient) -> Tool | None:
     """Create delegation tool from config."""
     from harombe.agent.builder import build_agent_registry, create_root_delegation_context
     from harombe.tools.delegation import create_delegation_tool
@@ -179,7 +185,7 @@ def _create_delegation(config, llm):
     )
 
 
-async def _connect_mcp(config):
+async def _connect_mcp(config: HarombeConfig) -> MCPManager:
     """Connect to configured external MCP servers."""
     from harombe.mcp.manager import MCPManager
 
@@ -195,7 +201,9 @@ async def _connect_mcp(config):
     return manager
 
 
-def _handle_slash_command(command: str, config, llm=None) -> bool:
+def _handle_slash_command(
+    command: str, config: HarombeConfig, llm: LLMClient | None = None
+) -> bool:
     """Handle slash commands.
 
     Args:

@@ -245,7 +245,8 @@ class SecurityDashboard:
         cached = self.cache.get("current_metrics")
         if cached is not None:
             self.stats["cache_hits"] += 1
-            return cached
+            result: DashboardMetrics = cached
+            return result
 
         self.stats["cache_misses"] += 1
         start = time.perf_counter()
@@ -299,8 +300,7 @@ class SecurityDashboard:
         day_events_list = [
             e
             for e in all_events
-            if _parse_timestamp(e.get("timestamp"))
-            and _parse_timestamp(e.get("timestamp")) >= one_day_ago
+            if (ts := _parse_timestamp(e.get("timestamp"))) is not None and ts >= one_day_ago
         ]
         error_events = sum(1 for e in day_events_list if e.get("event_type") == "error")
         error_rate = (error_events / len(day_events_list) * 100) if day_events_list else 0.0
@@ -351,7 +351,8 @@ class SecurityDashboard:
         cached = self.cache.get(cache_key)
         if cached is not None:
             self.stats["cache_hits"] += 1
-            return cached
+            result: MetricTrend = cached
+            return result
 
         self.stats["cache_misses"] += 1
         trend = self._compute_trend(metric_name, hours)
@@ -378,8 +379,8 @@ class SecurityDashboard:
                     1
                     for e in events
                     if e.get("event_type") == "error"
-                    and _parse_timestamp(e.get("timestamp"))
-                    and start <= _parse_timestamp(e.get("timestamp")) < end
+                    and (ets := _parse_timestamp(e.get("timestamp"))) is not None
+                    and start <= ets < end
                 )
             elif metric_name == "denials":
                 decisions = stats.get("security_decisions", [])

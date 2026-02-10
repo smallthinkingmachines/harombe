@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
-from playwright.async_api import Browser, BrowserContext, Page, async_playwright
+from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
 
 from .vault import VaultBackend
 
@@ -74,7 +74,7 @@ class BrowserContainerManager:
         self.sessions: dict[str, BrowserSession] = {}
 
         # Playwright browser instance
-        self._playwright = None
+        self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._lock = asyncio.Lock()
 
@@ -211,11 +211,21 @@ class BrowserContainerManager:
             # Fetch credentials from vault
             # Vault path: secrets/browser/{domain}
             vault_path = f"browser/{domain}"
-            creds_data = await asyncio.to_thread(self.vault_backend.get_secret, vault_path)
+            raw_creds = await asyncio.to_thread(self.vault_backend.get_secret, vault_path)
 
-            if not creds_data:
+            if not raw_creds:
                 logger.info(f"No credentials found for domain {domain}")
                 return False
+
+            # Parse credentials - vault may return dict or JSON string
+            import json
+
+            if isinstance(raw_creds, dict):
+                creds_data: dict[str, Any] = raw_creds
+            elif isinstance(raw_creds, str):
+                creds_data = json.loads(raw_creds)
+            else:
+                creds_data = {}
 
             # Parse credentials
             credentials = BrowserCredentials(
@@ -229,13 +239,15 @@ class BrowserContainerManager:
             logger.info(f"Injecting credentials for {domain} into session {session_id}")
 
             # Inject cookies
-            if credentials.cookies:
-                await session.context.add_cookies(credentials.cookies)
+            if credentials.cookies and session.context is not None:
+                await session.context.add_cookies(credentials.cookies)  # type: ignore[arg-type]
                 logger.debug(f"Injected {len(credentials.cookies)} cookies")
 
             # Inject localStorage and sessionStorage
             # Must navigate to domain first
             if credentials.local_storage or credentials.session_storage:
+                if session.page is None:
+                    raise ValueError(f"Session {session_id} has no active page")
                 # Navigate to domain root to set storage
                 await session.page.goto(f"https://{domain}")
 
@@ -370,23 +382,30 @@ class BrowserContainerManager:
         """
         session = self._get_session(session_id)
 
+        if session.page is None:
+            raise ValueError(f"Session {session_id} has no active page")
+
         try:
             # Navigate
-            await session.page.goto(url, wait_until=wait_for)
+            page = session.page
+            await page.goto(
+                url,
+                wait_until=wait_for,  # type: ignore[arg-type]
+            )
 
             # Update session activity
             session.last_activity = time.time()
             session.action_count += 1
 
             # Get accessibility snapshot
-            snapshot = await self._get_accessibility_snapshot(session.page)
+            snapshot = await self._get_accessibility_snapshot(page)
 
             logger.info(f"Navigated to {url} in session {session_id}")
 
             return {
                 "success": True,
-                "url": session.page.url,
-                "title": await session.page.title(),
+                "url": page.url,
+                "title": await page.title(),
                 "snapshot": snapshot,
             }
 
@@ -406,14 +425,29 @@ class BrowserContainerManager:
             Accessibility tree snapshot
         """
         try:
-            # Get accessibility snapshot
-            snapshot = await page.accessibility.snapshot()
+            # Get accessibility snapshot via aria_snapshot on the document body
+            snapshot_result: dict[str, Any] | None = await page.evaluate(
+                """() => {
+                    function buildTree(el) {
+                        const role = el.getAttribute('role') || el.tagName.toLowerCase();
+                        const name = el.getAttribute('aria-label') || el.textContent?.slice(0, 100) || '';
+                        const node = { role, name };
+                        const children = [];
+                        for (const child of el.children) {
+                            children.push(buildTree(child));
+                        }
+                        if (children.length > 0) node.children = children;
+                        return node;
+                    }
+                    return buildTree(document.body);
+                }"""
+            )
 
             # Filter sensitive elements (password inputs)
-            if snapshot:
-                snapshot = self._filter_sensitive_elements(snapshot)
+            if snapshot_result:
+                snapshot_result = self._filter_sensitive_elements(snapshot_result)
 
-            return snapshot or {}
+            return snapshot_result or {}
 
         except Exception as e:
             logger.error(f"Failed to get accessibility snapshot: {e}")

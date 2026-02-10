@@ -75,7 +75,7 @@ class BaselineLearner:
         std_resources = np.std(resource_counts) if resource_counts else 0.0
 
         # Compute event type distribution
-        event_type_freq = defaultdict(int)
+        event_type_freq: defaultdict[str, int] = defaultdict(int)
         for et in event_types:
             event_type_freq[et] += 1
         total_events = len(event_types)

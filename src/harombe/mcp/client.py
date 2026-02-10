@@ -73,6 +73,7 @@ class MCPServerConnection:
 
     async def _connect_stdio(self) -> None:
         """Connect via stdio transport."""
+        assert self.command is not None, "command is required for stdio transport"
         server_params = StdioServerParameters(
             command=self.command,
             args=self.args,
@@ -91,6 +92,7 @@ class MCPServerConnection:
 
     async def _connect_http(self) -> None:
         """Connect via HTTP transport."""
+        assert self.url is not None, "url is required for HTTP transport"
         cm = streamablehttp_client(self.url)
         read_stream, write_stream, _ = await cm.__aenter__()
         self._context_managers.append(cm)

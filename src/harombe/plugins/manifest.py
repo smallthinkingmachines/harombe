@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -18,7 +19,7 @@ class PluginPermissions:
     shell: bool = False
     dangerous: bool = False
     container_enabled: bool = False
-    resource_limits: dict | None = None
+    resource_limits: dict[str, Any] | None = None
 
 
 @dataclass

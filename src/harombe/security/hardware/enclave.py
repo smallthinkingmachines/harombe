@@ -522,7 +522,8 @@ class EnclaveManager:
         if config.enclave_id is None:
             config = config.model_copy(update={"enclave_id": str(uuid.uuid4())})
 
-        enclave_id = config.enclave_id  # type: ignore[assignment]
+        assert config.enclave_id is not None
+        enclave_id: str = config.enclave_id
         backend = self._backend_class()
         await backend.initialize(config)
         self._enclaves[enclave_id] = backend

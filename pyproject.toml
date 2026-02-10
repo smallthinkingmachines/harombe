@@ -149,6 +149,38 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 
+[[tool.mypy.overrides]]
+module = [
+    "docker.*",
+    "chromadb.*",
+    "sklearn.*",
+    "joblib.*",
+    "faster_whisper.*",
+    "piper.*",
+    "sounddevice.*",
+    "pynput.*",
+    "sentence_transformers.*",
+    "TTS.*",
+    "discord.*",
+    "slack_bolt.*",
+    "dns.*",
+    "anthropic.*",
+    "boto3.*",
+    "zeroconf.*",
+    "scipy.*",
+]
+ignore_missing_imports = true
+
+# These modules use decorators whose mypy error code differs between
+# environments (misc vs untyped-decorator depending on installed stubs).
+[[tool.mypy.overrides]]
+module = [
+    "harombe.channels.slack",
+    "harombe.channels.discord",
+    "harombe.mcp.server",
+]
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

@@ -212,6 +212,7 @@ class SandboxManager:
         max_memory_mb = max_memory_mb or self.max_memory_mb
 
         # Write code to workspace
+        assert sandbox.workspace_path is not None, "Sandbox workspace not initialized"
         code_file = self._get_code_filename(sandbox.language)
         code_path = Path(sandbox.workspace_path) / code_file
         code_path.write_text(code)
@@ -339,6 +340,7 @@ class SandboxManager:
             )
 
         # Create container configuration
+        assert sandbox.workspace_path is not None, "Sandbox workspace not initialized"
         container_config = {
             "image": self._images[sandbox.language],
             "runtime": self.runtime,
@@ -403,6 +405,7 @@ class SandboxManager:
 
         try:
             # Ensure path is relative and within workspace
+            assert sandbox.workspace_path is not None, "Sandbox workspace not initialized"
             clean_path = self._sanitize_path(file_path)
             full_path = Path(sandbox.workspace_path) / clean_path
 
@@ -445,6 +448,7 @@ class SandboxManager:
 
         try:
             # Ensure path is relative and within workspace
+            assert sandbox.workspace_path is not None, "Sandbox workspace not initialized"
             clean_path = self._sanitize_path(file_path)
             full_path = Path(sandbox.workspace_path) / clean_path
 
@@ -491,12 +495,15 @@ class SandboxManager:
 
         try:
             # Ensure path is relative and within workspace
+            assert sandbox.workspace_path is not None, "Sandbox workspace not initialized"
             clean_path = self._sanitize_path(path)
             full_path = Path(sandbox.workspace_path) / clean_path
 
             # List files
             if full_path.is_dir():
-                files = [str(p.relative_to(sandbox.workspace_path)) for p in full_path.iterdir()]
+                files = [
+                    str(p.relative_to(Path(sandbox.workspace_path))) for p in full_path.iterdir()
+                ]
             else:
                 return FileResult(
                     success=False,

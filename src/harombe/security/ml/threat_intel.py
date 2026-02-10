@@ -167,7 +167,7 @@ class AbuseIPDBFeed(ThreatFeed):
                 data = response.json()
                 # AbuseIPDB returns abuse confidence (0-100)
                 abuse_score = data.get("data", {}).get("abuseConfidenceScore", 0)
-                return min(abuse_score / 100.0, 1.0)
+                return float(min(abuse_score / 100.0, 1.0))
             else:
                 logger.warning(f"AbuseIPDB lookup failed: {response.status_code} - {response.text}")
                 return 0.0
@@ -224,7 +224,7 @@ class VirusTotalFeed(ThreatFeed):
                 total = sum(stats.values())
 
                 if total > 0:
-                    return min(malicious / total, 1.0)
+                    return float(min(malicious / total, 1.0))
                 return 0.0
             else:
                 logger.warning(f"VirusTotal IP lookup failed: {response.status_code}")
@@ -262,7 +262,7 @@ class VirusTotalFeed(ThreatFeed):
                 total = sum(stats.values())
 
                 if total > 0:
-                    return min((malicious + suspicious * 0.5) / total, 1.0)
+                    return float(min((malicious + suspicious * 0.5) / total, 1.0))
                 return 0.0
             else:
                 logger.warning(f"VirusTotal domain lookup failed: {response.status_code}")
@@ -299,7 +299,7 @@ class VirusTotalFeed(ThreatFeed):
                 total = sum(stats.values())
 
                 if total > 0:
-                    return min(malicious / total, 1.0)
+                    return float(min(malicious / total, 1.0))
                 return 0.0
             else:
                 logger.warning(f"VirusTotal hash lookup failed: {response.status_code}")
@@ -348,7 +348,7 @@ class AlienVaultOTXFeed(ThreatFeed):
                 threat_score = reputation.get("threat_score", 0)
 
                 # Normalize to 0-1 (OTX scores are typically 0-7)
-                return min(threat_score / 7.0, 1.0)
+                return float(min(threat_score / 7.0, 1.0))
             else:
                 logger.warning(f"AlienVault OTX IP lookup failed: {response.status_code}")
                 return 0.0
@@ -382,7 +382,7 @@ class AlienVaultOTXFeed(ThreatFeed):
                 reputation = data.get("reputation", {})
                 threat_score = reputation.get("threat_score", 0)
 
-                return min(threat_score / 7.0, 1.0)
+                return float(min(threat_score / 7.0, 1.0))
             else:
                 logger.warning(f"AlienVault OTX domain lookup failed: {response.status_code}")
                 return 0.0

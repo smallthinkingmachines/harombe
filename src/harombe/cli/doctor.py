@@ -17,7 +17,7 @@ from harombe.hardware.detect import (
 console = Console()
 
 
-def doctor_command():
+def doctor_command() -> None:
     """Run system health checks."""
     console.print(
         Panel.fit(
@@ -29,7 +29,7 @@ def doctor_command():
     asyncio.run(_async_doctor())
 
 
-async def _async_doctor():
+async def _async_doctor() -> None:
     """Async doctor logic."""
     issues = []
     warnings = []

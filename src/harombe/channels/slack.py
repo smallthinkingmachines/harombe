@@ -14,7 +14,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from harombe.channels.base import ChannelMessage
 
@@ -43,8 +43,8 @@ class SlackAdapter:
         self.bot_token = bot_token
         self.app_token = app_token
         self.agent = agent
-        self._app = None
-        self._handler = None
+        self._app: Any = None
+        self._handler: Any = None
 
     async def start(self) -> None:
         """Start listening for Slack messages via Socket Mode."""
@@ -58,12 +58,12 @@ class SlackAdapter:
 
         self._app = AsyncApp(token=self.bot_token)
 
-        @self._app.event("app_mention")
-        async def handle_mention(event, say):
+        @self._app.event("app_mention")  # type: ignore
+        async def handle_mention(event: dict[str, Any], say: Any) -> None:
             await self._handle_message(event, say)
 
-        @self._app.event("message")
-        async def handle_dm(event, say):
+        @self._app.event("message")  # type: ignore
+        async def handle_dm(event: dict[str, Any], say: Any) -> None:
             # Only respond to DMs (no subtype means it's a regular message)
             if event.get("channel_type") == "im" and "subtype" not in event:
                 await self._handle_message(event, say)
@@ -77,7 +77,7 @@ class SlackAdapter:
         if self._handler:
             await self._handler.close_async()
 
-    async def _handle_message(self, event: dict, say) -> None:
+    async def _handle_message(self, event: dict[str, Any], say: Any) -> None:
         """Process an incoming Slack message."""
         text = event.get("text", "").strip()
         user_id = event.get("user", "unknown")

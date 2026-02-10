@@ -58,7 +58,7 @@ class MetricsResponse(BaseModel):
     cluster_summary: dict[str, Any]
 
 
-def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
+def create_router(config: HarombeConfig, cluster_manager: Any = None) -> APIRouter:
     """Create API router with configured agent.
 
     Args:
@@ -86,7 +86,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
 
     # Create agent (no dangerous tool confirmation in server mode)
     agent = Agent(
-        llm=llm,
+        llm=llm,  # type: ignore[arg-type]
         tools=tools,
         max_steps=config.agent.max_steps,
         system_prompt=config.agent.system_prompt,
@@ -94,7 +94,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
     )
 
     @router.get("/health", response_model=HealthResponse)
-    async def health():
+    async def health() -> HealthResponse:
         """Health check endpoint."""
         from harombe import __version__
 
@@ -105,7 +105,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
         )
 
     @router.post("/chat", response_model=ChatResponse)
-    async def chat(request: ChatRequest):
+    async def chat(request: ChatRequest) -> ChatResponse:
         """Chat endpoint - non-streaming version.
 
         Args:
@@ -121,7 +121,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     @router.post("/chat/stream")
-    async def chat_stream(request: ChatRequest):
+    async def chat_stream(request: ChatRequest) -> EventSourceResponse:
         """Chat endpoint - Server-Sent Events streaming version.
 
         Args:
@@ -131,7 +131,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             SSE stream of response chunks
         """
 
-        async def event_generator():
+        async def event_generator() -> Any:
             """Generate SSE events."""
             try:
                 # For now, just run normally and yield the full response
@@ -158,7 +158,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
         return EventSourceResponse(event_generator())
 
     @router.post("/api/complete", response_model=CompletionResponse)
-    async def complete(request: CompletionRequest):
+    async def complete(request: CompletionRequest) -> CompletionResponse:
         """
         Completion endpoint for remote LLM clients.
 
@@ -195,7 +195,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             # Call LLM
             response = await llm.complete(
                 messages=messages,
-                tools=tools_schemas,
+                tools=tools_schemas,  # type: ignore[arg-type]
                 temperature=request.temperature,
             )
 
@@ -220,7 +220,7 @@ def create_router(config: HarombeConfig, cluster_manager=None) -> APIRouter:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     @router.get("/metrics", response_model=MetricsResponse)
-    async def get_metrics():
+    async def get_metrics() -> MetricsResponse:
         """
         Get cluster performance metrics.
 

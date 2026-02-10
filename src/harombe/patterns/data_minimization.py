@@ -101,9 +101,11 @@ class DataMinimization(PatternBase):
 
         if len(sentences) <= 1:
             # Nothing to minimize, send directly to cloud
-            resp = await self.cloud_client.complete(messages, tools, temperature, max_tokens)
+            result: CompletionResponse = await self.cloud_client.complete(
+                messages, tools, temperature, max_tokens
+            )
             self.metrics.record_request(target="cloud", latency_ms=self._elapsed_ms(start))
-            return resp
+            return result
 
         # Ask local model to classify
         numbered = "\n".join(f"{i+1}: {s}" for i, s in enumerate(sentences))
@@ -122,9 +124,9 @@ class DataMinimization(PatternBase):
 
         if not kept:
             # If everything got filtered, fall back to local
-            resp = await self.local_client.complete(messages, tools, temperature, max_tokens)
+            result = await self.local_client.complete(messages, tools, temperature, max_tokens)
             self.metrics.record_request(target="local", latency_ms=self._elapsed_ms(start))
-            return resp
+            return result
 
         # Rebuild messages with filtered content
         minimized_query = " ".join(kept)
@@ -141,9 +143,11 @@ class DataMinimization(PatternBase):
             for msg in messages
         ]
 
-        resp = await self.cloud_client.complete(minimized_messages, tools, temperature, max_tokens)
+        result = await self.cloud_client.complete(
+            minimized_messages, tools, temperature, max_tokens
+        )
         self.metrics.record_request(target="cloud", latency_ms=self._elapsed_ms(start))
-        return resp
+        return result
 
     async def stream_complete(
         self,

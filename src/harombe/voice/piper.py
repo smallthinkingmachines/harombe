@@ -48,7 +48,7 @@ class PiperTTS(TTSEngine):
             return
 
         try:
-            from piper.voice import PiperVoice  # type: ignore[import-not-found]
+            from piper.voice import PiperVoice
         except ImportError as e:
             msg = "piper-tts not installed. Install with: " "pip install piper-tts"
             raise ImportError(msg) from e
@@ -120,7 +120,7 @@ class PiperTTS(TTSEngine):
 
     def _adjust_speed(self, audio: Any, speed: float) -> Any:
         """Adjust audio speed (simple resampling)."""
-        import numpy as np  # type: ignore[import-not-found]
+        import numpy as np
 
         if speed == 1.0:
             return audio

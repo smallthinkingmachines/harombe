@@ -41,6 +41,7 @@ import os
 import uuid
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -48,7 +49,7 @@ from pydantic import BaseModel, Field
 
 from harombe.security.hardware.attestation import AttestationVerifier
 from harombe.security.hardware.enclave import EnclaveManager
-from harombe.security.hardware.tpm import TPMBackend, TPMKeyManager
+from harombe.security.hardware.tpm import TPMBackend, TPMKeyManager, TPMSealedData
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ class KeyNode(BaseModel):
     parent_id: str | None = None
     depth: int = 0
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     derived_key: bytes | None = Field(default=None, exclude=True)
 
 
@@ -118,7 +119,7 @@ class HardwareKeyHierarchy:
         self._tpm = tpm
         self._nodes: dict[str, KeyNode] = {}
         self._root_id: str | None = None
-        self._sealed_data = None
+        self._sealed_data: TPMSealedData | None = None
 
     async def initialize(self, master_secret: bytes | None = None) -> None:
         """Create or unseal the master (root) key.
@@ -347,7 +348,7 @@ class HardwareKeyHierarchy:
         logger.info(f"Revoked {len(revoked)} keys starting from {key_id}")
         return revoked
 
-    def export_hierarchy(self) -> dict:
+    def export_hierarchy(self) -> dict[str, Any]:
         """Export the tree structure without derived key material.
 
         Returns:
@@ -386,7 +387,7 @@ class HardwareKeyHierarchy:
         return len(self._nodes)
 
 
-def create_hardware_security() -> dict:
+def create_hardware_security() -> dict[str, Any]:
     """Factory function to create a complete hardware security stack.
 
     Creates and returns instances of all hardware security components:

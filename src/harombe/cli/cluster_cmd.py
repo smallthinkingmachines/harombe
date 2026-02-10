@@ -12,7 +12,7 @@ from harombe.coordination.cluster import ClusterManager, NodeStatus
 console = Console()
 
 
-def cluster_init_command():
+def cluster_init_command() -> None:
     """Generate cluster configuration template."""
     console.print("[bold]Initializing cluster configuration...[/bold]\n")
 
@@ -79,7 +79,7 @@ cluster:
     console.print(f"Config location: [cyan]{DEFAULT_CONFIG_PATH}[/cyan]")
 
 
-async def _async_status(config_path: str | None = None):
+async def _async_status(config_path: str | None = None) -> None:
     """Async implementation of cluster status check."""
     if config_path:
         config = load_config(Path(config_path))
@@ -150,12 +150,12 @@ async def _async_status(config_path: str | None = None):
     await cluster.close()
 
 
-def cluster_status_command(config_path: str | None = None):
+def cluster_status_command(config_path: str | None = None) -> None:
     """Show cluster status and node health."""
     asyncio.run(_async_status(config_path))
 
 
-async def _async_test(config_path: str | None = None):
+async def _async_test(config_path: str | None = None) -> None:
     """Async implementation of cluster test."""
     if config_path:
         config = load_config(Path(config_path))
@@ -184,12 +184,12 @@ async def _async_test(config_path: str | None = None):
     await cluster.close()
 
 
-def cluster_test_command(config_path: str | None = None):
+def cluster_test_command(config_path: str | None = None) -> None:
     """Test connectivity to all cluster nodes."""
     asyncio.run(_async_test(config_path))
 
 
-async def _async_metrics(config_path: str | None = None, node: str | None = None):
+async def _async_metrics(config_path: str | None = None, node: str | None = None) -> None:
     """Async implementation of cluster metrics display."""
     if config_path:
         config = load_config(Path(config_path))
@@ -269,6 +269,6 @@ async def _async_metrics(config_path: str | None = None, node: str | None = None
     await cluster.close()
 
 
-def cluster_metrics_command(config_path: str | None = None, node: str | None = None):
+def cluster_metrics_command(config_path: str | None = None, node: str | None = None) -> None:
     """Show cluster performance metrics."""
     asyncio.run(_async_metrics(config_path, node))

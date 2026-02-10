@@ -291,6 +291,7 @@ class SoftwareHSM(HSMBackend):
             HSMKeyInfo with metadata about the generated key
         """
         key_id = str(uuid.uuid4())
+        private_key: Any = None
 
         if key_type == HSMKeyType.RSA_2048:
             private_key = rsa.generate_private_key(

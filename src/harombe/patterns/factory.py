@@ -85,6 +85,8 @@ def _build_pattern_kwargs(
     patterns_config = config.patterns
 
     # Determine local and cloud clients
+    local_client: Any
+    cloud_client: Any
     if isinstance(base_client, PrivacyRouter):
         local_client = base_client.local_client
         cloud_client = base_client.cloud_client

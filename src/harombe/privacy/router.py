@@ -10,7 +10,7 @@ from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from harombe.config import HarombeConfig
+    from harombe.config.schema import HarombeConfig
 
 from harombe.llm.anthropic import AnthropicClient
 from harombe.llm.client import CompletionResponse, Message
@@ -275,7 +275,7 @@ def create_privacy_router(config: "HarombeConfig") -> OllamaClient | PrivacyRout
 
     privacy_config = config.privacy
 
-    if privacy_config.mode == RoutingMode.LOCAL_ONLY:
+    if privacy_config.mode == RoutingMode.LOCAL_ONLY:  # type: ignore[comparison-overlap]
         return local_client
 
     # Get API key from environment

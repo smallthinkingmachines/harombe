@@ -8,6 +8,7 @@ import csv
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -85,7 +86,7 @@ def query_events(
         "-f",
         help="Output format (table, json, csv)",
     ),
-):
+) -> None:
     """Query audit events."""
     try:
         db = AuditDatabase(db_path=db_path, retention_days=0)  # Don't cleanup
@@ -171,7 +172,7 @@ def query_tools(
         "-f",
         help="Output format (table, json, csv)",
     ),
-):
+) -> None:
     """Query tool execution logs."""
     try:
         db = AuditDatabase(db_path=db_path, retention_days=0)
@@ -262,7 +263,7 @@ def query_security(
         "-f",
         help="Output format (table, json, csv)",
     ),
-):
+) -> None:
     """Query security decisions."""
     try:
         db = AuditDatabase(db_path=db_path, retention_days=0)
@@ -344,7 +345,7 @@ def stats(
         "-h",
         help="Only show stats from last N hours",
     ),
-):
+) -> None:
     """Show audit log statistics."""
     try:
         db = AuditDatabase(db_path=db_path, retention_days=0)
@@ -442,7 +443,7 @@ def export(
         "-f",
         help="Export format (json, csv)",
     ),
-):
+) -> None:
     """Export audit logs to file."""
     try:
         db = AuditDatabase(db_path=db_path, retention_days=0)
@@ -455,7 +456,7 @@ def export(
             start_time = end_time - timedelta(hours=hours)
 
         # Collect all data
-        events = []
+        events: list[dict[str, Any]] = []
         tool_calls = db.get_tool_calls(start_time=start_time, end_time=end_time, limit=100000)
         decisions = db.get_security_decisions(limit=100000)
 

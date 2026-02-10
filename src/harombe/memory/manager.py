@@ -42,7 +42,7 @@ class MemoryManager:
         self.semantic_search_enabled = embedding_client is not None and vector_store is not None
 
         # Track pending embedding tasks (for testing)
-        self._pending_tasks: list[asyncio.Task] = []
+        self._pending_tasks: list[asyncio.Task[None]] = []
 
     def create_session(
         self,

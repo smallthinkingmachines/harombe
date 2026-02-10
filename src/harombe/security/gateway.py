@@ -404,7 +404,7 @@ class MCPGateway:
                     operation = Operation(
                         tool_name=tool_name,
                         params=tool_params.arguments or {},
-                        correlation_id=correlation_id or mcp_request.id,
+                        correlation_id=str(correlation_id or mcp_request.id),
                         session_id=getattr(request.state, "session_id", None),
                         metadata={
                             "request_id": mcp_request.id,
@@ -420,15 +420,19 @@ class MCPGateway:
 
                     # Log HITL decision
                     if self.audit_logger and correlation_id:
+                        from .audit_db import SecurityDecision
+
                         self.audit_logger.log_security_decision(
                             correlation_id=correlation_id,
-                            decision="allow"
+                            decision_type="hitl",
+                            decision=SecurityDecision.ALLOW
                             if approval_decision.decision == ApprovalStatus.APPROVED
                             or approval_decision.decision == ApprovalStatus.AUTO_APPROVED
-                            else "deny",
+                            else SecurityDecision.DENY,
                             reason=approval_decision.reason
                             or f"HITL decision: {approval_decision.decision}",
-                            metadata={
+                            actor="agent",
+                            context={
                                 "approval_status": approval_decision.decision,
                                 "approval_user": approval_decision.user,
                                 "approval_timestamp": approval_decision.timestamp.isoformat(),
