@@ -1,13 +1,13 @@
 """Data models for ML-based threat detection."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class ThreatLevel(str, Enum):
+class ThreatLevel(StrEnum):
     """Threat severity levels."""
 
     NONE = "none"

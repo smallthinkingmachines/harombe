@@ -10,7 +10,7 @@ sensitive data leaves the machine before the filtering step.
 
 import re
 from collections.abc import AsyncIterator
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from harombe.llm.client import CompletionResponse, Message
@@ -19,7 +19,7 @@ from .base import PatternBase
 from .registry import register_pattern
 
 
-class SentenceCategory(str, Enum):
+class SentenceCategory(StrEnum):
     ESSENTIAL = "essential"
     CONTEXTUAL = "contextual"
     SENSITIVE = "sensitive"

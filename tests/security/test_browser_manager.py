@@ -203,7 +203,7 @@ class TestBrowserContainerManager:
         """Test closing nonexistent session raises error."""
         manager = BrowserContainerManager()
 
-        with pytest.raises(ValueError, match="Session .* not found"):
+        with pytest.raises(ValueError, match=r"Session .* not found"):
             await manager.close_session("nonexistent")
 
     @pytest.mark.asyncio
@@ -358,7 +358,7 @@ class TestBrowserContainerManager:
         """Test navigating with nonexistent session raises error."""
         manager = BrowserContainerManager()
 
-        with pytest.raises(ValueError, match="Session .* not found"):
+        with pytest.raises(ValueError, match=r"Session .* not found"):
             await manager.navigate("nonexistent", "https://github.com")
 
     def test_filter_sensitive_elements_password(self):

@@ -376,7 +376,7 @@ class TestThreatScorer:
         """Test updating weights with invalid sum."""
         invalid_weights = {"anomaly": 0.5, "rules": 0.3, "intel": 0.1}  # Sum = 0.9
 
-        with pytest.raises(ValueError, match="must sum to 1.0"):
+        with pytest.raises(ValueError, match=r"must sum to 1\.0"):
             threat_scorer.update_weights(invalid_weights)
 
     @pytest.mark.asyncio

@@ -7,6 +7,7 @@ providing request routing, health checking, and audit logging.
 import asyncio
 import logging
 import time
+from typing import Any
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
@@ -228,7 +229,7 @@ class MCPGateway:
         audit_db_path: str = "~/.harombe/audit.db",
         enable_audit_logging: bool = True,
         enable_hitl: bool = False,
-        hitl_prompt_callback: any | None = None,
+        hitl_prompt_callback: Any | None = None,
     ):
         """Initialize MCP Gateway.
 
