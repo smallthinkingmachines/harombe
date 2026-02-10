@@ -673,13 +673,13 @@ class TestNewCheckFunctions:
     def test_check_encryption_at_rest_pass(self):
         from harombe.security.compliance_reports import _check_encryption_at_rest
 
-        status, findings, evidence = _check_encryption_at_rest({"events": []})
+        status, _findings, _evidence = _check_encryption_at_rest({"events": []})
         assert status == ControlStatus.PASS
 
     def test_check_key_management_pass(self):
         from harombe.security.compliance_reports import _check_key_management
 
-        status, findings, evidence = _check_key_management({"security_decisions": []})
+        status, _findings, _evidence = _check_key_management({"security_decisions": []})
         assert status == ControlStatus.PASS
 
     def test_check_incident_response_with_denials(self):
@@ -689,7 +689,7 @@ class TestNewCheckFunctions:
             "events": [],
             "security_decisions": [{"decision": "deny"}],
         }
-        status, findings, evidence = _check_incident_response(data)
+        status, _findings, evidence = _check_incident_response(data)
         assert status == ControlStatus.PASS
         assert "1 denials" in evidence
 
@@ -697,7 +697,7 @@ class TestNewCheckFunctions:
         from harombe.security.compliance_reports import _check_incident_response
 
         data = {"events": [], "security_decisions": []}
-        status, findings, evidence = _check_incident_response(data)
+        status, _findings, _evidence = _check_incident_response(data)
         assert status == ControlStatus.PASS
 
     def test_check_network_monitoring_with_egress(self):
@@ -706,46 +706,46 @@ class TestNewCheckFunctions:
         data = {
             "security_decisions": [{"decision_type": "egress"}],
         }
-        status, findings, evidence = _check_network_monitoring(data)
+        status, _findings, evidence = _check_network_monitoring(data)
         assert status == ControlStatus.PASS
         assert "1 network egress" in evidence
 
     def test_check_data_retention(self):
         from harombe.security.compliance_reports import _check_data_retention
 
-        status, findings, evidence = _check_data_retention({"stats": {}})
+        status, _findings, _evidence = _check_data_retention({"stats": {}})
         assert status == ControlStatus.PASS
 
     def test_check_consent_tracking(self):
         from harombe.security.compliance_reports import _check_consent_tracking
 
-        status, findings, evidence = _check_consent_tracking({"security_decisions": []})
+        status, _findings, _evidence = _check_consent_tracking({"security_decisions": []})
         assert status == ControlStatus.PASS
 
     def test_check_breach_notification(self):
         from harombe.security.compliance_reports import _check_breach_notification
 
-        status, findings, evidence = _check_breach_notification({"events": []})
+        status, _findings, _evidence = _check_breach_notification({"events": []})
         assert status == ControlStatus.PASS
 
     def test_check_data_portability(self):
         from harombe.security.compliance_reports import _check_data_portability
 
-        status, findings, evidence = _check_data_portability({})
+        status, _findings, _evidence = _check_data_portability({})
         assert status == ControlStatus.PASS
 
     def test_check_availability_monitoring_with_events(self):
         from harombe.security.compliance_reports import _check_availability_monitoring
 
         data = {"stats": {"events": {"total_events": 100}}}
-        status, findings, evidence = _check_availability_monitoring(data)
+        status, _findings, _evidence = _check_availability_monitoring(data)
         assert status == ControlStatus.PASS
 
     def test_check_availability_monitoring_empty(self):
         from harombe.security.compliance_reports import _check_availability_monitoring
 
         data = {"stats": {"events": {"total_events": 0}}}
-        status, findings, evidence = _check_availability_monitoring(data)
+        status, findings, _evidence = _check_availability_monitoring(data)
         assert status == ControlStatus.PARTIAL
         assert len(findings) == 1
 
@@ -757,5 +757,5 @@ class TestNewCheckFunctions:
                 {"metadata": '{"key": "[REDACTED]"}'},
             ]
         }
-        status, findings, evidence = _check_data_classification(data)
+        status, _findings, _evidence = _check_data_classification(data)
         assert status == ControlStatus.PASS

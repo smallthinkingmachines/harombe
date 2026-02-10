@@ -5,10 +5,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from harombe.mcp.converters import harombe_tool_to_mcp_input_schema
 from mcp.server import Server
 from mcp.types import TextContent
 from mcp.types import Tool as MCPTool
+
+from harombe.mcp.converters import harombe_tool_to_mcp_input_schema
 
 if TYPE_CHECKING:
     from harombe.tools.base import Tool
