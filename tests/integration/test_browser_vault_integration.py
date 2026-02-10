@@ -7,11 +7,11 @@ and HITL approval workflows.
 
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from harombe.security.audit_db import AuditDatabase, EventType, SecurityDecision
+from harombe.security.audit_db import AuditDatabase, SecurityDecision
 from harombe.security.audit_logger import AuditLogger
 from harombe.security.hitl import (
     ApprovalDecision,
@@ -21,7 +21,6 @@ from harombe.security.hitl import (
     Operation,
     RiskLevel,
 )
-from harombe.security.hitl_prompt import CLIApprovalPrompt
 from harombe.tools.browser import BrowserTools
 
 
@@ -56,17 +55,17 @@ class TestBrowserVaultIntegration:
         Path(db_path).unlink(missing_ok=True)
 
     @pytest.fixture
-    async def audit_db(self, temp_db_path):
+    def audit_db(self, temp_db_path):
         """Create audit database."""
         db = AuditDatabase(db_path=temp_db_path)
-        await db.initialize()
+        # AuditDatabase initializes on construction
         yield db
-        await db.close()
+        # No close() method needed - connections are per-operation
 
     @pytest.fixture
-    def audit_logger(self, audit_db):
+    def audit_logger(self, temp_db_path):
         """Create audit logger."""
-        return AuditLogger(audit_db=audit_db)
+        return AuditLogger(db_path=temp_db_path)
 
     @pytest.fixture
     def secret_manager(self):
@@ -107,8 +106,7 @@ class TestBrowserVaultIntegration:
         from harombe.security.hitl import RiskClassifier
 
         classifier = RiskClassifier(rules=hitl_rules)
-        prompt = CLIApprovalPrompt()
-        return HITLGate(classifier=classifier, prompt=prompt)
+        return HITLGate(classifier=classifier)
 
     @pytest.fixture
     def browser_tools(self):
@@ -154,83 +152,87 @@ class TestBrowserVaultIntegration:
         self, browser_tools, hitl_gate, audit_logger, audit_db
     ):
         """Test browser navigation requires HITL approval and is logged."""
-        # Mock approval
-        with patch.object(hitl_gate.prompt, "request_approval") as mock_approve:
-            mock_approve.return_value = ApprovalDecision(
-                status=ApprovalStatus.APPROVED,
+        # Create operation
+        operation = Operation(
+            tool_name="browser_navigate",
+            params={"url": "https://example.com", "session_id": "session_123"},
+            correlation_id="nav_test_123",
+        )
+
+        # Mock approval callback
+        async def mock_prompt_callback(op, risk_level, timeout):
+            return ApprovalDecision(
+                decision=ApprovalStatus.APPROVED,
                 reason="User approved navigation",
-                approved_by="test_user",
+                user="test_user",
             )
 
-            # Create operation
-            operation = Operation(
-                tool_name="browser_navigate",
-                parameters={"url": "https://example.com", "session_id": "session_123"},
-                context={"user": "test_user"},
-            )
+        # Request approval
+        decision = await hitl_gate.check_approval(operation, prompt_callback=mock_prompt_callback)
+        assert decision.decision == ApprovalStatus.APPROVED
 
-            # Request approval
-            decision = await hitl_gate.request_approval(operation)
-            assert decision.status == ApprovalStatus.APPROVED
+        # Navigate (after approval)
+        result = await browser_tools.browser_manager.navigate(
+            session_id="session_123", url="https://example.com"
+        )
+        assert result["success"] is True
 
-            # Navigate (after approval)
-            result = await browser_tools.browser_manager.navigate(
-                session_id="session_123", url="https://example.com"
-            )
-            assert result["success"] is True
+        # Log security decision
+        import uuid
 
-            # Log security decision
-            await audit_logger.log_security_decision(
-                tool_name=operation.tool_name,
-                operation_type="browser_navigation",
-                decision=SecurityDecision.APPROVED,
-                risk_level="HIGH",
-                reason=decision.reason,
-                details={
-                    "approved_by": decision.approved_by,
-                    "url": operation.parameters["url"],
-                },
-            )
+        audit_logger.log_security_decision(
+            correlation_id=str(uuid.uuid4()),
+            decision_type="browser_navigation",
+            decision=SecurityDecision.ALLOW,
+            reason=decision.reason,
+            actor="test_user",
+            tool_name=operation.tool_name,
+            context={
+                "approved_by": decision.user,
+                "url": operation.params["url"],
+                "risk_level": "HIGH",
+            },
+        )
 
         # Verify audit trail
-        events = await audit_db.query_events(
-            event_type=EventType.SECURITY_DECISION,
-            limit=10,
-        )
+        events = audit_db.get_security_decisions(limit=10)
 
         assert len(events) == 1
         event = events[0]
-        assert event.tool_name == "browser_navigate"
-        assert event.decision == SecurityDecision.APPROVED
-        assert event.details["url"] == "https://example.com"
+        assert event["tool_name"] == "browser_navigate"
+        assert event["decision"] == SecurityDecision.ALLOW.value
+        import json
+
+        context = json.loads(event["context"])
+        assert context["url"] == "https://example.com"
 
     @pytest.mark.asyncio
     async def test_browser_denied_navigation(self, browser_tools, hitl_gate):
         """Test that denied browser navigation is blocked."""
-        # Mock denial
-        with patch.object(hitl_gate.prompt, "request_approval") as mock_approve:
-            mock_approve.return_value = ApprovalDecision(
-                status=ApprovalStatus.DENIED,
+        # Create operation
+        operation = Operation(
+            tool_name="browser_navigate",
+            params={
+                "url": "https://malicious-site.com",
+                "session_id": "session_123",
+            },
+            correlation_id="deny_test_456",
+        )
+
+        # Mock denial callback
+        async def mock_prompt_callback(op, risk_level, timeout):
+            return ApprovalDecision(
+                decision=ApprovalStatus.DENIED,
                 reason="User denied navigation",
-                approved_by="test_user",
+                user="test_user",
             )
 
-            # Create operation
-            operation = Operation(
-                tool_name="browser_navigate",
-                parameters={
-                    "url": "https://malicious-site.com",
-                    "session_id": "session_123",
-                },
-                context={"user": "test_user"},
-            )
+        # Request approval
+        decision = await hitl_gate.check_approval(operation, prompt_callback=mock_prompt_callback)
+        assert decision.decision == ApprovalStatus.DENIED
 
-            # Request approval
-            decision = await hitl_gate.request_approval(operation)
-            assert decision.status == ApprovalStatus.DENIED
-
-            # Should NOT navigate (blocked by denial)
-            # In production, this would be enforced by gateway
+        # Should NOT navigate (blocked by denial)
+        # In production, this would be enforced by gateway
 
     @pytest.mark.asyncio
     async def test_credential_rotation_during_session(self, browser_tools, secret_manager):
@@ -277,33 +279,38 @@ class TestBrowserVaultIntegration:
         credential = await secret_manager.get_secret("test_credential")
 
         # Log operation with sanitized details
-        await audit_logger.log_security_decision(
-            tool_name="browser_navigate",
-            operation_type="browser_navigation",
-            decision=SecurityDecision.APPROVED,
-            risk_level="HIGH",
+        import uuid
+
+        audit_logger.log_security_decision(
+            correlation_id=str(uuid.uuid4()),
+            decision_type="browser_navigation",
+            decision=SecurityDecision.ALLOW,
             reason="User approved",
-            details={
+            actor="test_user",
+            tool_name="browser_navigate",
+            context={
                 "url": "https://example.com",
                 "session_id": "session_123",
                 # NOTE: Never include actual credential value
-                "credential_key": credential.key,  # Only the key name
+                # Use a field name that won't be redacted
+                "credential_name": credential.key,  # Only the key name
+                "risk_level": "HIGH",
             },
         )
 
         # Verify audit logs don't contain secret
-        events = await audit_db.query_events(
-            event_type=EventType.SECURITY_DECISION,
-            limit=10,
-        )
+        events = audit_db.get_security_decisions(limit=10)
 
         assert len(events) == 1
         event = events[0]
+        import json
+
+        context = json.loads(event["context"])
         # Verify secret value not in logs
-        assert "test_password" not in str(event.details)
-        assert "new_password" not in str(event.details)
-        # Only key name should be present
-        assert event.details.get("credential_key") == "test_credential"
+        assert "test_password" not in str(context)
+        assert "new_password" not in str(context)
+        # Only key name should be present (credential_name won't be redacted)
+        assert context.get("credential_name") == "test_credential"
 
     @pytest.mark.asyncio
     async def test_browser_session_cleanup_on_failure(self, browser_tools):
@@ -404,48 +411,52 @@ class TestBrowserVaultIntegration:
     @pytest.mark.asyncio
     async def test_browser_hitl_timeout(self, browser_tools, hitl_gate, audit_logger, audit_db):
         """Test browser operation timeout with HITL gate."""
-        # Mock timeout
-        with patch.object(hitl_gate.prompt, "request_approval") as mock_approve:
-            mock_approve.return_value = ApprovalDecision(
-                status=ApprovalStatus.TIMEOUT,
+        # Create operation
+        operation = Operation(
+            tool_name="browser_navigate",
+            params={"url": "https://example.com", "session_id": "session_123"},
+            correlation_id="timeout_test_789",
+        )
+
+        # Mock timeout callback
+        async def mock_prompt_callback(op, risk_level, timeout):
+            return ApprovalDecision(
+                decision=ApprovalStatus.TIMEOUT,
                 reason="Approval timeout",
-                approved_by=None,
+                user=None,
             )
 
-            # Create operation
-            operation = Operation(
-                tool_name="browser_navigate",
-                parameters={"url": "https://example.com", "session_id": "session_123"},
-                context={"user": "test_user"},
-            )
+        # Request approval (will timeout)
+        decision = await hitl_gate.check_approval(operation, prompt_callback=mock_prompt_callback)
+        assert decision.decision == ApprovalStatus.TIMEOUT
 
-            # Request approval (will timeout)
-            decision = await hitl_gate.request_approval(operation)
-            assert decision.status == ApprovalStatus.TIMEOUT
+        # Log security decision
+        import uuid
 
-            # Log security decision
-            await audit_logger.log_security_decision(
-                tool_name=operation.tool_name,
-                operation_type="browser_navigation",
-                decision=SecurityDecision.DENIED,  # Timeout = auto-deny
-                risk_level="HIGH",
-                reason=decision.reason,
-                details={
-                    "timeout": True,
-                    "url": operation.parameters["url"],
-                },
-            )
+        audit_logger.log_security_decision(
+            correlation_id=str(uuid.uuid4()),
+            decision_type="browser_navigation",
+            decision=SecurityDecision.DENY,  # Timeout = auto-deny
+            reason=decision.reason,
+            actor="test_user",
+            tool_name=operation.tool_name,
+            context={
+                "timeout": True,
+                "url": operation.params["url"],
+                "risk_level": "HIGH",
+            },
+        )
 
         # Verify audit trail
-        events = await audit_db.query_events(
-            event_type=EventType.SECURITY_DECISION,
-            limit=10,
-        )
+        events = audit_db.get_security_decisions(limit=10)
 
         assert len(events) == 1
         event = events[0]
-        assert event.decision == SecurityDecision.DENIED
-        assert event.details["timeout"] is True
+        assert event["decision"] == SecurityDecision.DENY.value
+        import json
+
+        context = json.loads(event["context"])
+        assert context["timeout"] is True
 
     @pytest.mark.asyncio
     async def test_credential_fetch_failure_handling(self, browser_tools, secret_manager):

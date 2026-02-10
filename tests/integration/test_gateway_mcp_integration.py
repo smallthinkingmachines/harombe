@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from harombe.mcp.protocol import MCPRequest
-from harombe.security.audit_db import AuditDatabase, EventType
+from harombe.security.audit_db import AuditDatabase
 from harombe.security.audit_logger import AuditLogger
 from harombe.security.gateway import MCPClientPool
 
@@ -29,17 +29,17 @@ class TestGatewayMCPIntegration:
         Path(db_path).unlink(missing_ok=True)
 
     @pytest.fixture
-    async def audit_db(self, temp_db_path):
+    def audit_db(self, temp_db_path):
         """Create audit database."""
         db = AuditDatabase(db_path=temp_db_path)
-        await db.initialize()
+        # AuditDatabase initializes on construction
         yield db
-        await db.close()
+        # No close() method needed - connections are per-operation
 
     @pytest.fixture
-    def audit_logger(self, audit_db):
+    def audit_logger(self, temp_db_path):
         """Create audit logger."""
-        return AuditLogger(audit_db=audit_db)
+        return AuditLogger(db_path=temp_db_path)
 
     @pytest.fixture
     def client_pool(self):
@@ -84,7 +84,10 @@ class TestGatewayMCPIntegration:
         mock_response.json.return_value = {
             "jsonrpc": "2.0",
             "id": "req_1",
-            "result": {"success": True, "data": "test"},
+            "result": {
+                "content": [{"type": "text", "text": "Navigation successful"}],
+                "isError": False,
+            },
         }
         mock_response.status_code = 200
 
@@ -109,7 +112,8 @@ class TestGatewayMCPIntegration:
 
             # Verify routing
             assert response.id == "req_1"
-            assert response.result["success"] is True
+            assert response.result is not None
+            assert len(response.result.content) > 0
 
     @pytest.mark.asyncio
     async def test_concurrent_requests_different_containers(self, client_pool):
@@ -121,7 +125,10 @@ class TestGatewayMCPIntegration:
         mock_response.json.return_value = {
             "jsonrpc": "2.0",
             "id": "test",
-            "result": {"success": True},
+            "result": {
+                "content": [{"type": "text", "text": "Success"}],
+                "isError": False,
+            },
         }
         mock_response.status_code = 200
 
@@ -148,7 +155,7 @@ class TestGatewayMCPIntegration:
 
         # Verify all succeeded
         assert len(results) == 3
-        assert all(r.result["success"] for r in results)
+        assert all(r.result is not None for r in results)
 
     @pytest.mark.asyncio
     async def test_request_with_audit_logging(self, client_pool, audit_logger, audit_db):
@@ -158,7 +165,10 @@ class TestGatewayMCPIntegration:
         mock_response.json.return_value = {
             "jsonrpc": "2.0",
             "id": "req_1",
-            "result": {"success": True},
+            "result": {
+                "content": [{"type": "text", "text": "Code executed successfully"}],
+                "isError": False,
+            },
         }
         mock_response.status_code = 200
 
@@ -182,29 +192,21 @@ class TestGatewayMCPIntegration:
             )
 
             # Log tool call
-            await audit_logger.log_tool_call(
+            audit_logger.log_tool_call(
+                correlation_id=request.id,
                 tool_name="code_execute",
+                method="execute",
                 parameters=request.params,
-                container="code-exec-container:3002",
-                request_id=request.id,
-            )
-
-            # Log result
-            await audit_logger.log_tool_result(
-                tool_name="code_execute",
-                result=response.result if response.result else {},
-                request_id=request.id,
-                success=True,
+                result=response.result.model_dump(mode="json") if response.result else None,
+                duration_ms=100,
+                container_id="code-exec-container:3002",
             )
 
         # Verify audit trail
-        events = await audit_db.query_events(
-            event_type=EventType.TOOL_CALL,
-            limit=10,
-        )
+        events = audit_db.get_tool_calls(tool_name="code_execute", limit=10)
 
         assert len(events) >= 1
-        assert events[0].tool_name == "code_execute"
+        assert events[0]["tool_name"] == "code_execute"
 
     @pytest.mark.asyncio
     async def test_request_error_handling(self, client_pool):
@@ -243,7 +245,10 @@ class TestGatewayMCPIntegration:
             mock_response.json.return_value = {
                 "jsonrpc": "2.0",
                 "id": f"req_{tool_name}",
-                "result": {"success": True, "tool": tool_name},
+                "result": {
+                    "content": [{"type": "text", "text": f"Tool {tool_name} executed"}],
+                    "isError": False,
+                },
             }
             mock_response.status_code = 200
 
@@ -262,14 +267,17 @@ class TestGatewayMCPIntegration:
 
                 # Send request to correct container
                 response = await client_pool.send_request(container, request)
-                assert response.result["success"] is True
+                assert response.result is not None
 
                 # Log tool call
-                await audit_logger.log_tool_call(
+                audit_logger.log_tool_call(
+                    correlation_id=request.id,
                     tool_name=tool_name,
+                    method="execute",
                     parameters={},
-                    container=container,
-                    request_id=request.id,
+                    result=response.result.model_dump(mode="json") if response.result else None,
+                    duration_ms=50,
+                    container_id=container,
                 )
 
     @pytest.mark.asyncio
