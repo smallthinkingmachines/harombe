@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**ZKP Audit Proofs (Promoted to Production)**
+
+- Integrated ZKP audit proofs into `AuditDatabase` with `audit_proofs` table and indexes
+- Added `AuditProofRecord` model for persistent proof storage
+- Added `log_audit_proof()` and `get_audit_proofs()` methods to `AuditDatabase`
+- Added `enable_zkp` parameter to `AuditLogger` with `generate_proof()`, `generate_proof_sync()`, and `verify_proof()` methods
+- Exported all ZKP symbols from `security.zkp` and `security` packages
+- ZKP primitives (Schnorr proofs, Pedersen commitments, range proofs), audit proofs, and authorization are now production-ready
+
+**Compliance Reporting (Expanded)**
+
+- Fixed time-range filtering bug: compliance reports now correctly filter events and security decisions to the reporting period
+- Added `get_events_by_time_range()` to `AuditDatabase` for time-scoped event queries
+- Added `start_time`/`end_time` parameters to `get_security_decisions()` (backward-compatible)
+- Expanded from 13 to 24 compliance controls: PCI DSS (8), GDPR (8), SOC 2 (8)
+- New PCI DSS controls: encryption at rest (3.5), key management (3.6), incident response (12.10), network monitoring (11.4)
+- New GDPR controls: data retention (5.1e), consent tracking (7.1), breach notification (33.1), data portability (20.1)
+- New SOC 2 controls: availability monitoring (A1.2), data classification (CC6.5), incident response (CC7.4)
+
+**Container-Isolated Plugins**
+
+- `PluginContainerManager`: Build, start, stop, and health-check containerized plugins
+- Docker-based plugin isolation with auto-generated Dockerfiles and FastAPI MCP scaffold
+- Per-plugin network policies from `PluginPermissions.network_domains`
+- Dynamic gateway route registration via `register_tool_route()` / `register_plugin_routes()`
+- New manifest fields: `container_enabled`, `base_image`, `extra_pip_packages`, `resource_limits`
+- `create_container_config_from_permissions()` bridges plugin permissions to container configs
+- Loader integration: plugins with `container_enabled=True` start in containers instead of in-process
+
 **MCP Server & Client**
 
 - MCP Server: Expose harombe tools to external MCP clients (Claude Desktop, etc.) via stdio or HTTP transport

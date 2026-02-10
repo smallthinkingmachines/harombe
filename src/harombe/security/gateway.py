@@ -28,7 +28,7 @@ from .hitl import ApprovalStatus, HITLGate, Operation
 logger = logging.getLogger(__name__)
 
 # Tool → Container routing table
-TOOL_ROUTES: dict[str, str] = {
+_tool_routes: dict[str, str] = {
     # Browser tools
     "browser_navigate": "browser-container:3000",
     "browser_click": "browser-container:3000",
@@ -43,6 +43,46 @@ TOOL_ROUTES: dict[str, str] = {
     # Web search tools
     "web_search": "web-search-container:3003",
 }
+
+# Backward-compatible alias
+TOOL_ROUTES = _tool_routes
+
+
+def register_tool_route(tool_name: str, container_endpoint: str) -> None:
+    """Register a tool route to a container endpoint.
+
+    Args:
+        tool_name: Name of the tool
+        container_endpoint: Container endpoint (e.g., "localhost:3100")
+    """
+    _tool_routes[tool_name] = container_endpoint
+    logger.info("Registered tool route: %s -> %s", tool_name, container_endpoint)
+
+
+def unregister_tool_route(tool_name: str) -> bool:
+    """Unregister a tool route.
+
+    Args:
+        tool_name: Name of the tool to unregister
+
+    Returns:
+        True if the route was removed, False if it didn't exist
+    """
+    if tool_name in _tool_routes:
+        del _tool_routes[tool_name]
+        logger.info("Unregistered tool route: %s", tool_name)
+        return True
+    return False
+
+
+def register_plugin_routes(routes: dict[str, str]) -> None:
+    """Register multiple plugin tool routes at once.
+
+    Args:
+        routes: Dict mapping tool names to container endpoints
+    """
+    _tool_routes.update(routes)
+    logger.info("Registered %d plugin tool routes", len(routes))
 
 
 class MCPClientPool:

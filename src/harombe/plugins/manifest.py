@@ -10,13 +10,15 @@ class PluginPermissions:
     """Declared permissions for a plugin.
 
     V1 is primarily declarative — sets dangerous flag and HITL rules.
-    Runtime enforcement planned for V2.
+    Container isolation available for V2 runtime enforcement.
     """
 
     network_domains: list[str] = field(default_factory=list)
     filesystem: bool = False
     shell: bool = False
     dangerous: bool = False
+    container_enabled: bool = False
+    resource_limits: dict | None = None
 
 
 @dataclass
@@ -28,6 +30,9 @@ class PluginManifest:
     description: str = ""
     author: str = ""
     permissions: PluginPermissions = field(default_factory=PluginPermissions)
+    container_enabled: bool = False
+    base_image: str = "python:3.12-slim"
+    extra_pip_packages: list[str] = field(default_factory=list)
 
 
 @dataclass

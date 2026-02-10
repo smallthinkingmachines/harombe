@@ -242,8 +242,8 @@ class TestPCIDSSReport:
         )
         assert report.framework == ComplianceFramework.PCI_DSS
         assert report.title == "PCI DSS Compliance Report"
-        assert len(report.sections) == 3
-        assert report.total_controls > 0
+        assert len(report.sections) == 5
+        assert report.total_controls == 8
 
     def test_pci_dss_sections(self, generator):
         report = generator.generate(
@@ -300,7 +300,7 @@ class TestGDPRReport:
         )
         assert report.framework == ComplianceFramework.GDPR
         assert report.title == "GDPR Compliance Report"
-        assert len(report.sections) == 4
+        assert len(report.sections) == 7
 
     def test_gdpr_sections(self, generator):
         report = generator.generate(
@@ -323,9 +323,14 @@ class TestGDPRReport:
         all_controls = [c for s in report.sections for c in s.controls]
         control_ids = [c.control_id for c in all_controls]
         assert "GDPR-5.1f" in control_ids
+        assert "GDPR-5.1e" in control_ids
         assert "GDPR-25.1" in control_ids
         assert "GDPR-30.1" in control_ids
         assert "GDPR-32.1" in control_ids
+        assert "GDPR-7.1" in control_ids
+        assert "GDPR-20.1" in control_ids
+        assert "GDPR-33.1" in control_ids
+        assert len(all_controls) == 8
 
 
 # --- SOC 2 Report Tests ---
@@ -340,7 +345,7 @@ class TestSOC2Report:
         )
         assert report.framework == ComplianceFramework.SOC2
         assert report.title == "SOC 2 Type II Compliance Report"
-        assert len(report.sections) == 3
+        assert len(report.sections) == 4
 
     def test_soc2_sections(self, generator):
         report = generator.generate(
@@ -363,9 +368,13 @@ class TestSOC2Report:
         control_ids = [c.control_id for c in all_controls]
         assert "CC6.1" in control_ids
         assert "CC6.3" in control_ids
+        assert "CC6.5" in control_ids
         assert "CC7.1" in control_ids
         assert "CC7.2" in control_ids
+        assert "CC7.4" in control_ids
         assert "CC8.1" in control_ids
+        assert "A1.2" in control_ids
+        assert len(all_controls) == 8
 
 
 # --- Export Tests ---
@@ -433,7 +442,7 @@ class TestJSONExport:
         json_str = generator.export_json(report)
         data = json.loads(json_str)
         assert data["framework"] == "gdpr"
-        assert len(data["sections"]) == 4
+        assert len(data["sections"]) == 7
 
 
 # --- Statistics Tests ---
@@ -486,7 +495,7 @@ class TestReportSummary:
             start=datetime(2025, 1, 1),
             end=datetime(2027, 1, 1),
         )
-        assert report.total_controls == 5  # CC6.1, CC6.3, CC7.1, CC7.2, CC8.1
+        assert report.total_controls == 8  # CC6.1, CC6.3, CC6.5, CC7.1, CC7.2, CC7.4, CC8.1, A1.2
         assert (
             report.controls_passed + report.controls_failed + report.controls_partial
             == report.total_controls
@@ -560,3 +569,193 @@ class TestEdgeCases:
         )
         # Empty DB should produce at least one finding
         assert len(report.findings) >= 1
+
+
+# --- Time Range Filtering Tests ---
+
+
+class TestTimeRangeFiltering:
+    """Verify that compliance reports only include data within the reporting period."""
+
+    def test_events_outside_window_excluded(self, temp_db):
+        """Events outside the reporting window must not appear in the report."""
+
+        now = datetime(2026, 6, 15, 12, 0, 0)
+        report_start = datetime(2026, 6, 1)
+        report_end = datetime(2026, 6, 30)
+
+        # Event inside the window
+        inside_event = AuditEvent(
+            correlation_id="inside",
+            event_type=EventType.REQUEST,
+            actor="agent",
+            action="read_file",
+            metadata={"redacted": "[REDACTED]"},
+            status="success",
+            timestamp=now,
+        )
+        temp_db.log_event(inside_event)
+
+        # Event outside the window (before)
+        outside_event = AuditEvent(
+            correlation_id="outside-before",
+            event_type=EventType.REQUEST,
+            actor="agent",
+            action="read_file",
+            metadata={"redacted": "[REDACTED]"},
+            status="success",
+            timestamp=datetime(2026, 4, 1),
+        )
+        temp_db.log_event(outside_event)
+
+        # Event outside the window (after)
+        outside_after = AuditEvent(
+            correlation_id="outside-after",
+            event_type=EventType.REQUEST,
+            actor="agent",
+            action="read_file",
+            metadata={"redacted": "[REDACTED]"},
+            status="success",
+            timestamp=datetime(2026, 8, 1),
+        )
+        temp_db.log_event(outside_after)
+
+        generator = ComplianceReportGenerator(temp_db)
+        generator.generate(
+            framework=ComplianceFramework.PCI_DSS,
+            start=report_start,
+            end=report_end,
+        )
+
+        # Stats should only count events in window
+        stats = temp_db.get_statistics(start_time=report_start, end_time=report_end)
+        assert stats["events"]["total_events"] == 1
+
+    def test_security_decisions_outside_window_excluded(self, temp_db):
+        """Security decisions outside the window must not be included."""
+        report_start = datetime(2026, 6, 1)
+        report_end = datetime(2026, 6, 30)
+
+        # Decision inside window
+        inside_decision = SecurityDecisionRecord(
+            correlation_id="inside-dec",
+            decision_type="authorization",
+            decision=SecurityDecision.ALLOW,
+            reason="OK",
+            actor="agent",
+            timestamp=datetime(2026, 6, 15),
+        )
+        temp_db.log_security_decision(inside_decision)
+
+        # Decision outside window
+        outside_decision = SecurityDecisionRecord(
+            correlation_id="outside-dec",
+            decision_type="authorization",
+            decision=SecurityDecision.DENY,
+            reason="Blocked",
+            actor="agent",
+            timestamp=datetime(2026, 3, 1),
+        )
+        temp_db.log_security_decision(outside_decision)
+
+        # Verify filtered query
+        decisions = temp_db.get_security_decisions(start_time=report_start, end_time=report_end)
+        assert len(decisions) == 1
+        assert decisions[0]["correlation_id"] == "inside-dec"
+
+
+# --- New Check Function Tests ---
+
+
+class TestNewCheckFunctions:
+    """Isolated tests for new compliance check functions."""
+
+    def test_check_encryption_at_rest_pass(self):
+        from harombe.security.compliance_reports import _check_encryption_at_rest
+
+        status, findings, evidence = _check_encryption_at_rest({"events": []})
+        assert status == ControlStatus.PASS
+
+    def test_check_key_management_pass(self):
+        from harombe.security.compliance_reports import _check_key_management
+
+        status, findings, evidence = _check_key_management({"security_decisions": []})
+        assert status == ControlStatus.PASS
+
+    def test_check_incident_response_with_denials(self):
+        from harombe.security.compliance_reports import _check_incident_response
+
+        data = {
+            "events": [],
+            "security_decisions": [{"decision": "deny"}],
+        }
+        status, findings, evidence = _check_incident_response(data)
+        assert status == ControlStatus.PASS
+        assert "1 denials" in evidence
+
+    def test_check_incident_response_no_incidents(self):
+        from harombe.security.compliance_reports import _check_incident_response
+
+        data = {"events": [], "security_decisions": []}
+        status, findings, evidence = _check_incident_response(data)
+        assert status == ControlStatus.PASS
+
+    def test_check_network_monitoring_with_egress(self):
+        from harombe.security.compliance_reports import _check_network_monitoring
+
+        data = {
+            "security_decisions": [{"decision_type": "egress"}],
+        }
+        status, findings, evidence = _check_network_monitoring(data)
+        assert status == ControlStatus.PASS
+        assert "1 network egress" in evidence
+
+    def test_check_data_retention(self):
+        from harombe.security.compliance_reports import _check_data_retention
+
+        status, findings, evidence = _check_data_retention({"stats": {}})
+        assert status == ControlStatus.PASS
+
+    def test_check_consent_tracking(self):
+        from harombe.security.compliance_reports import _check_consent_tracking
+
+        status, findings, evidence = _check_consent_tracking({"security_decisions": []})
+        assert status == ControlStatus.PASS
+
+    def test_check_breach_notification(self):
+        from harombe.security.compliance_reports import _check_breach_notification
+
+        status, findings, evidence = _check_breach_notification({"events": []})
+        assert status == ControlStatus.PASS
+
+    def test_check_data_portability(self):
+        from harombe.security.compliance_reports import _check_data_portability
+
+        status, findings, evidence = _check_data_portability({})
+        assert status == ControlStatus.PASS
+
+    def test_check_availability_monitoring_with_events(self):
+        from harombe.security.compliance_reports import _check_availability_monitoring
+
+        data = {"stats": {"events": {"total_events": 100}}}
+        status, findings, evidence = _check_availability_monitoring(data)
+        assert status == ControlStatus.PASS
+
+    def test_check_availability_monitoring_empty(self):
+        from harombe.security.compliance_reports import _check_availability_monitoring
+
+        data = {"stats": {"events": {"total_events": 0}}}
+        status, findings, evidence = _check_availability_monitoring(data)
+        assert status == ControlStatus.PARTIAL
+        assert len(findings) == 1
+
+    def test_check_data_classification_with_redacted(self):
+        from harombe.security.compliance_reports import _check_data_classification
+
+        data = {
+            "events": [
+                {"metadata": '{"key": "[REDACTED]"}'},
+            ]
+        }
+        status, findings, evidence = _check_data_classification(data)
+        assert status == ControlStatus.PASS

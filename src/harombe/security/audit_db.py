@@ -94,6 +94,18 @@ class SecurityDecisionRecord(BaseModel):
     actor: str
 
 
+class AuditProofRecord(BaseModel):
+    """ZKP audit proof record for persistent storage."""
+
+    proof_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    correlation_id: str | None = None
+    claim_type: str
+    description: str = ""
+    public_parameters: dict[str, Any] = Field(default_factory=dict)
+    proof_data: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class AuditDatabase:
     """SQLite-based audit log database.
 
@@ -101,7 +113,7 @@ class AuditDatabase:
     Supports async writes, retention policies, and efficient queries.
     """
 
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = 2
 
     def __init__(
         self,
@@ -211,6 +223,21 @@ class AuditDatabase:
                 """
             )
 
+            # Audit proofs table (ZKP)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS audit_proofs (
+                    proof_id TEXT PRIMARY KEY,
+                    correlation_id TEXT,
+                    claim_type TEXT NOT NULL,
+                    description TEXT,
+                    public_parameters TEXT,
+                    proof_data TEXT,
+                    created_at TIMESTAMP NOT NULL
+                )
+                """
+            )
+
             # Indexes for efficient queries
             conn.execute(
                 """
@@ -261,6 +288,26 @@ class AuditDatabase:
                 """
             )
 
+            # Audit proofs indexes
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_proofs_claim_type
+                ON audit_proofs(claim_type)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_proofs_created_at
+                ON audit_proofs(created_at)
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_proofs_correlation_id
+                ON audit_proofs(correlation_id)
+                """
+            )
+
             conn.commit()
         finally:
             conn.close()
@@ -277,6 +324,7 @@ class AuditDatabase:
             conn.execute("DELETE FROM audit_events WHERE timestamp < ?", (cutoff_date,))
             conn.execute("DELETE FROM tool_calls WHERE timestamp < ?", (cutoff_date,))
             conn.execute("DELETE FROM security_decisions WHERE timestamp < ?", (cutoff_date,))
+            conn.execute("DELETE FROM audit_proofs WHERE created_at < ?", (cutoff_date,))
             conn.commit()
 
             # Vacuum to reclaim space
@@ -496,6 +544,8 @@ class AuditDatabase:
         self,
         decision_type: str | None = None,
         decision: SecurityDecision | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         """Get security decision records.
@@ -503,6 +553,8 @@ class AuditDatabase:
         Args:
             decision_type: Filter by decision type (optional)
             decision: Filter by decision outcome (optional)
+            start_time: Filter by start time (optional)
+            end_time: Filter by end time (optional)
             limit: Maximum number of records to return
 
         Returns:
@@ -521,7 +573,134 @@ class AuditDatabase:
                 query += " AND decision = ?"
                 params.append(decision.value)
 
+            if start_time:
+                query += " AND timestamp >= ?"
+                params.append(start_time)
+
+            if end_time:
+                query += " AND timestamp <= ?"
+                params.append(end_time)
+
             query += " ORDER BY timestamp DESC LIMIT ?"
+            params.append(limit)
+
+            cursor = conn.execute(query, params)
+            return [dict(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def get_events_by_time_range(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        event_type: str | None = None,
+        actor: str | None = None,
+        limit: int = 10000,
+    ) -> list[dict[str, Any]]:
+        """Get audit events within a time range.
+
+        Args:
+            start_time: Start of time range
+            end_time: End of time range
+            event_type: Filter by event type (optional)
+            actor: Filter by actor (optional)
+            limit: Maximum number of records to return
+
+        Returns:
+            List of event dictionaries
+        """
+        conn = self._get_connection()
+        try:
+            query = "SELECT * FROM audit_events WHERE timestamp >= ? AND timestamp <= ?"
+            params: list[Any] = [start_time, end_time]
+
+            if event_type:
+                query += " AND event_type = ?"
+                params.append(event_type)
+
+            if actor:
+                query += " AND actor = ?"
+                params.append(actor)
+
+            query += " ORDER BY timestamp DESC LIMIT ?"
+            params.append(limit)
+
+            cursor = conn.execute(query, params)
+            return [dict(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def log_audit_proof(self, proof: AuditProofRecord) -> None:
+        """Log a ZKP audit proof.
+
+        Args:
+            proof: Audit proof record to log
+        """
+        conn = self._get_connection()
+        try:
+            conn.execute(
+                """
+                INSERT INTO audit_proofs (
+                    proof_id, correlation_id, claim_type, description,
+                    public_parameters, proof_data, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    proof.proof_id,
+                    proof.correlation_id,
+                    proof.claim_type,
+                    proof.description,
+                    json.dumps(proof.public_parameters) if proof.public_parameters else None,
+                    json.dumps(proof.proof_data) if proof.proof_data else None,
+                    proof.created_at,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def get_audit_proofs(
+        self,
+        claim_type: str | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+        correlation_id: str | None = None,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Get ZKP audit proofs.
+
+        Args:
+            claim_type: Filter by claim type (optional)
+            start_time: Filter by start time (optional)
+            end_time: Filter by end time (optional)
+            correlation_id: Filter by correlation ID (optional)
+            limit: Maximum number of records to return
+
+        Returns:
+            List of audit proof dictionaries
+        """
+        conn = self._get_connection()
+        try:
+            query = "SELECT * FROM audit_proofs WHERE 1=1"
+            params: list[Any] = []
+
+            if claim_type:
+                query += " AND claim_type = ?"
+                params.append(claim_type)
+
+            if start_time:
+                query += " AND created_at >= ?"
+                params.append(start_time)
+
+            if end_time:
+                query += " AND created_at <= ?"
+                params.append(end_time)
+
+            if correlation_id:
+                query += " AND correlation_id = ?"
+                params.append(correlation_id)
+
+            query += " ORDER BY created_at DESC LIMIT ?"
             params.append(limit)
 
             cursor = conn.execute(query, params)

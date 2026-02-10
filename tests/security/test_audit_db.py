@@ -9,6 +9,7 @@ import pytest
 from harombe.security.audit_db import (
     AuditDatabase,
     AuditEvent,
+    AuditProofRecord,
     EventType,
     SecurityDecision,
     SecurityDecisionRecord,
@@ -43,6 +44,7 @@ def test_database_initialization(temp_db):
     assert "tool_calls" in tables
     assert "security_decisions" in tables
     assert "audit_metadata" in tables
+    assert "audit_proofs" in tables
 
 
 def test_log_event(temp_db):
@@ -361,3 +363,125 @@ def test_pagination(temp_db):
     page1_ids = {e["event_id"] for e in page1}
     page2_ids = {e["event_id"] for e in page2}
     assert len(page1_ids & page2_ids) == 0
+
+
+def test_log_audit_proof(temp_db):
+    """Test logging ZKP audit proofs."""
+    proof = AuditProofRecord(
+        correlation_id="corr-zkp-1",
+        claim_type="operation_count",
+        description="Operation count is in [1, 10]",
+        public_parameters={"claimed_min": 1, "claimed_max": 10},
+        proof_data={"commitment": "abc123", "blinding": 42},
+    )
+
+    temp_db.log_audit_proof(proof)
+
+    # Retrieve proof
+    proofs = temp_db.get_audit_proofs(claim_type="operation_count")
+    assert len(proofs) == 1
+    assert proofs[0]["correlation_id"] == "corr-zkp-1"
+    assert proofs[0]["claim_type"] == "operation_count"
+    assert proofs[0]["description"] == "Operation count is in [1, 10]"
+
+
+def test_get_audit_proofs_filtered(temp_db):
+    """Test filtered queries for audit proofs."""
+    now = datetime.utcnow()
+
+    # Log proofs with different claim types and times
+    for i, claim_type in enumerate(["operation_count", "time_range", "operation_count"]):
+        proof = AuditProofRecord(
+            correlation_id=f"corr-{i}",
+            claim_type=claim_type,
+            description=f"Proof {i}",
+            created_at=now - timedelta(hours=i),
+        )
+        temp_db.log_audit_proof(proof)
+
+    # Filter by claim_type
+    proofs = temp_db.get_audit_proofs(claim_type="operation_count")
+    assert len(proofs) == 2
+
+    proofs = temp_db.get_audit_proofs(claim_type="time_range")
+    assert len(proofs) == 1
+
+    # Filter by time range
+    proofs = temp_db.get_audit_proofs(
+        start_time=now - timedelta(hours=1, minutes=30),
+        end_time=now,
+    )
+    assert len(proofs) == 2
+
+    # Filter by correlation_id
+    proofs = temp_db.get_audit_proofs(correlation_id="corr-0")
+    assert len(proofs) == 1
+    assert proofs[0]["correlation_id"] == "corr-0"
+
+
+def test_get_events_by_time_range(temp_db):
+    """Test querying events by time range."""
+    now = datetime.utcnow()
+
+    # Log events at different times
+    for i in range(5):
+        event = AuditEvent(
+            correlation_id=f"corr-tr-{i}",
+            event_type=EventType.REQUEST,
+            actor="agent",
+            action=f"action-{i}",
+            status="success",
+            timestamp=now - timedelta(hours=i),
+        )
+        temp_db.log_event(event)
+
+    # Query last 2.5 hours — should get 3 events
+    events = temp_db.get_events_by_time_range(
+        start_time=now - timedelta(hours=2, minutes=30),
+        end_time=now,
+    )
+    assert len(events) == 3
+
+    # Query with event_type filter
+    events = temp_db.get_events_by_time_range(
+        start_time=now - timedelta(hours=10),
+        end_time=now,
+        event_type="request",
+    )
+    assert len(events) == 5
+
+    # Query with actor filter
+    events = temp_db.get_events_by_time_range(
+        start_time=now - timedelta(hours=10),
+        end_time=now,
+        actor="nonexistent",
+    )
+    assert len(events) == 0
+
+
+def test_get_security_decisions_by_time_range(temp_db):
+    """Test time-range filtering on security decisions."""
+    now = datetime.utcnow()
+
+    # Log decisions at different times
+    for i in range(4):
+        decision = SecurityDecisionRecord(
+            correlation_id=f"dec-tr-{i}",
+            decision_type="authorization",
+            decision=SecurityDecision.ALLOW,
+            reason=f"Reason {i}",
+            actor="agent",
+            timestamp=now - timedelta(hours=i),
+        )
+        temp_db.log_security_decision(decision)
+
+    # Query last 1.5 hours — should get 2 decisions
+    decisions = temp_db.get_security_decisions(
+        start_time=now - timedelta(hours=1, minutes=30),
+        end_time=now,
+    )
+    assert len(decisions) == 2
+
+    # All decisions
+    decisions = temp_db.get_security_decisions()
+    assert len(decisions) == 4

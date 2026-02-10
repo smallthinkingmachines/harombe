@@ -909,7 +909,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 
 - ⚗️ Hardware security module integration — _Software simulation only; requires specific hardware (TPM/SGX/SEV-SNP) for production use_
 - ⚗️ Enhanced isolation mechanisms — _Designed but not validated at scale_
-- ⚗️ Zero-knowledge proof support — _Protocol models only; not yet integrated end-to-end_
+- Zero-knowledge proof support — Integrated with audit pipeline for privacy-preserving compliance proofs
 - ⚗️ Distributed cryptography primitives — _Shamir secret sharing and MPC implemented; requires security audit_
 
 ## Troubleshooting

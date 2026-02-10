@@ -686,21 +686,21 @@ Cluster Summary
 
 ## Feature Status
 
-| Feature                     | Status                | Notes                                                           |
-| --------------------------- | --------------------- | --------------------------------------------------------------- |
-| Agent loop (ReAct)          | **Production**        | Stable, well-tested                                             |
-| Multi-machine orchestration | **Production**        | Health checks, circuit breakers, metrics                        |
-| Memory & RAG                | **Production**        | SQLite + ChromaDB, local embeddings                             |
-| Voice (STT/TTS)             | **Production**        | Whisper + Piper/Coqui                                           |
-| Security (Phase 4.1-4.6)    | **Production**        | MCP Gateway, audit, secrets, HITL, browser                      |
-| Privacy Router              | **Production**        | Hybrid local/cloud with PII detection                           |
-| MCP Protocol                | **Partial**           | Protocol models only — server/client implementation in progress |
-| Cluster routing             | **Untested at scale** | Designed and unit-tested, no multi-node integration tests yet   |
-| Code execution sandbox      | **Planned**           | gVisor design complete, not implemented                         |
-| ZKP audit proofs            | **Experimental**      | Protocol models only, not integrated                            |
-| Hardware security (TPM/SGX) | **Experimental**      | Software simulation only                                        |
-| Compliance reporting        | **Experimental**      | Heuristic templates, needs audit consultant                     |
-| Multi-model collaboration   | **Experimental**      | Patterns implemented, limited real-world testing                |
+| Feature                     | Status                | Notes                                                             |
+| --------------------------- | --------------------- | ----------------------------------------------------------------- |
+| Agent loop (ReAct)          | **Production**        | Stable, well-tested                                               |
+| Multi-machine orchestration | **Production**        | Health checks, circuit breakers, metrics                          |
+| Memory & RAG                | **Production**        | SQLite + ChromaDB, local embeddings                               |
+| Voice (STT/TTS)             | **Production**        | Whisper + Piper/Coqui                                             |
+| Security (Phase 4.1-4.6)    | **Production**        | MCP Gateway, audit, secrets, HITL, browser                        |
+| Privacy Router              | **Production**        | Hybrid local/cloud with PII detection                             |
+| MCP Protocol                | **Partial**           | Protocol models only — server/client implementation in progress   |
+| Cluster routing             | **Untested at scale** | Designed and unit-tested, no multi-node integration tests yet     |
+| Code execution sandbox      | **Planned**           | gVisor design complete, not implemented                           |
+| ZKP audit proofs            | **Production**        | Integrated with AuditLogger and AuditDatabase                     |
+| Hardware security (TPM/SGX) | **Experimental**      | Software simulation only                                          |
+| Compliance reporting        | **Production**        | 24 controls across PCI DSS, GDPR, SOC 2 with time-range filtering |
+| Multi-model collaboration   | **Experimental**      | Patterns implemented, limited real-world testing                  |
 
 ## Future Roadmap
 

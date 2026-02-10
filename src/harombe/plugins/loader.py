@@ -31,6 +31,15 @@ class PluginLoader:
         self.plugin_dir = Path(plugin_dir).expanduser()
         self.blocked = set(blocked or [])
         self._plugins: dict[str, LoadedPlugin] = {}
+        self._container_manager = None
+
+    def set_container_manager(self, manager) -> None:
+        """Set the container manager for container-isolated plugins.
+
+        Args:
+            manager: PluginContainerManager instance
+        """
+        self._container_manager = manager
 
     @property
     def plugins(self) -> dict[str, LoadedPlugin]:
@@ -152,6 +161,10 @@ class PluginLoader:
         before = set(_TOOLS.keys())
 
         try:
+            # Quick check: read PLUGIN_META to see if container_enabled
+            # We still need to exec the module to get the meta first for
+            # non-container plugins. For container plugins, we parse meta
+            # but skip exec_module and delegate to container manager.
             spec = importlib.util.spec_from_file_location(f"harombe_plugin_{name}", path)
             if spec is None or spec.loader is None:
                 raise ImportError(f"Cannot create module spec for {path}")
@@ -166,7 +179,16 @@ class PluginLoader:
                 description=meta.get("description", ""),
                 author=meta.get("author", ""),
                 permissions=_parse_permissions(meta.get("permissions", {})),
+                container_enabled=meta.get("container_enabled", False),
+                base_image=meta.get("base_image", "python:3.12-slim"),
+                extra_pip_packages=meta.get("extra_pip_packages", []),
             )
+
+            # Check if this plugin should run in a container
+            if manifest.container_enabled and self._container_manager:
+                plugin = self._start_container_plugin(manifest, str(path))
+                self._plugins[manifest.name] = plugin
+                return
 
             after = set(_TOOLS.keys())
             new_tools = list(after - before)
@@ -213,7 +235,16 @@ class PluginLoader:
                 description=meta.get("description", ""),
                 author=meta.get("author", ""),
                 permissions=_parse_permissions(meta.get("permissions", {})),
+                container_enabled=meta.get("container_enabled", False),
+                base_image=meta.get("base_image", "python:3.12-slim"),
+                extra_pip_packages=meta.get("extra_pip_packages", []),
             )
+
+            # Check if this plugin should run in a container
+            if manifest.container_enabled and self._container_manager:
+                plugin = self._start_container_plugin(manifest, str(path))
+                self._plugins[manifest.name] = plugin
+                return
 
             after = set(_TOOLS.keys())
             new_tools = list(after - before)
@@ -260,6 +291,59 @@ class PluginLoader:
             return True
         return False
 
+    def _start_container_plugin(self, manifest: PluginManifest, plugin_path: str) -> LoadedPlugin:
+        """Start a plugin in a container and return the LoadedPlugin.
+
+        Args:
+            manifest: Plugin manifest
+            plugin_path: Path to the plugin source
+
+        Returns:
+            LoadedPlugin with source="container"
+        """
+        import asyncio
+
+        from harombe.plugins.container import PluginContainerConfig
+
+        config = PluginContainerConfig(
+            plugin_name=manifest.name,
+            plugin_path=plugin_path,
+            base_image=manifest.base_image,
+            memory_mb=manifest.permissions.resource_limits.get("memory_mb", 256)
+            if manifest.permissions.resource_limits
+            else 256,
+            cpu_cores=manifest.permissions.resource_limits.get("cpu_cores", 0.5)
+            if manifest.permissions.resource_limits
+            else 0.5,
+            network_domains=manifest.permissions.network_domains,
+            extra_pip_packages=manifest.extra_pip_packages,
+        )
+
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # We're inside an async context; store reference to track the task
+                task = asyncio.ensure_future(self._container_manager.start_plugin(config))
+                task.add_done_callback(lambda t: t.result() if not t.cancelled() else None)
+            else:
+                loop.run_until_complete(self._container_manager.start_plugin(config))
+        except RuntimeError:
+            # No event loop; create one
+            asyncio.run(self._container_manager.start_plugin(config))
+
+        plugin = LoadedPlugin(
+            manifest=manifest,
+            source="container",
+            enabled=True,
+        )
+
+        logger.info(
+            "Loaded plugin '%s' (container) with base image '%s'",
+            manifest.name,
+            manifest.base_image,
+        )
+        return plugin
+
 
 def _parse_permissions(data: dict) -> PluginPermissions:
     """Parse permissions dict into PluginPermissions."""
@@ -268,4 +352,6 @@ def _parse_permissions(data: dict) -> PluginPermissions:
         filesystem=data.get("filesystem", False),
         shell=data.get("shell", False),
         dangerous=data.get("dangerous", False),
+        container_enabled=data.get("container_enabled", False),
+        resource_limits=data.get("resource_limits"),
     )
