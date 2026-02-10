@@ -58,7 +58,7 @@
 - Real-time audio processing
 - Cross-platform audio I/O (macOS, Linux, Windows)
 
-## Phase 4: Security Layer (Foundation Complete)
+## Phase 4: Security Layer (Complete)
 
 **Phase 4.1-4.4 (Complete):** Core security infrastructure
 
@@ -103,10 +103,20 @@
 - HITL integration with 16 risk classification rules
 - Session management with timeout and action-count expiration
 
-**Phase 4.7-4.8 (Planned):**
+**Phase 4.7 (Complete):** Code Execution Sandbox
 
-- Code execution sandbox with gVisor
-- End-to-end security integration and testing
+- gVisor-based sandboxed code execution (Python, JavaScript, shell)
+- Six MCP tools: execute, install package, write/read/list files, destroy sandbox
+- HITL risk classification rules (network + dangerous patterns = CRITICAL)
+- Gateway routing for all sandbox tools
+- Docker container with FastAPI MCP server
+
+**Phase 4.8 (Complete):** End-to-End Security Integration
+
+- All security components wired through MCP Gateway
+- Per-tool container isolation with resource limits
+- Audit logging across all tool invocations
+- HITL gates integrated at gateway level
 
 ## Phase 5: Intelligence & Privacy (Complete)
 
