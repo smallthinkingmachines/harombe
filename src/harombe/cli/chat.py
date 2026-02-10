@@ -1,6 +1,9 @@
 """Interactive chat REPL command."""
 
+from __future__ import annotations
+
 import asyncio
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -9,13 +12,13 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
-# Import tools to register them
 from harombe.agent.loop import Agent
 from harombe.config.loader import load_config
 from harombe.privacy.router import PrivacyRouter, create_privacy_router
-from harombe.tools.registry import get_enabled_tools
+from harombe.tools.registry import get_enabled_tools_v2
 
 console = Console()
+logger = logging.getLogger(__name__)
 
 
 def chat_command(config_path: str | None = None):
@@ -56,12 +59,28 @@ async def _async_chat(config):
     # Initialize LLM client (privacy router or plain Ollama depending on config)
     llm = create_privacy_router(config)
 
-    # Get enabled tools
-    tools = get_enabled_tools(
+    # Load plugins if enabled
+    if config.plugins.enabled:
+        _load_plugins(config)
+
+    # Get enabled tools (includes plugin tools, respects plugin overrides)
+    tools = get_enabled_tools_v2(
         shell=config.tools.shell,
         filesystem=config.tools.filesystem,
         web_search=config.tools.web_search,
+        plugins_config=config.plugins,
     )
+
+    # Wire up delegation if enabled
+    if config.delegation.enabled and config.agents:
+        delegation_tool = _create_delegation(config, llm)
+        if delegation_tool:
+            tools.append(delegation_tool)
+
+    # Connect to MCP servers if configured
+    mcp_manager = None
+    if config.mcp.external_servers:
+        mcp_manager = await _connect_mcp(config)
 
     # Create confirmation callback for dangerous tools
     def confirm_dangerous(tool_name: str, description: str, args: dict[str, Any]) -> bool:
@@ -80,6 +99,7 @@ async def _async_chat(config):
         system_prompt=config.agent.system_prompt,
         confirm_dangerous=config.tools.confirm_dangerous,
         confirm_callback=confirm_callback,
+        mcp_manager=mcp_manager,
     )
 
     # Chat loop
@@ -113,6 +133,66 @@ async def _async_chat(config):
             console.print(f"\n[red]Error: {e}[/red]")
 
     console.print("\n[cyan]Goodbye![/cyan]")
+
+
+def _load_plugins(config) -> None:
+    """Load plugins based on configuration."""
+    from harombe.plugins.loader import PluginLoader
+    from harombe.plugins.sandbox import apply_plugin_permissions
+
+    loader = PluginLoader(
+        plugin_dir=config.plugins.plugin_dir,
+        blocked=config.plugins.blocked,
+    )
+    plugins = loader.discover_all()
+
+    for plugin in plugins:
+        if plugin.enabled and not plugin.error:
+            apply_plugin_permissions(plugin)
+            # Tag tools with their plugin source
+            for tool_name in plugin.tool_names:
+                from harombe.tools.registry import _TOOL_SOURCES, _TOOLS
+
+                _TOOL_SOURCES[tool_name] = plugin.manifest.name
+                tool_obj = _TOOLS.get(tool_name)
+                if tool_obj:
+                    tool_obj.schema.source = plugin.manifest.name
+
+    loaded = [p for p in plugins if p.enabled and not p.error]
+    if loaded:
+        total_tools = sum(len(p.tool_names) for p in loaded)
+        logger.info("Loaded %d plugins with %d tools", len(loaded), total_tools)
+
+
+def _create_delegation(config, llm):
+    """Create delegation tool from config."""
+    from harombe.agent.builder import build_agent_registry, create_root_delegation_context
+    from harombe.tools.delegation import create_delegation_tool
+
+    registry = build_agent_registry(config.agents)
+    context = create_root_delegation_context(config)
+    return create_delegation_tool(
+        registry=registry,
+        llm=llm,
+        delegation_context=context,
+        confirm_dangerous=config.tools.confirm_dangerous,
+    )
+
+
+async def _connect_mcp(config):
+    """Connect to configured external MCP servers."""
+    from harombe.mcp.manager import MCPManager
+
+    manager = MCPManager()
+    for server_config in config.mcp.external_servers:
+        manager.add_server(server_config)
+
+    try:
+        await manager.connect_all()
+    except Exception as e:
+        logger.warning("MCP connection error: %s", e)
+
+    return manager
 
 
 def _handle_slash_command(command: str, config, llm=None) -> bool:
@@ -150,13 +230,18 @@ def _handle_slash_command(command: str, config, llm=None) -> bool:
 
     elif cmd == "/tools":
         console.print("\n[bold]Enabled tools:[/bold]")
-        if config.tools.shell:
-            console.print("  • shell - Execute shell commands")
-        if config.tools.filesystem:
-            console.print("  • read_file - Read file contents")
-            console.print("  • write_file - Write to files")
-        if config.tools.web_search:
-            console.print("  • web_search - Search the web")
+        tools = get_enabled_tools_v2(
+            shell=config.tools.shell,
+            filesystem=config.tools.filesystem,
+            web_search=config.tools.web_search,
+            plugins_config=config.plugins,
+        )
+        for t in tools:
+            source_tag = f" [dim]({t.schema.source})[/dim]" if t.schema.source != "builtin" else ""
+            danger_tag = " [yellow]⚠[/yellow]" if t.schema.dangerous else ""
+            console.print(
+                f"  • {t.schema.name}{danger_tag} - {t.schema.description[:60]}{source_tag}"
+            )
 
     elif cmd == "/config":
         console.print("\n[bold]Configuration:[/bold]")

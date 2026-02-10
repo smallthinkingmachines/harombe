@@ -202,7 +202,7 @@ class TestEndToEndRouting:
         manager = ClusterManager(config)
         await manager.check_all_health()
 
-        node, decision = manager.select_node_smart("Hello")
+        node, _decision = manager.select_node_smart("Hello")
         assert node is None
 
     @pytest.mark.asyncio

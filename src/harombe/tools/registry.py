@@ -1,13 +1,22 @@
 """Tool registration and discovery system."""
 
+from __future__ import annotations
+
 import inspect
-from collections.abc import Callable
-from typing import Any, Union, get_type_hints
+from typing import TYPE_CHECKING, Any, Union, get_type_hints
 
 from harombe.tools.base import Tool, ToolFunction, ToolParameter, ToolSchema
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from harombe.config.schema import PluginsConfig
+
 # Global tool registry
 _TOOLS: dict[str, Tool] = {}
+
+# Track which source registered each tool (builtin, plugin name, etc.)
+_TOOL_SOURCES: dict[str, str] = {}
 
 
 def _python_type_to_json_schema(py_type: Any) -> str:
@@ -118,6 +127,7 @@ def tool(
 
         # Register the tool
         _TOOLS[fn.__name__] = Tool(schema=schema, fn=fn)
+        _TOOL_SOURCES[fn.__name__] = "builtin"
 
         return fn
 
@@ -179,6 +189,54 @@ def get_enabled_tools(
     return enabled
 
 
+def get_enabled_tools_v2(
+    shell: bool = True,
+    filesystem: bool = True,
+    web_search: bool = True,
+    plugins_config: PluginsConfig | None = None,
+) -> list[Tool]:
+    """Get tools based on configuration, including plugin tools.
+
+    Like get_enabled_tools() but also handles plugin tool filtering
+    based on plugin enable/disable state.
+
+    Args:
+        shell: Include shell execution tool
+        filesystem: Include filesystem tools
+        web_search: Include web search tool
+        plugins_config: Plugin configuration for filtering
+
+    Returns:
+        List of enabled Tool instances
+    """
+    enabled = []
+    blocked_plugins = set(plugins_config.blocked) if plugins_config else set()
+    plugin_overrides = plugins_config.plugins if plugins_config else {}
+
+    for name, tool_obj in _TOOLS.items():
+        # Filter built-in tools by config flags
+        if name == "shell" and not shell:
+            continue
+        if name in ("read_file", "write_file") and not filesystem:
+            continue
+        if name == "web_search" and not web_search:
+            continue
+
+        # Filter plugin tools by plugin config
+        source = tool_obj.schema.source
+        if source != "builtin":
+            if source in blocked_plugins:
+                continue
+            override = plugin_overrides.get(source)
+            if override and not override.enabled:
+                continue
+
+        enabled.append(tool_obj)
+
+    return enabled
+
+
 def clear_tools() -> None:
     """Clear all registered tools. Used for testing."""
     _TOOLS.clear()
+    _TOOL_SOURCES.clear()

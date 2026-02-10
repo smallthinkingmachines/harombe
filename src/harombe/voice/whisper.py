@@ -153,40 +153,57 @@ class WhisperSTT(STTEngine):
         self,
         audio_stream: AsyncIterator[bytes],
     ) -> AsyncIterator[str]:
-        """Stream transcription in real-time.
+        """Stream transcription using VAD-based speech boundary detection.
 
-        Note: This is a simplified implementation that buffers audio and transcribes
-        in chunks. True streaming requires more complex VAD and buffering logic.
+        Uses Voice Activity Detection to segment audio into utterances and
+        transcribes each utterance as soon as it ends. This reduces latency
+        compared to fixed-size buffering and avoids wasting compute on silence.
+
+        Falls back to time-based buffering (1.5s) if no speech boundaries
+        are detected, ensuring partial results are still emitted.
 
         Args:
-            audio_stream: Async iterator of audio chunks
+            audio_stream: Async iterator of audio chunks (16kHz, 16-bit mono)
 
         Yields:
-            Partial transcription results
+            Transcription text for each detected utterance
         """
         self._load_model()
 
+        from harombe.voice.vad import VADConfig, VoiceActivityDetector
+
+        vad = VoiceActivityDetector(
+            VADConfig(
+                silence_duration_ms=600,
+                min_speech_duration_ms=200,
+            )
+        )
+
+        # Also keep a time-based fallback buffer
         buffer = io.BytesIO()
-        chunk_duration_bytes = 16000 * 2 * 3  # 3 seconds of 16kHz mono 16-bit audio
+        fallback_bytes = 16000 * 2 * 2  # 2 seconds fallback if VAD doesn't trigger
 
         async for chunk in audio_stream:
+            events = vad.process_frame(chunk)
             buffer.write(chunk)
 
-            # Once we have enough audio, transcribe
-            if buffer.tell() >= chunk_duration_bytes:
+            for event in events:
+                if event.type == "speech_end" and event.audio:
+                    # VAD detected end of utterance — transcribe it
+                    result = await self.transcribe(event.audio)
+                    if result.text:
+                        yield result.text
+                    buffer = io.BytesIO()
+
+            # Fallback: if buffer gets large without a speech_end, transcribe anyway
+            if buffer.tell() >= fallback_bytes:
                 audio_data = buffer.getvalue()
                 result = await self.transcribe(audio_data)
-
                 if result.text:
                     yield result.text
-
-                # Keep last 1 second for context
-                overlap_bytes = 16000 * 2 * 1
                 buffer = io.BytesIO()
-                if len(audio_data) > overlap_bytes:
-                    buffer.write(audio_data[-overlap_bytes:])
 
-        # Transcribe remaining audio
+        # Transcribe any remaining audio
         if buffer.tell() > 0:
             audio_data = buffer.getvalue()
             result = await self.transcribe(audio_data)

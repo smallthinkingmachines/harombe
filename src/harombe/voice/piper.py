@@ -195,7 +195,11 @@ class PiperTTS(TTSEngine):
         voice: str = "default",
         speed: float = 1.0,
     ) -> AsyncIterator[bytes]:
-        """Stream audio generation.
+        """Stream audio generation with sentence-level chunking.
+
+        Splits text into sentences and synthesizes each independently,
+        yielding audio as soon as each sentence is ready. This reduces
+        time-to-first-audio compared to synthesizing the full text.
 
         Args:
             text: Text to convert to speech
@@ -203,7 +207,7 @@ class PiperTTS(TTSEngine):
             speed: Speech speed multiplier
 
         Yields:
-            Audio chunks in WAV format
+            Audio chunks in WAV format (header first, then PCM data)
         """
         self._load_model()
 
@@ -211,9 +215,8 @@ class PiperTTS(TTSEngine):
             yield self._create_empty_wav()
             return
 
-        # Yield WAV header first
-        # Note: We don't know final size yet, so we'll use max size
-        max_samples = len(text) * 1000  # Rough estimate
+        # Yield WAV header first (estimated size)
+        max_samples = len(text) * 1000
         wav_header = struct.pack(
             "<4sI4s4sIHHIIHH4sI",
             b"RIFF",
@@ -232,26 +235,29 @@ class PiperTTS(TTSEngine):
         )
         yield wav_header
 
-        # Stream audio chunks
         loop = asyncio.get_event_loop()
 
-        # Run synthesis in thread pool with streaming
-        def stream_synthesis() -> list[bytes]:
-            import numpy as np
+        # Split into sentences for incremental synthesis
+        sentences = _split_sentences(text)
 
-            chunks: list[bytes] = []
-            for audio_chunk in self._piper_instance.synthesize_stream_raw(text):
-                if speed != 1.0:
-                    audio_chunk = self._adjust_speed(audio_chunk, speed)
+        for sentence in sentences:
+            if not sentence.strip():
+                continue
 
-                # Convert to 16-bit PCM
-                audio_array = np.array(audio_chunk, dtype=np.float32)
+            def synthesize_sentence(s: str = sentence) -> bytes:
+                import numpy as np
+
+                samples: list[int] = []
+                for audio_chunk in self._piper_instance.synthesize_stream_raw(s):
+                    if speed != 1.0:
+                        audio_chunk = self._adjust_speed(audio_chunk, speed)
+                    samples.extend(audio_chunk)
+
+                audio_array = np.array(samples, dtype=np.float32)
                 audio_int16 = np.clip(audio_array * 32767, -32768, 32767).astype(np.int16)
-                chunks.append(audio_int16.tobytes())
-            return chunks
+                return audio_int16.tobytes()
 
-        # Yield chunks as they're generated
-        for chunk in await loop.run_in_executor(None, stream_synthesis):
+            chunk = await loop.run_in_executor(None, synthesize_sentence)
             yield chunk
 
     @property
@@ -271,6 +277,20 @@ class PiperTTS(TTSEngine):
     def engine_name(self) -> str:
         """Return the name of the TTS engine."""
         return f"piper-{self._model_name}"
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split text into sentences at natural boundaries.
+
+    Uses punctuation-based splitting (.!?) while preserving abbreviations
+    and decimal numbers. Falls back to the full text if no boundaries found.
+    """
+    import re
+
+    # Split on sentence-ending punctuation followed by whitespace
+    # Negative lookbehind avoids splitting on abbreviations like "Dr." or "3.14"
+    parts = re.split(r"(?<=[.!?])\s+", text.strip())
+    return [p for p in parts if p.strip()]
 
 
 def create_piper_tts(

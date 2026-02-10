@@ -51,6 +51,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - End-to-end routing tests: query → complexity classification → node selection
 - Cluster setup guide (docs/guides/cluster-setup.md)
 
+**Voice Pipeline Improvements**
+
+- Voice Activity Detection (VAD): Energy-based speech boundary detection for hands-free operation
+- Improved Whisper streaming: VAD-based utterance segmentation with 2s fallback (replaces 3s fixed buffer)
+- Improved Piper TTS streaming: Sentence-level chunked synthesis for lower time-to-first-audio
+- VoiceActivityDetector with configurable energy threshold, silence duration, and minimum speech duration
+
+**Tool Registry**
+
+- `get_enabled_tools_v2()`: Plugin-aware tool filtering with per-plugin enable/disable overrides
+- `_TOOL_SOURCES` tracking for tool provenance (builtin vs plugin name)
+
+**CLI Chat Integration**
+
+- Plugin loading on startup with permission enforcement
+- Delegation tool auto-wired when `delegation.enabled` and agents configured
+- MCP external servers connected on startup
+- `/tools` command now shows all tools (builtin + plugin) with source tags and danger indicators
+
+**Reference Architectures**
+
+- Secure Code Analysis: 3-agent delegation setup for automated code review
+- Private Research Assistant: Single Apple Silicon Mac with local-only privacy
+- Multi-Node Cluster: 2-3 node setup with privacy routing and complexity-based distribution
+
 ### Changed
 
 **Documentation Clarification**
