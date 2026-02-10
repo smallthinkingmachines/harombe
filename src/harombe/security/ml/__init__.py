@@ -25,6 +25,13 @@ from .threat_intel import (
     VirusTotalFeed,
 )
 from .threat_scoring import ThreatRuleEngine, ThreatScore, ThreatScorer
+from .traffic_anomaly import (
+    NetworkConnection,
+    TrafficAnomalyDetector,
+    TrafficAnomalyResult,
+    TrafficBaseline,
+    TrafficFeatures,
+)
 
 __all__ = [
     "AbuseIPDBFeed",
@@ -34,6 +41,7 @@ __all__ = [
     "BaselineLearner",
     "BehavioralBaseline",
     "BehavioralPattern",
+    "NetworkConnection",
     "SecurityEvent",
     "ThreatCache",
     "ThreatFeed",
@@ -42,5 +50,9 @@ __all__ = [
     "ThreatRuleEngine",
     "ThreatScore",
     "ThreatScorer",
+    "TrafficAnomalyDetector",
+    "TrafficAnomalyResult",
+    "TrafficBaseline",
+    "TrafficFeatures",
     "VirusTotalFeed",
 ]
