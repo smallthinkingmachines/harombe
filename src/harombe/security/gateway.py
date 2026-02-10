@@ -40,6 +40,11 @@ _tool_routes: dict[str, str] = {
     "filesystem_list": "filesystem-container:3001",
     # Code execution tools
     "code_execute": "code-exec-container:3002",
+    "code_install_package": "code-exec-container:3002",
+    "code_write_file": "code-exec-container:3002",
+    "code_read_file": "code-exec-container:3002",
+    "code_list_files": "code-exec-container:3002",
+    "code_destroy_sandbox": "code-exec-container:3002",
     # Web search tools
     "web_search": "web-search-container:3003",
 }
