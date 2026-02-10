@@ -2016,7 +2016,7 @@ class CachedVault:
 - **OWASP Secret Management Cheat Sheet:** https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
 - **Harombe Security Architecture:** [security-phase4.1-foundation.md](./security-phase4.1-foundation.md)
 - **Audit Logging:** [audit-logging.md](./audit-logging.md)
-- **Phase 4 Implementation Plan:** [phase4-implementation-plan.md](./phase4-implementation-plan.md)
+- **Phase 4 Implementation Plan:** [phase4-implementation-plan.md](./phases/phase4-implementation-plan.md)
 
 ---
 

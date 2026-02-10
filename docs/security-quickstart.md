@@ -227,7 +227,7 @@ docker exec harombe-gateway curl http://localhost:8100/health
 
 1. **Read the Architecture:** [Phase 4.1 Foundation](./security-phase4.1-foundation.md)
 2. **Understand MCP Protocol:** [MCP Gateway Design](./mcp-gateway-design.md)
-3. **Configure Security:** [Phase 4 Implementation Plan](./phase4-implementation-plan.md)
+3. **Configure Security:** [Phase 4 Implementation Plan](./phases/phase4-implementation-plan.md)
 4. **Wait for MCP Servers:** Browser/Filesystem/Code execution servers coming in Phase 4.6-4.7
 
 ## Stopping the Stack
@@ -279,7 +279,7 @@ Typical resource consumption:
 
 ## Getting Help
 
-- **Documentation:** [docs/](../docs/)
+- **Documentation:** [docs/](./index.md)
 - **Issues:** https://github.com/smallthinkingmachines/harombe/issues
 - **Docker Help:** `cd docker && make help`
 
@@ -295,4 +295,4 @@ This is the **foundation** for the security layer. Complete MCP server implement
 - **Phase 4.7:** Code execution container
 - **Phase 4.8:** Full integration and testing
 
-Track progress in [phase4-implementation-plan.md](./phase4-implementation-plan.md).
+Track progress in [phase4-implementation-plan.md](./phases/phase4-implementation-plan.md).

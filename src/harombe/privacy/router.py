@@ -7,7 +7,10 @@ From the Agent's perspective, this is just another LLM client.
 import logging
 import os
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from harombe.config import HarombeConfig
 
 from harombe.llm.anthropic import AnthropicClient
 from harombe.llm.client import CompletionResponse, Message
@@ -250,7 +253,7 @@ class PrivacyRouter:
         }
 
 
-def create_privacy_router(config) -> OllamaClient | PrivacyRouter:
+def create_privacy_router(config: "HarombeConfig") -> OllamaClient | PrivacyRouter:
     """Factory function that creates the appropriate LLM client.
 
     If mode is "local-only" (the default), returns a raw OllamaClient

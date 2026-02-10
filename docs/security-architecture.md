@@ -1291,7 +1291,7 @@ Harombe's security architecture provides defense-in-depth protection for autonom
 
 For deployment instructions, see [Production Deployment Guide](./production-deployment-guide.md).
 
-For integration patterns, see [Phase 4.8 Integration Plan](./phase4-8-integration-plan.md).
+For integration patterns, see [Phase 4.8 Integration Plan](./phases/phase4-8-integration-plan.md).
 
 ---
 

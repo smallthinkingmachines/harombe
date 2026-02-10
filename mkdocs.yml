@@ -152,7 +152,13 @@ nav:
   - Reference:
       - Glossary: glossary.md
       - API Reference: api/index.md
-      - Architecture Decisions: decisions/index.md
+      - Architecture Decisions:
+          - Overview: decisions/index.md
+          - "ADR-001: Ollama OpenAI SDK": decisions/001-ollama-openai-sdk.md
+          - "ADR-002: YAML Configuration": decisions/002-yaml-configuration.md
+          - "ADR-003: Capability-Container Pattern": decisions/003-capability-container-pattern.md
+          - "ADR-004: SQLite Audit Logging": decisions/004-sqlite-audit-logging.md
+          - "ADR-005: Privacy-First Local Inference": decisions/005-privacy-first-local-inference.md
   - User Guides:
       - Browser Usage: browser-usage.md
       - Code Sandbox: code-sandbox-usage.md
@@ -160,3 +166,5 @@ nav:
   - Development:
       - Contributing: CONTRIBUTING.md
       - Development Setup: DEVELOPMENT.md
+      - Documentation Site Proposal: documentation-site-proposal.md
+      - Documentation Site Summary: documentation-site-summary.md

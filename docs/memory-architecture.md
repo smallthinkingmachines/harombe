@@ -8,7 +8,7 @@
 - [Memory Strategies](#memory-strategies)
 - [Integration Points](#integration-points)
 - [Implementation Plan](#implementation-plan)
-- [Phase 2.2: Semantic Search & RAG](#phase-22-semantic-search--rag)
+- [Phase 2.2: Semantic Search & RAG](#phase-22-semantic-search-rag)
 
 ## Overview
 

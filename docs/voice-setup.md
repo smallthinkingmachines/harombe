@@ -236,7 +236,7 @@ async def main():
 asyncio.run(main())
 ```
 
-See [`examples/09_voice_assistant.py`](../examples/09_voice_assistant.py) for a complete example.
+See [`examples/09_voice_assistant.py`](https://github.com/smallthinkingmachines/harombe/blob/main/examples/09_voice_assistant.py) for a complete example.
 
 ### API Endpoints
 
@@ -414,5 +414,5 @@ voice:
 ## Next Steps
 
 - See [voice-architecture.md](voice-architecture.md) for technical details
-- Check [examples/09_voice_assistant.py](../examples/09_voice_assistant.py) for code examples
-- Read [API documentation](README.md) for endpoint reference
+- Check [examples/09_voice_assistant.py](https://github.com/smallthinkingmachines/harombe/blob/main/examples/09_voice_assistant.py) for code examples
+- Read [API Reference](api/index.md) for endpoint reference

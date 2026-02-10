@@ -813,10 +813,10 @@ sqlite3 /var/lib/harombe/audit/harombe.db \
 
 ### Documentation
 
-- [Architecture Overview](./architecture.md)
+- [Architecture Overview](./architecture/overview.md)
 - [Security Architecture](./security-architecture.md)
-- [API Documentation](./api-reference.md)
-- [Phase 4.8 Integration Plan](./phase4-8-integration-plan.md)
+- [API Reference](./api/index.md)
+- [Phase 4.8 Integration Plan](./phases/phase4-8-integration-plan.md)
 
 ### Troubleshooting Resources
 

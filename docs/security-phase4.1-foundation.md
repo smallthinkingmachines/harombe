@@ -566,9 +566,9 @@ security:
 
 ## References
 
-- [Phase 4 Implementation Plan](./phase4-implementation-plan.md)
+- [Phase 4 Implementation Plan](./phases/phase4-implementation-plan.md)
 - [MCP Gateway Design](./mcp-gateway-design.md)
-- [Docker README](../docker/README.md)
+- [Docker README](https://github.com/smallthinkingmachines/harombe/blob/main/docker/README.md)
 - [MCP Protocol Specification](https://spec.modelcontextprotocol.io/)
 
 ## Changelog

@@ -490,7 +490,7 @@ tests/integration/
 ## References
 
 - [Phase 4 Implementation Plan](./phase4-implementation-plan.md)
-- [Security Quick Start](./security-quickstart.md)
-- [HITL Gates Design](./hitl-design.md)
-- [Browser Container Design](./browser-container-design.md)
-- [Code Sandbox Design](./code-sandbox-design.md)
+- [Security Quick Start](../security-quickstart.md)
+- [HITL Gates Design](../hitl-design.md)
+- [Browser Container Design](../browser-container-design.md)
+- [Code Sandbox Design](../code-sandbox-design.md)

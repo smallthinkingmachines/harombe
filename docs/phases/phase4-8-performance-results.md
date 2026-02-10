@@ -214,5 +214,5 @@ python -m pytest tests/performance/test_performance_benchmarks.py::TestHITLPerfo
 ## References
 
 - [Phase 4.8 Integration Plan](./phase4-8-integration-plan.md)
-- [Performance Benchmark Tests](../tests/performance/test_performance_benchmarks.py)
+- [Performance Benchmark Tests](https://github.com/smallthinkingmachines/harombe/blob/main/tests/performance/test_performance_benchmarks.py)
 - Performance targets from Phase 4.8 plan
