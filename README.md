@@ -136,7 +136,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 │  Layer 3: Security              ✅  │  Defense-in-depth complete
 │  MCP Gateway, container isolation   │  Credential vault, audit log
 │  Per-tool egress, secret scanning   │  HITL gates, browser pre-auth
-│  Code execution sandbox (gVisor)    │  Anomaly detection, SIEM
+│  Code execution sandbox (gVisor) ⚗  │  Anomaly detection, SIEM
 ├─────────────────────────────────────┤
 │  Layer 2: Orchestration         ✅  │  Smart routing, health monitoring
 │  Cluster config, mDNS discovery     │  Circuit breakers, metrics
@@ -145,7 +145,7 @@ harombe is a six-layer system designed for clarity, security, and extensibility:
 └─────────────────────────────────────┘
 ```
 
-**Layer 3: Security** — Harombe's security layer is complete (Phase 4-6), providing container isolation, credential management, audit logging, network egress filtering, anomaly detection, and SIEM integration. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways). See [docs/security-quickstart.md](docs/security-quickstart.md) for setup instructions.
+**Layer 3: Security** — Harombe's security layer provides container isolation, credential management, audit logging, network egress filtering, anomaly detection, and SIEM integration. Phase 4.1-4.6 are production-ready. Phase 6 features (ZKP, hardware security, compliance reporting) are **experimental** — see badges below. Key finding from security research (Feb 2026): **MCP cannot enforce security at the protocol level** — all security must be enforced at the infrastructure layer (containers, network policies, gateways). See [docs/security-quickstart.md](docs/security-quickstart.md) for setup instructions.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
@@ -903,12 +903,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full five-layer system design, co
 - ✅ Privacy Router: hybrid local/cloud AI with PII detection
 - ✅ Multi-model collaboration patterns
 
-### Phase 6: Advanced Security (Complete)
+### Phase 6: Advanced Security (Experimental)
 
-- ✅ Hardware security module integration
-- ✅ Enhanced isolation mechanisms
-- ✅ Zero-knowledge proof support
-- ✅ Distributed cryptography primitives
+> **Note:** Phase 6 features are implemented but **experimental**. They have not been validated in production environments and may require additional hardening before enterprise deployment.
+
+- ⚗️ Hardware security module integration — _Software simulation only; requires specific hardware (TPM/SGX/SEV-SNP) for production use_
+- ⚗️ Enhanced isolation mechanisms — _Designed but not validated at scale_
+- ⚗️ Zero-knowledge proof support — _Protocol models only; not yet integrated end-to-end_
+- ⚗️ Distributed cryptography primitives — _Shamir secret sharing and MPC implemented; requires security audit_
 
 ## Troubleshooting
 

@@ -92,6 +92,86 @@ def doctor():
     doctor_command()
 
 
+# Plugin commands
+plugin_app = typer.Typer(help="Manage harombe plugins")
+app.add_typer(plugin_app, name="plugin")
+
+
+@plugin_app.command("list")
+def plugin_list():
+    """List all installed plugins."""
+    from harombe.cli.plugin_cmd import list_plugins
+
+    list_plugins()
+
+
+@plugin_app.command("info")
+def plugin_info(
+    name: str = typer.Argument(..., help="Plugin name"),
+):
+    """Show detailed information about a plugin."""
+    from harombe.cli.plugin_cmd import info_plugin
+
+    info_plugin(name)
+
+
+@plugin_app.command("enable")
+def plugin_enable(
+    name: str = typer.Argument(..., help="Plugin name"),
+):
+    """Enable a plugin."""
+    from harombe.cli.plugin_cmd import enable_plugin
+
+    enable_plugin(name)
+
+
+@plugin_app.command("disable")
+def plugin_disable(
+    name: str = typer.Argument(..., help="Plugin name"),
+):
+    """Disable a plugin."""
+    from harombe.cli.plugin_cmd import disable_plugin
+
+    disable_plugin(name)
+
+
+# MCP commands
+mcp_app = typer.Typer(help="Model Context Protocol server and client management")
+app.add_typer(mcp_app, name="mcp")
+
+
+@mcp_app.command("serve")
+def mcp_serve(
+    transport: str = typer.Option(
+        "stdio",
+        "--transport",
+        "-t",
+        help="Transport type: stdio or http",
+    ),
+    host: str = typer.Option(
+        "127.0.0.1",
+        "--host",
+        help="Bind host (HTTP transport only)",
+    ),
+    port: int = typer.Option(
+        8200,
+        "--port",
+        "-p",
+        help="Bind port (HTTP transport only)",
+    ),
+    config_path: str = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config file",
+    ),
+):
+    """Start MCP server to expose harombe tools."""
+    from harombe.cli.mcp_cmd import serve_command
+
+    serve_command(transport=transport, host=host, port=port, config_path=config_path)
+
+
 # Cluster management commands (Phase 1)
 cluster_app = typer.Typer(help="Manage multi-machine cluster orchestration")
 app.add_typer(cluster_app, name="cluster")

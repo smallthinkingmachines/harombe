@@ -8,6 +8,7 @@ from harombe.tools.base import Tool
 
 if TYPE_CHECKING:
     from harombe.coordination.cluster import ClusterManager
+    from harombe.mcp.manager import MCPManager
     from harombe.memory.manager import MemoryManager
 
 
@@ -75,6 +76,7 @@ class Agent:
         confirm_callback: Callable[[str, str, dict[str, Any]], bool] | None = None,
         cluster_manager: Optional["ClusterManager"] = None,
         memory_manager: Optional["MemoryManager"] = None,
+        mcp_manager: Optional["MCPManager"] = None,
         session_id: str | None = None,
         enable_rag: bool = False,
         rag_top_k: int = 5,
@@ -93,6 +95,7 @@ class Agent:
                              If None and confirm_dangerous=True, auto-denies dangerous tools.
             cluster_manager: Optional cluster manager for distributed routing
             memory_manager: Optional memory manager for conversation persistence
+            mcp_manager: Optional MCP manager for external tool servers
             session_id: Session ID for loading/saving conversation history
             enable_rag: Enable retrieval-augmented generation from semantic memory
             rag_top_k: Number of similar messages to retrieve for RAG
@@ -100,6 +103,9 @@ class Agent:
         """
         self.llm = llm
         self.tools = {tool.schema.name: tool for tool in tools}
+        # Merge MCP tools into the tool dict
+        if mcp_manager:
+            self.tools.update(mcp_manager.get_all_tools())
         self.max_steps = max_steps
         self.system_prompt = system_prompt
         self.confirm_dangerous = confirm_dangerous
@@ -111,8 +117,8 @@ class Agent:
         self.rag_top_k = rag_top_k
         self.rag_min_similarity = rag_min_similarity
 
-        # Build tool schemas for LLM
-        self.tool_schemas = [tool.schema.to_openai_format() for tool in tools]
+        # Build tool schemas for LLM (from merged tool dict, includes MCP tools)
+        self.tool_schemas = [t.schema.to_openai_format() for t in self.tools.values()]
 
     async def run(self, user_message: str) -> str:
         """Run the agent on a user message.

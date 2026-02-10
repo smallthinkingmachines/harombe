@@ -514,6 +514,142 @@ class PatternsConfig(BaseModel):
     )
 
 
+class PluginOverrideConfig(BaseModel):
+    """Per-plugin override configuration."""
+
+    enabled: bool = Field(default=True, description="Whether this plugin is enabled")
+
+
+class PluginsConfig(BaseModel):
+    """Plugin system configuration."""
+
+    enabled: bool = Field(
+        default=True,
+        description="Enable the plugin system",
+    )
+    plugin_dir: str = Field(
+        default="~/.harombe/plugins",
+        description="Directory to scan for local plugins (.py files)",
+    )
+    plugins: dict[str, PluginOverrideConfig] = Field(
+        default_factory=dict,
+        description="Per-plugin overrides keyed by plugin name",
+    )
+    blocked: list[str] = Field(
+        default_factory=list,
+        description="Plugin names to block from loading",
+    )
+
+
+class DelegationConfig(BaseModel):
+    """Multi-agent delegation configuration."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable multi-agent delegation",
+    )
+    max_depth: int = Field(
+        default=3,
+        description="Maximum delegation chain depth",
+        ge=1,
+        le=10,
+    )
+
+
+class NamedAgentConfig(BaseModel):
+    """Configuration for a named agent in the registry."""
+
+    name: str = Field(description="Unique agent name")
+    description: str = Field(
+        default="",
+        description="Description of this agent's capabilities (shown to LLM for routing)",
+    )
+    system_prompt: str = Field(
+        default="You are a helpful AI assistant.",
+        description="System prompt for this agent",
+    )
+    model: str | None = Field(
+        default=None,
+        description="Model override for this agent (None = use default)",
+    )
+    max_steps: int = Field(
+        default=10,
+        description="Maximum reasoning steps",
+        ge=1,
+        le=50,
+    )
+    tools: ToolsConfig = Field(
+        default_factory=ToolsConfig,
+        description="Tool configuration for this agent",
+    )
+    enable_rag: bool = Field(
+        default=False,
+        description="Enable RAG for this agent",
+    )
+
+
+class MCPServerConfig(BaseModel):
+    """MCP server configuration for exposing tools."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable MCP server to expose harombe tools",
+    )
+    transport: Literal["stdio", "streamable-http"] = Field(
+        default="stdio",
+        description="MCP server transport type",
+    )
+    host: str = Field(
+        default="127.0.0.1",
+        description="Host for HTTP transport",
+    )
+    port: int = Field(
+        default=8200,
+        description="Port for HTTP transport",
+        ge=1,
+        le=65535,
+    )
+
+
+class ExternalMCPServerConfig(BaseModel):
+    """Configuration for connecting to an external MCP server."""
+
+    name: str = Field(description="Server name (used as tool prefix)")
+    transport: Literal["stdio", "streamable-http"] = Field(
+        default="stdio",
+        description="Transport type for connecting",
+    )
+    command: str | None = Field(
+        default=None,
+        description="Command to start the server (for stdio transport)",
+    )
+    args: list[str] = Field(
+        default_factory=list,
+        description="Arguments for the command",
+    )
+    env: dict[str, str] = Field(
+        default_factory=dict,
+        description="Environment variables for the server process",
+    )
+    url: str | None = Field(
+        default=None,
+        description="URL for HTTP transport",
+    )
+
+
+class MCPConfig(BaseModel):
+    """Model Context Protocol configuration."""
+
+    server: MCPServerConfig = Field(
+        default_factory=MCPServerConfig,
+        description="MCP server configuration for exposing tools",
+    )
+    external_servers: list[ExternalMCPServerConfig] = Field(
+        default_factory=list,
+        description="External MCP servers to connect to",
+    )
+
+
 class SecurityConfig(BaseModel):
     """Security layer configuration (Phase 4)."""
 
@@ -566,6 +702,22 @@ class HarombeConfig(BaseModel):
     voice: VoiceConfig = Field(
         default_factory=VoiceConfig,
         description="Voice and multi-modal configuration (Phase 3)",
+    )
+    plugins: PluginsConfig = Field(
+        default_factory=PluginsConfig,
+        description="Plugin system configuration",
+    )
+    delegation: DelegationConfig = Field(
+        default_factory=DelegationConfig,
+        description="Multi-agent delegation configuration",
+    )
+    agents: list[NamedAgentConfig] = Field(
+        default_factory=list,
+        description="Named agent configurations for delegation",
+    )
+    mcp: MCPConfig = Field(
+        default_factory=MCPConfig,
+        description="Model Context Protocol configuration",
     )
     security: SecurityConfig = Field(
         default_factory=SecurityConfig,

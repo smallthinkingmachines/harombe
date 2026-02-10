@@ -24,6 +24,7 @@ class ToolSchema:
     description: str
     parameters: list[ToolParameter]
     dangerous: bool = False
+    source: str = "builtin"
 
     def to_openai_format(self) -> dict[str, Any]:
         """Convert to OpenAI function calling format.

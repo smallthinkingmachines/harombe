@@ -260,22 +260,32 @@ Typical resource consumption:
 
 ## Security Notes
 
-### Current Security Features
+### Production-Ready Features
 
 ✅ Container isolation with Docker
 ✅ Non-root execution (UID 1000)
 ✅ Capability dropping
 ✅ Network isolation (filesystem/code-exec)
 ✅ Resource limits per container
+✅ Audit logging with SQLite (Phase 4.2)
+✅ Secret management — Vault, SOPS, env vars (Phase 4.3)
+✅ Network egress filtering — iptables, domain allowlists (Phase 4.4)
+✅ HITL confirmation gates — risk-based approvals (Phase 4.5)
+✅ Browser container with pre-authentication (Phase 4.6)
+
+### Experimental Features
+
+> These features are implemented but have **not been validated in production** or undergone independent security audit.
+
+⚗️ Zero-knowledge proof support — Protocol models only, not integrated end-to-end
+⚗️ Hardware security modules (TPM/SGX/SEV-SNP) — Software simulation; requires specific hardware
+⚗️ Compliance reporting (SOC 2, GDPR) — Heuristic templates, not audit-grade
+⚗️ Confidential compute — Design only, requires AMD SEV-SNP or Intel TDX hardware
 
 ### Not Yet Implemented
 
-⏳ Audit logging (Phase 4.2)
-⏳ Secret scanning (Phase 4.3)
-⏳ Network egress filtering (Phase 4.4)
-⏳ HITL confirmation gates (Phase 4.5)
-
-**Do NOT use in production until all security phases are complete.**
+⏳ Code execution sandbox with gVisor (Phase 4.7)
+⏳ End-to-end security integration testing (Phase 4.8)
 
 ## Getting Help
 

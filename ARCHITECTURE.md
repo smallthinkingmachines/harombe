@@ -684,6 +684,24 @@ Cluster Summary
 - **Phase 4.5:** Human-in-the-loop (HITL) approval gates with risk classification
 - **Phase 4.6:** Browser container with pre-authentication and accessibility-based interaction
 
+## Feature Status
+
+| Feature                     | Status                | Notes                                                           |
+| --------------------------- | --------------------- | --------------------------------------------------------------- |
+| Agent loop (ReAct)          | **Production**        | Stable, well-tested                                             |
+| Multi-machine orchestration | **Production**        | Health checks, circuit breakers, metrics                        |
+| Memory & RAG                | **Production**        | SQLite + ChromaDB, local embeddings                             |
+| Voice (STT/TTS)             | **Production**        | Whisper + Piper/Coqui                                           |
+| Security (Phase 4.1-4.6)    | **Production**        | MCP Gateway, audit, secrets, HITL, browser                      |
+| Privacy Router              | **Production**        | Hybrid local/cloud with PII detection                           |
+| MCP Protocol                | **Partial**           | Protocol models only — server/client implementation in progress |
+| Cluster routing             | **Untested at scale** | Designed and unit-tested, no multi-node integration tests yet   |
+| Code execution sandbox      | **Planned**           | gVisor design complete, not implemented                         |
+| ZKP audit proofs            | **Experimental**      | Protocol models only, not integrated                            |
+| Hardware security (TPM/SGX) | **Experimental**      | Software simulation only                                        |
+| Compliance reporting        | **Experimental**      | Heuristic templates, needs audit consultant                     |
+| Multi-model collaboration   | **Experimental**      | Patterns implemented, limited real-world testing                |
+
 ## Future Roadmap
 
 ### Phase 4 Completion: Advanced Security
@@ -691,21 +709,12 @@ Cluster Summary
 - **Phase 4.7:** Code execution sandbox with gVisor
 - **Phase 4.8:** End-to-end integration and testing
 
-### Phase 5: Privacy Router
+### In Progress
 
-- Hybrid local/cloud AI with configurable privacy boundary
-- PII detection and redaction before cloud calls
-- Context sanitization
-- Three modes: `local-only`, `hybrid` (default), `cloud-assisted`
-- User-configurable privacy policies
-
-### Phase 6: Community & Polish
-
-- Web UI with real-time updates
-- Plugin system for custom tools
-- Distributed inference (single model across machines via llama.cpp RPC)
-- iOS/web clients
-- Contributor documentation and tooling
+- MCP server & client implementation (expose tools via MCP, connect to external servers)
+- Multi-agent delegation (agent-to-agent task handoff)
+- Plugin system (community tool contributions)
+- Channel integrations (Slack, Discord)
 
 ### Potential Future Additions
 
