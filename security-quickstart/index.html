@@ -1354,10 +1354,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#not-yet-implemented" class="md-nav__link">
+  <a href="#implemented-phases-47-48" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Not Yet Implemented
+        Implemented (Phases 4.7-4.8)
       
     </span>
   </a>
@@ -1381,10 +1381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
+  <a href="#current-status" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's Next?
+        Current Status
       
     </span>
   </a>
@@ -4345,10 +4345,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#not-yet-implemented" class="md-nav__link">
+  <a href="#implemented-phases-47-48" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Not Yet Implemented
+        Implemented (Phases 4.7-4.8)
       
     </span>
   </a>
@@ -4372,10 +4372,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-next" class="md-nav__link">
+  <a href="#current-status" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's Next?
+        Current Status
       
     </span>
   </a>
@@ -4403,7 +4403,7 @@
 
 
 <h1 id="harombe-security-layer-quick-start-guide">Harombe Security Layer - Quick Start Guide<a class="headerlink" href="#harombe-security-layer-quick-start-guide" title="Permanent link">&para;</a></h1>
-<p>Get the Phase 4.1 security layer running in under 5 minutes.</p>
+<p>Get the Harombe security layer running in under 5 minutes.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Docker and Docker Compose installed</li>
@@ -4506,7 +4506,7 @@
 </span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="s1">    }</span>
 </span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="s1">  }&#39;</span>
 </span></code></pre></div>
-<p><strong>Note:</strong> This will fail until MCP server implementations are complete (Phase 4.6-4.7), but you'll see the gateway correctly route the request.</p>
+<p><strong>Note:</strong> This requires MCP server containers to be running. The gateway will route the request to the appropriate container.</p>
 <h2 id="common-commands">Common Commands<a class="headerlink" href="#common-commands" title="Permanent link">&para;</a></h2>
 <h3 id="docker-management">Docker Management<a class="headerlink" href="#docker-management" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>docker
@@ -4571,7 +4571,7 @@ Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>
 <li><strong>Read the Architecture:</strong> <a href="../security-phase4.1-foundation/">Phase 4.1 Foundation</a></li>
 <li><strong>Understand MCP Protocol:</strong> <a href="../mcp-gateway-design/">MCP Gateway Design</a></li>
 <li><strong>Configure Security:</strong> <a href="../phases/phase4-implementation-plan/">Phase 4 Implementation Plan</a></li>
-<li><strong>Wait for MCP Servers:</strong> Browser/Filesystem/Code execution servers coming in Phase 4.6-4.7</li>
+<li><strong>Review Security Features:</strong> All six defense-in-depth layers are implemented (Phases 4.1-4.8)</li>
 </ol>
 <h2 id="stopping-the-stack">Stopping the Stack<a class="headerlink" href="#stopping-the-stack" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nb">cd</span><span class="w"> </span>docker
@@ -4655,27 +4655,28 @@ Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>
 ⚗️ Hardware security modules (TPM/SGX/SEV-SNP) — Software simulation; requires specific hardware
 ⚗️ Compliance reporting (SOC 2, GDPR) — Heuristic templates, not audit-grade
 ⚗️ Confidential compute — Design only, requires AMD SEV-SNP or Intel TDX hardware</p>
-<h3 id="not-yet-implemented">Not Yet Implemented<a class="headerlink" href="#not-yet-implemented" title="Permanent link">&para;</a></h3>
-<p>⏳ Code execution sandbox with gVisor (Phase 4.7)
-⏳ End-to-end security integration testing (Phase 4.8)</p>
+<h3 id="implemented-phases-47-48">Implemented (Phases 4.7-4.8)<a class="headerlink" href="#implemented-phases-47-48" title="Permanent link">&para;</a></h3>
+<p>✅ Code execution sandbox with gVisor support (Phase 4.7)
+✅ End-to-end security integration testing (Phase 4.8)</p>
 <h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Documentation:</strong> <a href="../">docs/</a></li>
 <li><strong>Issues:</strong> https://github.com/smallthinkingmachines/harombe/issues</li>
 <li><strong>Docker Help:</strong> <code>cd docker &amp;&amp; make help</code></li>
 </ul>
-<h2 id="whats-next">What's Next?<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
-<p>This is the <strong>foundation</strong> for the security layer. Complete MCP server implementations and additional security features are coming in:</p>
+<h2 id="current-status">Current Status<a class="headerlink" href="#current-status" title="Permanent link">&para;</a></h2>
+<p>All Phase 4 security layers are <strong>implemented</strong>:</p>
 <ul>
+<li><strong>Phase 4.1:</strong> Foundation (container isolation, gateway)</li>
 <li><strong>Phase 4.2:</strong> Audit logging</li>
 <li><strong>Phase 4.3:</strong> Secret management</li>
 <li><strong>Phase 4.4:</strong> Network isolation</li>
 <li><strong>Phase 4.5:</strong> HITL gates</li>
 <li><strong>Phase 4.6:</strong> Browser container</li>
-<li><strong>Phase 4.7:</strong> Code execution container</li>
-<li><strong>Phase 4.8:</strong> Full integration and testing</li>
+<li><strong>Phase 4.7:</strong> Code execution sandbox with gVisor</li>
+<li><strong>Phase 4.8:</strong> End-to-end integration testing</li>
 </ul>
-<p>Track progress in <a href="../phases/phase4-implementation-plan/">phase4-implementation-plan.md</a>.</p>
+<p>See the <a href="../phases/phase4-implementation-plan/">Phase 4 Implementation Plan</a> for details.</p>
 
 
 
@@ -4698,7 +4699,7 @@ Edit <code>docker-compose.yml</code> and adjust <code>healthcheck.timeout</code>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="February 10, 2026 14:11:40 UTC"><span class="timeago" datetime="2026-02-10T14:11:40+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="February 10, 2026 14:11:40 UTC">2026-02-10</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="February 11, 2026 18:55:22 UTC"><span class="timeago" datetime="2026-02-11T18:55:22+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="February 11, 2026 18:55:22 UTC">2026-02-11</span>
   </span>
 
     
