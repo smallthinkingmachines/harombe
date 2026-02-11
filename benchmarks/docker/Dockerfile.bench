@@ -1,0 +1,19 @@
+FROM python:3.12-slim
+
+# Minimal benchmark container for measuring container overhead.
+# Provides a /health endpoint that returns 200 OK.
+
+RUN pip install --no-cache-dir flask==3.1.0
+
+RUN useradd -m -u 1000 bench && mkdir /app && chown bench:bench /app
+WORKDIR /app
+USER bench
+
+COPY --chown=bench:bench server.py .
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=2s --retries=2 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" || exit 1
+
+CMD ["python", "server.py"]

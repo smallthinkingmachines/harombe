@@ -41,6 +41,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from tests.performance.corpus_expansion import (
+    generate_additional_adversarial,
+    generate_additional_benign,
+    generate_all_additional_tp,
+)
 
 from harombe.security.audit_db import AuditDatabase, SecurityDecision
 from harombe.security.audit_logger import AuditLogger, SensitiveDataRedactor
@@ -555,6 +560,18 @@ BENIGN_TEXTS: dict[str, list[str]] = {
         "Run: export MY_LONG_VARIABLE_NAME_FOR_TESTING=placeholder",  # Benign export
     ],
 }
+
+# ---------------------------------------------------------------------------
+# Corpus expansion: extend base samples with programmatically-generated data
+# Brings total from ~400 to ~1500+ for tighter Clopper-Pearson CIs.
+# ---------------------------------------------------------------------------
+for _key, _vals in generate_all_additional_tp().items():
+    TRUE_POSITIVE_SECRETS[_key].extend(_vals)
+for _key, _vals in generate_additional_adversarial().items():
+    ADVERSARIAL_SECRETS[_key].extend(_vals)
+for _key, _vals in generate_additional_benign().items():
+    BENIGN_TEXTS[_key].extend(_vals)
+del _key, _vals  # Clean up module-level loop variables
 
 BREACH_PAYLOADS: dict[str, dict[str, Any]] = {
     "T1_whatsapp_exfil": {
@@ -2795,3 +2812,283 @@ class TestBreachPrevention:
         assert (
             len(layers_activated) >= 3
         ), f"T7: Should activate >=3 layers, activated {len(layers_activated)}: {layers_activated}"
+
+
+# ===========================================================================
+# TEST CLASS 4: Container Overhead (Docker-dependent)
+# ===========================================================================
+
+
+@pytest.mark.docker
+@pytest.mark.benchmark
+class TestContainerOverhead:
+    """Measures Docker container overhead for the paper's performance section.
+
+    Gated behind the ``docker`` marker — run with::
+
+        pytest tests/performance/test_whitepaper_benchmarks.py::TestContainerOverhead -v -s -m docker
+    """
+
+    BENCH_IMAGE = "harombe-bench:latest"
+    CONTAINER_PORT = 8080
+    _COLD_ITERATIONS = 20
+    _WARM_ITERATIONS = 200
+    _WARMUP_REQUESTS = 10
+
+    @staticmethod
+    def _docker_available() -> bool:
+        """Check if Docker daemon is reachable."""
+        try:
+            result = subprocess.run(
+                ["docker", "info"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+
+    @staticmethod
+    def _image_exists(image: str) -> bool:
+        """Check if a Docker image exists locally."""
+        result = subprocess.run(
+            ["docker", "image", "inspect", image],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return result.returncode == 0
+
+    @staticmethod
+    def _build_bench_image() -> None:
+        """Build the minimal benchmark container."""
+        bench_dir = Path(__file__).resolve().parents[2] / "benchmarks" / "docker"
+        subprocess.run(
+            [
+                "docker",
+                "build",
+                "-f",
+                str(bench_dir / "Dockerfile.bench"),
+                "-t",
+                "harombe-bench:latest",
+                str(bench_dir),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+
+    @staticmethod
+    def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
+        """Poll container /health endpoint until it responds 200."""
+        import urllib.request
+
+        deadline = time.monotonic() + timeout
+        url = f"http://{host}:{port}/health"
+        while time.monotonic() < deadline:
+            try:
+                resp = urllib.request.urlopen(url, timeout=2)
+                if resp.status == 200:
+                    return True
+            except Exception:
+                pass
+            time.sleep(0.1)
+        return False
+
+    @staticmethod
+    def _find_free_port() -> int:
+        """Find a free TCP port on localhost."""
+        import socket
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", 0))
+            return s.getsockname()[1]
+
+    def _run_container(self, host_port: int) -> str:
+        """Start a benchmark container and return its container ID."""
+        result = subprocess.run(
+            [
+                "docker",
+                "run",
+                "-d",
+                "--rm",
+                "-p",
+                f"{host_port}:{self.CONTAINER_PORT}",
+                "--cap-drop=ALL",
+                "--read-only",
+                "--tmpfs",
+                "/tmp",
+                "--user",
+                "1000:1000",
+                self.BENCH_IMAGE,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        return result.stdout.strip()
+
+    @staticmethod
+    def _stop_container(container_id: str) -> None:
+        """Stop and remove a container."""
+        subprocess.run(
+            ["docker", "stop", container_id],
+            capture_output=True,
+            timeout=15,
+        )
+
+    @staticmethod
+    def _http_get(url: str, timeout: float = 5.0) -> float:
+        """Issue an HTTP GET and return elapsed time in ms."""
+        import urllib.request
+
+        start = time.perf_counter()
+        urllib.request.urlopen(url, timeout=timeout)
+        return (time.perf_counter() - start) * 1000
+
+    # ------------------------------------------------------------------
+    # Tests
+    # ------------------------------------------------------------------
+
+    def test_cold_start_latency(self):
+        """Measure container cold-start latency (create → healthy)."""
+        if not self._docker_available():
+            pytest.skip("Docker daemon not available")
+        if not self._image_exists(self.BENCH_IMAGE):
+            print("  Building benchmark image...")
+            self._build_bench_image()
+
+        times: list[float] = []
+        for i in range(self._COLD_ITERATIONS):
+            port = self._find_free_port()
+
+            start = time.perf_counter()
+            cid = self._run_container(port)
+            healthy = self._wait_for_health("127.0.0.1", port, timeout=30)
+            elapsed = (time.perf_counter() - start) * 1000
+            assert healthy, f"Container {cid[:12]} failed health check"
+
+            times.append(elapsed)
+            self._stop_container(cid)
+
+            print(f"  Cold start #{i + 1}: {elapsed:.0f}ms")
+
+        stats = _compute_stats_with_filtering(times)
+        _RESULTS.setdefault("performance", {})["container_cold_start"] = stats
+
+        print(f"\n  Cold start: mean={stats['mean']:.0f}ms  p95={stats['p95']:.0f}ms")
+        print(
+            f"  Filtered mean={stats['filtered']['mean']:.0f}ms  "
+            f"CI=[{stats['filtered']['ci95_lower']:.0f}, {stats['filtered']['ci95_upper']:.0f}]"
+        )
+
+    def test_warm_container_round_trip(self):
+        """Measure HTTP round-trip latency to a running (warm) container."""
+        if not self._docker_available():
+            pytest.skip("Docker daemon not available")
+        if not self._image_exists(self.BENCH_IMAGE):
+            self._build_bench_image()
+
+        port = self._find_free_port()
+        cid = self._run_container(port)
+
+        try:
+            assert self._wait_for_health("127.0.0.1", port), "Container health check failed"
+
+            url = f"http://127.0.0.1:{port}/health"
+
+            # Warmup
+            for _ in range(self._WARMUP_REQUESTS):
+                self._http_get(url)
+
+            times: list[float] = []
+            for _ in range(self._WARM_ITERATIONS):
+                elapsed = self._http_get(url)
+                times.append(elapsed)
+
+            stats = _compute_stats_with_filtering(times)
+            _RESULTS.setdefault("performance", {})["container_warm_roundtrip"] = stats
+
+            print(
+                f"\n  Warm round-trip: mean={stats['mean']:.3f}ms  "
+                f"p50={stats['p50']:.3f}ms  p95={stats['p95']:.3f}ms"
+            )
+            print(
+                f"  Filtered: mean={stats['filtered']['mean']:.3f}ms  "
+                f"CI=[{stats['filtered']['ci95_lower']:.3f}, {stats['filtered']['ci95_upper']:.3f}]"
+            )
+        finally:
+            self._stop_container(cid)
+
+    def test_full_lifecycle(self):
+        """Measure complete lifecycle: cold-start → request → response → cleanup."""
+        if not self._docker_available():
+            pytest.skip("Docker daemon not available")
+        if not self._image_exists(self.BENCH_IMAGE):
+            self._build_bench_image()
+
+        times: list[float] = []
+        for i in range(self._COLD_ITERATIONS):
+            port = self._find_free_port()
+
+            start = time.perf_counter()
+            cid = self._run_container(port)
+            assert self._wait_for_health("127.0.0.1", port), "Health check failed"
+            self._http_get(f"http://127.0.0.1:{port}/health")
+            self._stop_container(cid)
+            elapsed = (time.perf_counter() - start) * 1000
+
+            times.append(elapsed)
+            print(f"  Lifecycle #{i + 1}: {elapsed:.0f}ms")
+
+        stats = _compute_stats_with_filtering(times)
+        _RESULTS.setdefault("performance", {})["container_full_lifecycle"] = stats
+
+        print(f"\n  Full lifecycle: mean={stats['mean']:.0f}ms  p95={stats['p95']:.0f}ms")
+
+    def test_prewarmed_pool_latency(self):
+        """Measure request latency from a pre-warmed container pool (3 containers)."""
+        if not self._docker_available():
+            pytest.skip("Docker daemon not available")
+        if not self._image_exists(self.BENCH_IMAGE):
+            self._build_bench_image()
+
+        pool_size = 3
+        pool: list[tuple[str, int]] = []
+
+        try:
+            # Start pool
+            for _ in range(pool_size):
+                port = self._find_free_port()
+                cid = self._run_container(port)
+                assert self._wait_for_health("127.0.0.1", port), "Pool member health check failed"
+                pool.append((cid, port))
+
+            # Warmup each
+            for _, port in pool:
+                for _ in range(self._WARMUP_REQUESTS):
+                    self._http_get(f"http://127.0.0.1:{port}/health")
+
+            # Measure round-robin across pool
+            times: list[float] = []
+            for i in range(self._WARM_ITERATIONS):
+                _, port = pool[i % pool_size]
+                elapsed = self._http_get(f"http://127.0.0.1:{port}/health")
+                times.append(elapsed)
+
+            stats = _compute_stats_with_filtering(times)
+            _RESULTS.setdefault("performance", {})["container_prewarmed_pool"] = stats
+
+            print(
+                f"\n  Pre-warmed pool ({pool_size} containers): "
+                f"mean={stats['mean']:.3f}ms  p50={stats['p50']:.3f}ms  p95={stats['p95']:.3f}ms"
+            )
+            print(
+                f"  Filtered: mean={stats['filtered']['mean']:.3f}ms  "
+                f"CI=[{stats['filtered']['ci95_lower']:.3f}, {stats['filtered']['ci95_upper']:.3f}]"
+            )
+        finally:
+            for cid, _ in pool:
+                self._stop_container(cid)

@@ -70,7 +70,7 @@
 % Abstract
 % ============================================================
 \begin{abstract}
-Autonomous AI agents that invoke external tools via protocols like MCP (Model Context Protocol) present a novel attack surface: the agent-tool boundary. Existing frameworks rely on prompt-level safeguards or protocol-level trust, both of which are insufficient against adversarial inputs, tool poisoning, and credential leakage. We present the \emph{Capability-Container Pattern}, an infrastructure-level security architecture where agents never directly access tools. All tool invocations flow through a mediation gateway into isolated containers, each provisioned with only the capabilities it requires. We describe the threat model, detail six defense-in-depth layers (container isolation, network egress filtering, credential vaults, audit logging, secret scanning, and human-in-the-loop gates), and provide benchmark results from a reference implementation. Our evaluation uses 180 synthetic secret samples with Clopper--Pearson confidence intervals, 199 benign samples across 7 categories, and comparative analysis against \texttt{detect-secrets}. The approach achieves ${\sim}0.025$\,ms pipeline overhead (0.005\% of LLM inference latency, cross-run 95\% CI: [0.022, 0.028]), 100\% secret detection ($F_1 = 0.976$ vs.\ 0.645 for \texttt{detect-secrets}), and prevents 6/7 reproduced real-world MCP breaches---reducing the attack surface from unbounded host access to a narrow, auditable, policy-enforced channel.
+Autonomous AI agents that invoke external tools via protocols like MCP (Model Context Protocol) present a novel attack surface: the agent-tool boundary. Existing frameworks rely on prompt-level safeguards or protocol-level trust, both of which are insufficient against adversarial inputs, tool poisoning, and credential leakage. We present the \emph{Capability-Container Pattern}, an infrastructure-level security architecture where agents never directly access tools. All tool invocations flow through a mediation gateway into isolated containers, each provisioned with only the capabilities it requires. We describe the threat model, detail six defense-in-depth layers (container isolation, network egress filtering, credential vaults, audit logging, secret scanning, and human-in-the-loop gates), and provide benchmark results from a reference implementation. Our evaluation uses a 1{,}534-sample corpus---900 synthetic secrets (100 per type, 9 types), 514 benign samples across 7 categories, and 120 adversarial evasion samples---with Clopper--Pearson confidence intervals and comparative analysis against \texttt{detect-secrets}. Gateway logic overhead is ${\sim}0.025$\,ms (0.005\% of LLM inference latency, cross-run 95\% CI: [0.022, 0.028]), with 100\% secret detection rate (CI: [0.996, 1.000]), $F_1 = 0.991$ vs.\ 0.779 for \texttt{detect-secrets}, and 0.19\% false positive rate (CI: [0.000, 0.011]). The pattern provides defense coverage for 6/7 reconstructed 2025 MCP breach scenarios---reducing the attack surface from unbounded host access to a narrow, auditable, policy-enforced channel.
 \end{abstract}
 
 % ============================================================
@@ -385,17 +385,29 @@ The Capability-Container Pattern is an architectural pattern for securing autono
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Formal Properties}
+\subsection{Security Properties (Design Goals)}
+
+The following properties are design goals enforced through infrastructure configuration. They have not been formally verified through model checking or theorem proving; formal verification is listed as future work (\Cref{sec:conclusion}). We provide enforcement rationale for each property.
 
 \textbf{Property 1 (Isolation):} For any two capability containers $C_i$ and $C_j$, there exists no communication channel between them except through the gateway.
 
+\emph{Enforcement rationale:} Docker network namespaces with \texttt{-{}-network=none} for isolated tools (filesystem, code-exec) and dedicated bridge network for networked tools. Inter-container routing blocked by iptables rules; only the gateway can reach tool containers. Validated by network policy tests (97/98 correct classifications, 99.0\% accuracy).
+
 \textbf{Property 2 (Least Privilege):} Each container $C_i$ is provisioned with capabilities $\text{Cap}(C_i) \subseteq \text{Cap}_{\text{total}}$, where $\text{Cap}(C_i)$ is the minimum set required for tool $T_i$.
+
+\emph{Enforcement rationale:} Per-container capability manifests specifying filesystem mounts (ro/rw), network policies (domain allowlist), and credential references. Containers run as UID 1000 with \texttt{-{}-cap-drop=ALL} and only tool-specific capabilities added back. Resource limits (CPU, memory, PIDs) via cgroups.
 
 \textbf{Property 3 (Complete Mediation):} Every tool invocation passes through the gateway. There is no bypass path from agent to tool.
 
+\emph{Enforcement rationale:} The agent container's only network access is \texttt{127.0.0.1:8100} (the gateway). Tool containers have no ingress from agent. The gateway's ROUTE\_TABLE maps tool names to container endpoints; unregistered tools return UNKNOWN\_TOOL. \emph{Caveat:} a container escape (T9 in threat model) would bypass this property, which is why we recommend gVisor (reduced syscall surface from ${\sim}300$ to ${\sim}70$).
+
 \textbf{Property 4 (Audit Completeness):} For every tool invocation $I$, there exists an audit record $A(I)$ containing the request, response, risk classification, and approval decision.
 
+\emph{Enforcement rationale:} SQLite with WAL mode, append-only schema. \textsc{LogAudit}() is called on all code paths in Algorithm~1 (lines 9, 19, 26, 28---covering deny, egress block, alert, and success). Measured throughput: 2{,}036 ops/sec sustained over 1{,}000 events.
+
 \textbf{Property 5 (Fail-Secure):} On timeout, connection failure, or ambiguous state, the system denies the operation rather than allowing it.
+
+\emph{Enforcement rationale:} HITL auto-deny on timeout (configurable, default 60\,s). HTTP POST to tool containers uses 30\,s timeout. Network policy defaults to \texttt{block\_by\_default=True}. Unknown tools return error, not passthrough.
 
 % ============================================================
 \section{Implementation: Harombe}
@@ -501,7 +513,13 @@ Each concrete tool averages ${\sim}131$ LOC. The security subsystem uses 27 core
 
 \textbf{Environment:} Darwin 25.2.0 arm64, Python 3.14.3, scipy 1.17.0, scikit-learn 1.8.0, detect-secrets 1.5.0. \textbf{Statistical methods:} timing CIs via Student's $t$-distribution ($\text{df} = n{-}1$) with IQR-based outlier filtering (factor = 1.5); detection rates via Clopper--Pearson exact binomial 95\% CIs; 50 warmup iterations before each measurement loop; GC disabled during measurement. \textbf{Date:} 2026-02-11.
 
-All benchmarks exercise the real security modules directly (no Docker, no mocking). For cross-run reproducibility, \texttt{benchmarks/run\_multi.py} invokes the suite $N$ times independently and computes cross-run 95\% CIs using the $t$-distribution over per-run means.
+\subsubsection{Evaluation Methodology and Scope}
+
+All benchmarks use \textbf{synthetic test data created alongside the implementation}. The 1{,}534-sample corpus was constructed to exercise specific regex patterns and detection heuristics, not sampled from production environments. Breach scenarios are \textbf{reconstructed from public incident reports} (Invariant Labs, Checkmarx, Orca Security, Trail of Bits), not replays of actual attack traffic. No external red team or third-party adversarial testing was conducted. Results represent \textbf{defense coverage mapping}---demonstrating which attack classes each security layer addresses---not adversarial robustness guarantees.
+
+\subsubsection{Benchmark Infrastructure}
+
+All benchmarks exercise the real security modules directly (no Docker, no mocking). Performance benchmarks measure \textbf{gateway logic overhead only}---the time spent in security module Python code paths. They do not include container-level overhead (Docker image pull, container creation, health check, HTTP round-trip). For cross-run reproducibility, \texttt{benchmarks/run\_multi.py} invokes the suite $N$ times independently and computes cross-run 95\% CIs using the $t$-distribution over per-run means.
 
 \subsection{Performance Benchmarks (RQ1)}
 
@@ -531,7 +549,7 @@ Sub-millisecond scanning up to 10K characters. Linear scaling (${\sim}0.055$\,ms
 
 \begin{table}[htbp]
 \centering
-\caption{Full pipeline overhead---all security layers combined ($n=200$, 16 outliers removed).}
+\caption{Gateway logic overhead---all security layers combined ($n=200$, 25 outliers removed). Does not include container-level latency.}
 \label{tab:pipeline}
 \small
 \begin{tabular}{@{}lr@{}}
@@ -547,41 +565,41 @@ p99            & 0.024\,ms \\
 \end{tabular}
 \end{table}
 
-\textbf{Baseline comparison:} bare operations (no security) take 0.000375\,ms; the full pipeline takes 0.023\,ms---an absolute overhead of ${\sim}0.024$\,ms, or \textbf{0.005\% of a typical 500\,ms LLM inference call}.
+\textbf{Baseline comparison:} bare operations (no security) take 0.000384\,ms; the full gateway logic pipeline takes 0.023\,ms---an absolute overhead of ${\sim}0.024$\,ms, or \textbf{0.005\% of a typical 500\,ms LLM inference call}. Note: this measures Python security module code paths only; production deployments add container-level latency (creation, HTTP round-trip, health check).
 
 \subsection{Detection Effectiveness (RQ2)}
 
 \subsubsection{Secret Scanner True Positive Rate}
 
-Corpus: 180 synthetic secrets (20 per type), all conforming to production regex patterns (\Cref{tab:tp-rate}).
+Corpus: 900 synthetic secrets (100 per type, 9 types), conforming to production regex patterns. 20 hand-crafted samples per type serve as baseline; 80 additional per type generated programmatically via deterministic SHA-256 seeded hashing (\Cref{tab:tp-rate}).
 
 \begin{table}[htbp]
 \centering
-\caption{Secret scanner true positive rate by type ($n=20$ per type, Clopper--Pearson CIs).}
+\caption{Secret scanner true positive rate by type ($n=100$ per type, Clopper--Pearson CIs).}
 \label{tab:tp-rate}
 \small
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
 \textbf{Secret Type} & \textbf{Samples} & \textbf{Detected} & \textbf{TP Rate} & \textbf{95\% CI} \\
 \midrule
-AWS keys       & 20 & 20 & 100\% & [0.832, 1.000] \\
-GitHub tokens  & 20 & 20 & 100\% & [0.832, 1.000] \\
-Slack tokens   & 20 & 20 & 100\% & [0.832, 1.000] \\
-Stripe keys    & 20 & 20 & 100\% & [0.832, 1.000] \\
-JWT tokens     & 20 & 20 & 100\% & [0.832, 1.000] \\
-Private keys   & 20 & 20 & 100\% & [0.832, 1.000] \\
-Database URLs  & 20 & 20 & 100\% & [0.832, 1.000] \\
-Passwords      & 20 & 20 & 100\% & [0.832, 1.000] \\
-API keys       & 20 & 20 & 100\% & [0.832, 1.000] \\
+AWS keys       & 100 & 100 & 100\% & [0.964, 1.000] \\
+GitHub tokens  & 100 & 100 & 100\% & [0.964, 1.000] \\
+Slack tokens   & 100 & 100 & 100\% & [0.964, 1.000] \\
+Stripe keys    & 100 & 100 & 100\% & [0.964, 1.000] \\
+JWT tokens     & 100 & 100 & 100\% & [0.964, 1.000] \\
+Private keys   & 100 & 100 & 100\% & [0.964, 1.000] \\
+Database URLs  & 100 & 100 & 100\% & [0.964, 1.000] \\
+Passwords      & 100 & 100 & 100\% & [0.964, 1.000] \\
+API keys       & 100 & 100 & 100\% & [0.964, 1.000] \\
 \midrule
-\textbf{Overall} & \textbf{180} & \textbf{180} & \textbf{100\%} & \textbf{[0.980, 1.000]} \\
+\textbf{Overall} & \textbf{900} & \textbf{900} & \textbf{100\%} & \textbf{[0.996, 1.000]} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsubsection{Secret Scanner False Positive Rate}
 
-Corpus: 199 benign samples across 7 categories (\Cref{tab:fp-rate}). The single false positive was a placeholder token (\texttt{ghp\_xxxx\ldots}) matching the GitHub token pattern---arguably a true positive since the pattern is structurally valid.
+Corpus: 514 benign samples across 7 categories (\Cref{tab:fp-rate}). The single false positive was a placeholder token (\texttt{ghp\_xxxx\ldots}) matching the GitHub token pattern---arguably a true positive since the pattern is structurally valid.
 
 \begin{table}[htbp]
 \centering
@@ -592,60 +610,60 @@ Corpus: 199 benign samples across 7 categories (\Cref{tab:fp-rate}). The single 
 \toprule
 \textbf{Category} & \textbf{Samples} & \textbf{FPs} & \textbf{FP Rate} & \textbf{95\% CI} \\
 \midrule
-Prose       & 40 & 0 & 0.0\% & [0.000, 0.088] \\
-Code        & 30 & 0 & 0.0\% & [0.000, 0.116] \\
-Logs        & 30 & 0 & 0.0\% & [0.000, 0.116] \\
-Config      & 29 & 0 & 0.0\% & [0.000, 0.119] \\
-URLs        & 25 & 0 & 0.0\% & [0.000, 0.137] \\
-Hashes      & 25 & 0 & 0.0\% & [0.000, 0.137] \\
-Edge cases  & 20 & 1 & 5.0\% & [0.001, 0.249] \\
+Prose       & 80  & 0 & 0.0\% & [0.000, 0.045] \\
+Code        & 70  & 0 & 0.0\% & [0.000, 0.051] \\
+Logs        & 70  & 0 & 0.0\% & [0.000, 0.051] \\
+Config      & 71  & 0 & 0.0\% & [0.000, 0.051] \\
+URLs        & 70  & 0 & 0.0\% & [0.000, 0.051] \\
+Hashes      & 71  & 0 & 0.0\% & [0.000, 0.051] \\
+Edge cases  & 82  & 1 & 1.2\% & [0.000, 0.066] \\
 \midrule
-\textbf{Overall} & \textbf{199} & \textbf{1} & \textbf{0.50\%} & \textbf{[0.000, 0.028]} \\
+\textbf{Overall} & \textbf{514} & \textbf{1} & \textbf{0.19\%} & \textbf{[0.000, 0.011]} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsubsection{Comparative Detection: Harombe vs.\ detect-secrets}
 
-Both tools evaluated on the same 379-sample corpus (\Cref{tab:comparison}).
+Both tools evaluated on the same 1{,}414-sample corpus (\Cref{tab:comparison}).
 
 \begin{table}[htbp]
 \centering
-\caption{Comparative detection: Harombe vs.\ detect-secrets 1.5.0 (379 samples).}
+\caption{Comparative detection: Harombe vs.\ detect-secrets 1.5.0 (1{,}414 samples).}
 \label{tab:comparison}
 \small
 \begin{tabular}{@{}lrr@{}}
 \toprule
 \textbf{Metric} & \textbf{Harombe} & \textbf{detect-secrets} \\
 \midrule
-True Positives   & 180 & 180 \\
-False Positives  & 9   & 198 \\
-True Negatives   & 190 & 1   \\
+True Positives   & 900 & 900 \\
+False Positives  & 17  & 512 \\
+True Negatives   & 497 & 2   \\
 False Negatives  & 0   & 0   \\
-Precision        & \textbf{0.952} & 0.476 \\
+Precision        & \textbf{0.981} & 0.637 \\
 Recall           & 1.000 & 1.000 \\
-$F_1$ Score      & \textbf{0.976} & 0.645 \\
+$F_1$ Score      & \textbf{0.991} & 0.779 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Harombe achieves a 22$\times$ reduction in false positives while maintaining perfect recall.
+Harombe achieves a 30$\times$ reduction in false positives while maintaining perfect recall.
 
 \subsubsection{Adversarial Secret Detection}
 
 \begin{table}[htbp]
 \centering
-\caption{Adversarial secret detection robustness (Clopper--Pearson CIs).}
+\caption{Adversarial secret detection robustness (120 samples, 30 per technique, Clopper--Pearson CIs).}
 \label{tab:adversarial}
 \small
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
 \textbf{Evasion Technique} & \textbf{n} & \textbf{Detected} & \textbf{Rate} & \textbf{95\% CI} \\
 \midrule
-Split secrets (multi-line)  & 5 & 5 & 100\% & [0.478, 1.000] \\
-Multiline context (YAML/env)& 7 & 7 & 100\% & [0.590, 1.000] \\
-Unicode homoglyphs          & 5 & 2 & 40\%  & [0.053, 0.853] \\
-Base64-encoded              & 6 & 1 & 17\%  & [0.004, 0.641] \\
+Multiline context (YAML/env/Docker/CI) & 30 & 30 & 100\%  & [0.884, 1.000] \\
+Split secrets (multi-line/variable)     & 30 & 28 & 93.3\% & [0.779, 0.992] \\
+Unicode homoglyphs (Cyrillic/Greek/ZWSP)& 30 & 10 & 33.3\% & [0.173, 0.528] \\
+Base64-encoded (single/double/nested)   & 30 & 1  & 3.3\%  & [0.001, 0.172] \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -656,11 +674,11 @@ Base64-encoded              & 6 & 1 & 17\%  & [0.004, 0.641] \\
 
 \subsection{Breach Prevention Analysis (RQ3)}
 
-Each breach scenario was reproduced programmatically (\Cref{tab:breaches}).
+Each breach scenario was reconstructed from public incident reports and tested against the defense layers (\Cref{tab:breaches}). Attack payloads are synthetic reconstructions, not replays of actual attack traffic.
 
 \begin{table}[htbp]
 \centering
-\caption{Breach prevention analysis: 2025 MCP attacks reproduced against Harombe.}
+\caption{Breach scenario coverage: 2025 MCP attack patterns reconstructed against Harombe.}
 \label{tab:breaches}
 \small
 \begin{tabular}{@{}clcl@{}}
@@ -679,7 +697,7 @@ T7 & Multi-layer compound        & \textbf{Yes} & all 5 layers \\
 \end{tabular}
 \end{table}
 
-6/7 attacks fully blocked at the security module level. T7 demonstrates defense-in-depth: all 5 independent layers activated simultaneously.
+6/7 attack scenarios addressed at the security module level. T7 demonstrates defense-in-depth: all 5 independent layers activated simultaneously. These results reflect defense \emph{coverage}---which layers activate for which attack classes---not adversarial resilience against adaptive attackers.
 
 \subsection{Layer-by-Layer Coverage}
 
@@ -735,10 +753,11 @@ All security-critical paths show tight cross-run CIs. The blocked domain egress 
 \label{sec:eval-limitations}
 
 \begin{itemize}[nosep]
+  \item \textbf{Self-benchmarked evaluation:} all benchmarks use synthetic test data created alongside the implementation. No external red team or third-party adversarial testing was conducted. Results represent defense coverage, not adversarial robustness guarantees.
   \item Benchmarks run on a single machine (Apple Silicon), not production deployment.
-  \item Secret corpus uses synthetic secrets; real-world FP rates may differ.
-  \item \textbf{Container cold-start latency not yet formally measured} (benchmarks bypass Docker). Preliminary informal testing suggests ${\sim}1$--3\,s cold start for Alpine-based containers, reduced to ${<}500$\,ms with pre-warming.
-  \item Base64-encoded secrets (17\% detection) and Unicode homoglyphs (40\%) evade regex-based scanning---consistent with industry limitations \citep{basak2023secrets,orca2024base64}.
+  \item Secret corpus (900 TP + 514 benign = 1{,}414 samples) uses synthetic secrets; real-world FP rates may differ with diverse codebases.
+  \item \textbf{Gateway logic overhead} (0.025\,ms) measures Python security module code paths only. Production overhead includes container creation, HTTP round-trip, and network latency.
+  \item Base64-encoded secrets (3.3\% detection) and Unicode homoglyphs (33.3\%) evade regex-based scanning---consistent with industry limitations \citep{basak2023secrets,orca2024base64}.
   \item Performance under high concurrency (100+ agents) untested.
   \item T4 (path traversal) cannot be demonstrated without Docker in the benchmark suite.
   \item No user study or developer experience evaluation conducted.
@@ -769,13 +788,13 @@ The recurring pattern in MCP breaches is clear: protocol-level trust is insuffic
 
 \textbf{Container Escape.} Recent CVEs underscore this risk: CVE-2024-1086 (99.4\% success rate), CVE-2025-23266 (CVSS 9.0), and three runc escapes in November 2025. Lin et al.\ \citep{lin2018container} found 56.82\% of exploits succeed against default Docker. gVisor mitigates this \citep{jang2022gvisor} but introduces compatibility issues. This reinforces defense-in-depth.
 
-\textbf{Adversarial Evasion.} Regex-based scanning is vulnerable to encoding-based evasion. This is consistent with industry limitations \citep{basak2023secrets,orca2024base64,boucher2023trojan}. Defense paths: Unicode normalization (NFKC) and ML-based scanning \citep{basak2025llmsecrets,wiz2025scanning}.
+\textbf{Adversarial Evasion.} Regex-based scanning is vulnerable to encoding-based evasion: base64-encoded secrets detected at only 3.3\% (CI: [0.001, 0.172]) and Unicode homoglyphs at 33.3\% (CI: [0.173, 0.528]). This is consistent with industry limitations \citep{basak2023secrets,orca2024base64,boucher2023trojan}. Defense paths: Unicode normalization (NFKC) and ML-based scanning \citep{basak2025llmsecrets,wiz2025scanning}.
 
 \textbf{Prompt Injection and HITL Limitations.} Lies-in-the-Loop \citep{checkmarx2025lies} shows prompt injection can manipulate HITL dialogs. Zhan et al.\ \citep{zhan2025adaptive} broke all 8 tested prompt-level defenses. Our response: HITL is one of six layers; infrastructure layers operate independently of prompt-level trust.
 
 \textbf{Supply Chain Risk.} DockerDash \citep{dockerdash2025} demonstrated AI-specific container image compromise. Image signing (Sigstore/cosign) is planned.
 
-\textbf{Single Point of Failure.} The gateway is a single point of failure. Mitigation: minimal process with narrow API surface; future work on replication and hardware-backed attestation.
+\textbf{Single Point of Failure and Compromise.} The gateway is both a single point of failure and a single point of compromise: if subverted, all five security properties collapse simultaneously. This is the inverse of the defense-in-depth principle applied to tools. Gateway hardening: minimal API surface (single JSON-RPC endpoint), no tool-specific logic in the gateway code path, non-root execution, single-purpose process. The audit database should ideally write to a separate trust domain (remote syslog, append-only S3) so that audit integrity survives gateway compromise. Future work: replication and hardware-backed attestation.
 
 \textbf{Scalability.} The current implementation targets single-host deployment. Multi-host distributed gateways are future work.
 
@@ -804,13 +823,13 @@ We presented the Capability-Container Pattern, an infrastructure-level security 
 \subsection{Key Results}
 
 \begin{itemize}[nosep]
-  \item \textbf{6/7 real-world MCP breaches from 2025 fully prevented}
-  \item \textbf{${\sim}0.025$\,ms full pipeline overhead} (cross-run 95\% CI: [0.022, 0.028])---0.005\% of a 500\,ms LLM inference call
-  \item \textbf{100\% secret detection rate} (180/180, Clopper--Pearson CI: [0.980, 1.000]) with 0.50\% FP rate
-  \item \textbf{$F_1 = 0.976$} vs.\ 0.645 for detect-secrets (22$\times$ fewer false positives)
+  \item \textbf{Defense coverage for 6/7 reconstructed 2025 MCP breach scenarios} (synthetic reconstructions from public incident reports; no external red team)
+  \item \textbf{${\sim}0.025$\,ms gateway logic overhead} (cross-run 95\% CI: [0.022, 0.028])---0.005\% of a 500\,ms LLM inference call
+  \item \textbf{100\% secret detection rate} (900/900 across 9 types, Clopper--Pearson CI: [0.996, 1.000]) with 0.19\% FP rate (1/514, CI: [0.000, 0.011])
+  \item \textbf{$F_1 = 0.991$} vs.\ 0.779 for detect-secrets (30$\times$ fewer false positives on 1{,}414-sample corpus)
   \item \textbf{Sub-microsecond risk classification}
   \item \textbf{2{,}036 ops/sec audit throughput}
-  \item Transparent adversarial boundaries: 100\% for split secrets, 17\% for base64, 40\% for homoglyphs
+  \item Transparent adversarial boundaries (120 samples, 30 per technique): 100\% for multiline context, 93.3\% for split secrets, 3.3\% for base64, 33.3\% for homoglyphs
   \item \textbf{5{,}961 LOC} across 8 security layers
 \end{itemize}
 
@@ -827,7 +846,7 @@ MCP defines \emph{how} agents communicate with tools. It does not and cannot enf
   \item Formal verification of isolation and mediation properties
   \item Red team evaluation
   \item Multi-agent coordination security
-  \item Encoding-aware scanning (base64, Unicode normalization)
+  \item Encoding-aware scanning (base64 decoding, Unicode normalization) to address the 3.3\%/33.3\% adversarial detection gaps
   \item Concurrency benchmarks (100+ simultaneous agents)
   \item User study and developer experience evaluation
 \end{enumerate}
