@@ -53,6 +53,9 @@ harombe.yaml
 .harombe/
 *.log
 
+# Benchmark results (generated per-run)
+benchmarks/whitepaper_results.json
+
 # Claude Code
 .claude/
 
