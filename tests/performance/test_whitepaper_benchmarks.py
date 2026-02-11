@@ -9,9 +9,11 @@ All benchmarks run WITHOUT Docker — they exercise the real security modules
 (SecretScanner, AuditLogger, RiskClassifier, NetworkPolicy, EgressFilter) directly.
 
 Results are written to benchmarks/whitepaper_results.json for paper inclusion.
+Each metric includes 95% confidence intervals (t-distribution) for paper-grade
+statistical rigor.
 
 Usage:
-    # All whitepaper benchmarks
+    # Run whitepaper benchmarks (skipped by default in pytest and CI)
     pytest tests/performance/test_whitepaper_benchmarks.py -v -s
 
     # By section
@@ -19,7 +21,7 @@ Usage:
     pytest tests/performance/test_whitepaper_benchmarks.py::TestDetectionEffectiveness -v -s
     pytest tests/performance/test_whitepaper_benchmarks.py::TestBreachPrevention -v -s
 
-    # Skip benchmarks in normal test runs
+    # Skip benchmarks in normal test runs (default in CI)
     pytest -m "not benchmark"
 """
 
@@ -345,14 +347,66 @@ def _generate_message(size: int) -> str:
 
 
 def _compute_stats(times: list[float]) -> dict[str, float]:
-    """Compute mean, p50, p95, p99 from a list of times (in ms)."""
+    """Compute mean, p50, p95, p99, and 95% CI from a list of times (in ms)."""
     if not times:
-        return {"mean": 0, "p50": 0, "p95": 0, "p99": 0}
-    return {
-        "mean": statistics.mean(times),
+        return {
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "ci95_lower": 0,
+            "ci95_upper": 0,
+            "stdev": 0.0,
+            "n": 0,
+        }
+    from scipy.stats import t as t_dist
+
+    n = len(times)
+    mean = statistics.mean(times)
+    result: dict[str, float] = {
+        "mean": mean,
         "p50": statistics.median(times),
-        "p95": statistics.quantiles(times, n=20)[18] if len(times) >= 20 else max(times),
-        "p99": statistics.quantiles(times, n=100)[98] if len(times) >= 100 else max(times),
+        "p95": statistics.quantiles(times, n=20)[18] if n >= 20 else max(times),
+        "p99": statistics.quantiles(times, n=100)[98] if n >= 100 else max(times),
+    }
+    if n >= 2:
+        stdev = statistics.stdev(times)
+        t_val = t_dist.ppf(0.975, df=n - 1)
+        margin = t_val * (stdev / (n**0.5))
+        result["ci95_lower"] = mean - margin
+        result["ci95_upper"] = mean + margin
+        result["stdev"] = stdev
+    else:
+        result["ci95_lower"] = mean
+        result["ci95_upper"] = mean
+        result["stdev"] = 0.0
+    result["n"] = n
+    return result
+
+
+def _aggregate_multi_run_stats(all_run_means: list[float]) -> dict[str, float]:
+    """Compute cross-run statistics with 95% CI from multiple benchmark runs.
+
+    Use this to aggregate mean values across independent benchmark invocations
+    for paper-grade reproducibility evidence.
+    """
+    from scipy.stats import t as t_dist
+
+    n = len(all_run_means)
+    mean = statistics.mean(all_run_means)
+    if n >= 2:
+        stdev = statistics.stdev(all_run_means)
+        t_val = t_dist.ppf(0.975, df=n - 1)
+        margin = t_val * (stdev / (n**0.5))
+    else:
+        stdev = 0.0
+        margin = 0.0
+    return {
+        "mean_of_means": mean,
+        "stdev": stdev,
+        "ci95_lower": mean - margin,
+        "ci95_upper": mean + margin,
+        "n_runs": n,
     }
 
 
@@ -367,6 +421,16 @@ def _write_results() -> None:
         "python_version": platform.python_version(),
         "platform": f"{platform.system()} {platform.release()} {platform.machine()}",
         "commit_hash": _get_commit_hash(),
+        "confidence_intervals": {
+            "method": "t-distribution",
+            "level": 0.95,
+            "description": (
+                "Each metric includes ci95_lower and ci95_upper bounds computed "
+                "via the Student's t-distribution with n-1 degrees of freedom. "
+                "Use _aggregate_multi_run_stats() across independent runs for "
+                "cross-run reproducibility CIs."
+            ),
+        },
     }
 
     output_path = benchmarks_dir / "whitepaper_results.json"
