@@ -48,12 +48,12 @@ Harombe implements a comprehensive security layer (Phase 4) based on the **Capab
 - **Secret Management** - HashiCorp Vault, SOPS, and environment variable backends
 - **Network Isolation** - Per-container egress filtering with iptables and DNS control
 
-**⏳ Planned (Phase 4.5-4.8):**
+**✅ Implemented (Phase 4.5-4.8):**
 
-- Human-in-the-loop (HITL) confirmation gates
-- Pre-authenticated browser container
-- Code execution sandbox with gVisor
-- End-to-end integration testing
+- Human-in-the-loop (HITL) confirmation gates (Phase 4.5)
+- Pre-authenticated browser container (Phase 4.6)
+- Code execution sandbox with gVisor support (Phase 4.7)
+- End-to-end integration testing (Phase 4.8)
 
 ### Key Security Principle
 

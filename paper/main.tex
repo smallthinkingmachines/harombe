@@ -71,7 +71,7 @@
 % Abstract
 % ============================================================
 \begin{abstract}
-Autonomous AI agents that invoke external tools via protocols like MCP (Model Context Protocol) present a novel attack surface: the agent-tool boundary. Existing frameworks rely on prompt-level safeguards or protocol-level trust, both of which are insufficient against adversarial inputs, tool poisoning, and credential leakage. We present the \emph{Capability-Container Pattern}, an infrastructure-level security architecture where agents never directly access tools. All tool invocations flow through a mediation gateway into isolated containers, each provisioned with only the capabilities it requires. We describe the threat model, detail six defense-in-depth layers (container isolation, network egress filtering, credential vaults, audit logging, secret scanning, and human-in-the-loop gates), and provide benchmark results from a reference implementation. Our evaluation uses a 1{,}534-sample corpus---900 synthetic secrets (100 per type, 9 types), 514 benign samples across 7 categories, and 120 adversarial evasion samples---with Clopper--Pearson confidence intervals and comparative analysis against \texttt{detect-secrets}. Gateway logic overhead is ${\sim}0.025$\,ms (0.005\% of LLM inference latency, cross-run 95\% CI: [0.022, 0.028]), with 100\% secret detection rate (CI: [0.996, 1.000]), $F_1 = 0.991$ vs.\ 0.779 for \texttt{detect-secrets}, and 0.19\% false positive rate (CI: [0.000, 0.011]). The pattern provides defense coverage for 6/7 reconstructed 2025 MCP breach scenarios---reducing the attack surface from unbounded host access to a narrow, auditable, policy-enforced channel.
+Autonomous AI agents that invoke external tools via protocols like MCP (Model Context Protocol) present a novel attack surface: the agent-tool boundary. Existing frameworks rely on prompt-level safeguards or protocol-level trust, both of which are insufficient against adversarial inputs, tool poisoning, and credential leakage. We present the \emph{Capability-Container Pattern}, an infrastructure-level security architecture where agents never directly access tools. All tool invocations flow through a mediation gateway into isolated containers, each provisioned with only the capabilities it requires. We describe the threat model, detail six defense-in-depth layers (container isolation, network egress filtering, credential vaults, audit logging, secret scanning, and human-in-the-loop gates), and provide benchmark results from a reference implementation (self-evaluated with synthetic test data; see \S\ref{sec:eval-limitations}). Our evaluation uses a 1{,}534-sample corpus---900 synthetic secrets (100 per type, 9 types), 514 benign samples across 7 categories, and 120 adversarial evasion samples---with Clopper--Pearson confidence intervals and comparative analysis against \texttt{detect-secrets}. Gateway logic overhead is ${\sim}0.025$\,ms (0.005\% of LLM inference latency, cross-run 95\% CI: [0.022, 0.028]), with 100\% secret detection rate (CI: [0.996, 1.000]), $F_1 = 0.991$ vs.\ 0.779 for \texttt{detect-secrets}, and 0.19\% false positive rate (CI: [0.000, 0.011]). The pattern provides defense coverage for 6/7 reconstructed 2025 MCP breach scenarios---reducing the attack surface from unbounded host access to a narrow, auditable, policy-enforced channel.
 \end{abstract}
 
 % ============================================================
@@ -79,7 +79,7 @@ Autonomous AI agents that invoke external tools via protocols like MCP (Model Co
 \label{sec:introduction}
 % ============================================================
 
-The year 2025 saw the emergence of a new class of software vulnerability: the autonomous AI agent compromise. From WhatsApp chat history exfiltration in April to the Smithery registry breach in October that exposed 3{,}000+ MCP servers, a clear pattern emerged---the protocols designed for agent-tool communication provide no security enforcement at all.
+The year 2025 saw the emergence of a new class of software vulnerability: the agent-tool boundary exploit. From WhatsApp chat history exfiltration in April (disclosed by Invariant Labs) to the Smithery registry vulnerability responsibly disclosed in October \citep{gitguardian2025smithery} that could have exposed 3{,}000+ MCP servers (no evidence of exploitation), a clear pattern emerged---the protocols designed for agent-tool communication provide no security enforcement at all.
 
 \subsection{Problem Statement}
 
@@ -93,7 +93,7 @@ The Model Context Protocol (MCP) standardizes how AI agents invoke external tool
   \item How dangerous operations are gated on human approval
 \end{itemize}
 
-This gap between protocol specification and security enforcement is not merely theoretical. The 2025 MCP breach timeline (\Cref{sec:threat-model}) demonstrates that every major breach exploited this exact gap.
+This gap between protocol specification and security enforcement is not merely theoretical. The 2025 MCP vulnerability timeline (\Cref{sec:threat-model}) demonstrates that every major disclosed vulnerability exploited this exact gap.
 
 \subsection{Key Argument}
 
@@ -158,13 +158,13 @@ Container isolation (Docker, Podman) provides namespace separation for PIDs, net
 \textbf{Empirical evidence of container weakness.}
 Lin et al.\ \citep{lin2018container} found that 56.82\% of typical exploits succeed against default Docker configuration, and that namespace+cgroup isolation blocks only 21.62\% of privilege escalation attacks---while Seccomp+capabilities+MAC blocks 67.57\%. Jarkas et al.\ \citep{jarkas2025survey} cataloged 200+ container vulnerabilities across 47 exploit types and 11 attack vectors (2013--2024). Reeves et al.\ \citep{reeves2021analysis} analyzed 59 CVEs across 11 runtimes: all 9 documented escape exploits resulted from a host component leaked into the container; user namespace remapping stopped 7 of 9.
 
-\textbf{Recent container escapes} include CVE-2024-21626 (runc ``Leaky Vessels'': file descriptor leak), CVE-2024-1086 (nf\_tables use-after-free with 99.4\% success rate), CVE-2025-23266 (NVIDIA ``NVIDIAScape'': CVSS 9.0), CVE-2025-31133/52565/52881 (three runc mount-handling escapes), and DockerDash \citep{dockerdash2025}: an AI-specific attack where malicious Docker image labels exploit the Gordon AI $\rightarrow$ MCP Gateway pipeline.
+\textbf{Recent container escapes} include CVE-2024-21626 (runc ``Leaky Vessels'': file descriptor leak), CVE-2024-1086 (nf\_tables use-after-free; PoC reports 99.4\% success on KernelCTF images \citep{cve2024_1086poc}), CVE-2025-23266 (NVIDIA ``NVIDIAScape'': CVSS 9.0), CVE-2025-31133/52565/52881 (three runc mount-handling escapes), and DockerDash \citep{dockerdash2025}: an AI-specific attack where malicious Docker image labels exploit the Gordon AI $\rightarrow$ MCP Gateway pipeline.
 
 \textbf{Namespace and eBPF limitations.} Sun et al.\ \citep{sun2018namespace} showed containers cannot independently define security policies due to shared kernel. He et al.\ \citep{he2023ebpf} demonstrated that eBPF tracing features break container isolation---found 5 vulnerable cloud services.
 
-\textbf{gVisor} offers a middle ground: a user-space kernel reducing ${\sim}300$ syscalls to ${\sim}83$ (72\% reduction). Jang et al.\ \citep{jang2022gvisor} quantified gVisor as 4.2--7.5$\times$ more secure than standard runtimes. Young et al.\ \citep{young2019gvisor} measured 11.4$\times$ syscall overhead but near-native CPU performance. Google's Kubernetes Agent Sandbox (2025) chose gVisor as its default runtime for AI agent workloads \citep{google2025agentsandbox}.
+\textbf{gVisor} offers a middle ground: a user-space kernel reducing ${\sim}300$ syscalls to ${\sim}83$ (72\% reduction). Jang et al.\ \citep{jang2022gvisor} quantified gVisor as 4.2--7.5$\times$ more secure than standard runtimes. Young et al.\ \citep{young2019gvisor} measured 2.2--216$\times$ overhead depending on operation (simple syscalls to Gofer-mediated file I/O), but near-native CPU performance. Google's Kubernetes Agent Sandbox (2025) chose gVisor as its default runtime for AI agent workloads \citep{google2025agentsandbox}.
 
-\textbf{Firecracker} microVMs \citep{agache2020firecracker} provide hardware-enforced isolation via KVM with 125\,ms boot time and ${<}5$\,MiB overhead. However, Weissman et al.\ \citep{weissman2023firecracker} showed limited Spectre/MDS protection, and Xiao et al.\ \citep{xiao2023microvm} demonstrated exploitable operation forwarding.
+\textbf{Firecracker} microVMs \citep{agache2020firecracker} provide hardware-enforced isolation via KVM with 125\,ms boot time and ${\sim}3$\,MiB per-VM memory overhead. However, Weissman et al.\ \citep{weissman2023firecracker} showed limited Spectre/MDS protection, and Xiao et al.\ \citep{xiao2023microvm} demonstrated exploitable operation forwarding.
 
 Our architecture uses Docker containers with aggressive hardening (custom Seccomp profiles, dropped capabilities, user namespace remapping, read-only filesystems) as the default, with gVisor as the recommended production layer. Defense-in-depth ensures that even if container isolation is breached, network egress filtering, credential vaults, and secret scanning provide additional barriers.
 
@@ -190,6 +190,7 @@ The Survey of Agentic AI and Cybersecurity \citep{survey2026agentic} provides cr
 \toprule
 \textbf{System} & \textbf{Container} & \textbf{Network} & \textbf{Cred.\ Vault} & \textbf{Audit} & \textbf{Secrets} & \textbf{HITL} \\
 \midrule
+IsolateGPT        & Per-app & ---     & ---          & ---      & ---      & ---      \\
 AgentBound        & ---     & ---     & ---          & ---      & ---      & ---      \\
 Fault-Tol.\ Sandbox& ---    & ---     & ---          & ---      & ---      & Partial  \\
 NVIDIA Framework  & ---     & ---     & ---          & Partial  & ---      & Partial  \\
@@ -202,6 +203,15 @@ Progent           & ---     & ---     & ---          & Partial  & ---      & Par
 \end{tabular}
 \end{table}
 
+\subsection{Agent Isolation and Industry Frameworks}
+\label{sec:related-isolation}
+
+\textbf{IsolateGPT} \citep{wu2025isolategpt} is the closest prior work to ours. Wu et al.\ propose a hub-and-spoke architecture that transparently isolates LLM-integrated applications, preventing data leakage between apps sharing the same LLM backend. IsolateGPT focuses on \emph{data isolation}---ensuring one app's context cannot contaminate another's---via isolated LLM instances and API proxying. Our work addresses a complementary but distinct threat surface: we assume the LLM itself is trusted (or at least monitored) and focus on constraining what \emph{tools} can do once invoked. We add five defense-in-depth layers absent from IsolateGPT: network egress filtering, credential vaults, secret scanning, audit logging, and human-in-the-loop gates.
+
+\textbf{Deng et al.} \citep{deng2024agents} provide a comprehensive threat taxonomy for AI agents, organizing threats along four dimensions: adversarial inputs, operational environment, untrusted external entities, and system design flaws. Our architecture directly addresses their ``operational environment'' and ``untrusted external entities'' categories through infrastructure-level enforcement, providing a concrete implementation for the defense strategies they identify as needed.
+
+\textbf{Industry frameworks.} Several industry efforts address agent security at the framework or platform level. MAESTRO \citep{csa2025maestro} (Cloud Security Alliance) provides a multi-layer threat taxonomy for agentic AI but does not prescribe infrastructure enforcement. D{\'\i}az, Kern, and Olive \citep{google2025secureagents} (Google) outline secure agent design principles including sandboxing and least privilege but stop short of a reference implementation. SAFE-MCP \citep{safemcp2025} (Linux Foundation) defines an enterprise security assurance framework for MCP deployments. E2B \citep{e2b2025} provides Firecracker-based microVM sandboxing with sub-second cold starts, and Daytona \citep{daytona2025} offers sub-90\,ms cold start secure environments. These efforts focus on threat modeling and principles (MAESTRO, Google, SAFE-MCP) or single-layer isolation (E2B, Daytona); our work provides the multi-layer infrastructure implementation combining isolation with network filtering, credential management, audit, secret scanning, and human oversight.
+
 \subsection{Capability-Based Security}
 
 The capability model originates with Dennis \& Van Horn \citep{dennis1966semantics}, who proposed unforgeable tokens granting access to specific resources rather than relying on ambient authority. Saltzer \& Schroeder \citep{saltzer1975protection} formalized the principle of least privilege and complete mediation. seL4 \citep{klein2009sel4} provided the first formally verified capability-based microkernel. Capsicum \citep{watson2010capsicum} brought capability mode to FreeBSD. CHERI \citep{watson2015cheri} extends capability enforcement to hardware. Miller \citep{miller2006robust} adapted capabilities to programming language semantics, influencing WASI and Cloudflare Workers.
@@ -211,7 +221,7 @@ Our pattern adapts the capability model to the agent-tool boundary: each contain
 \subsection{Gap in Existing Work}
 
 \textbf{Commercial MCP Gateways.}
-We surveyed 14 commercial and open-source products. The dominant pattern covers authentication/authorization (OAuth 2.1, OIDC, SAML) and audit logging well. However: only Docker MCP Gateway offers container-per-tool isolation; network egress filtering per tool is absent from all but Azure (VNet-level, not per-tool); secret scanning of tool responses is nascent; and no single product combines all six defense layers. The OWASP MCP Top 10 \citep{owasp2025mcptop10} ranks ``Token Mismanagement and Secret Exposure'' as the \#1 risk.
+We surveyed 14 commercial and open-source MCP gateway products\footnote{Acuvity, Arcade AI, Azure MCP Gateway, Docker MCP Gateway, Envoy AI Gateway, Lasso Security, MCP Gateway (OSS), Prompt Security, Solo.io, Speakeasy, and four others; full methodology in the project repository.}. The dominant pattern covers authentication/authorization (OAuth 2.1, OIDC, SAML) and audit logging well. However: only Docker MCP Gateway offers container-per-tool isolation; network egress filtering per tool is absent from all but Azure (VNet-level, not per-tool); secret scanning of tool responses is nascent; and no single product combines all six defense layers. The OWASP MCP Top 10 \citep{owasp2025mcptop10} ranks ``Token Mismanagement and Secret Exposure'' as the \#1 risk.
 
 \textbf{Prompt Injection and HITL Limitations.}
 Indirect prompt injection \citep{greshake2023injection} poses a fundamental challenge: InjecAgent \citep{zhan2024injecagent} showed 24\% of agents follow injected instructions; AgentDojo \citep{debenedetti2024agentdojo} found even the best defenses fail against adaptive attacks; Lies-in-the-Loop \citep{checkmarx2025lies} demonstrated prompt injection can manipulate HITL approval dialogs; and Zhan et al.\ \citep{zhan2025adaptive} broke all 8 tested prompt-level defenses with ${>}50$\% success rate.
@@ -229,7 +239,7 @@ We consider three classes of adversaries:
 
 \textbf{A1: Malicious External Input (Prompt Injection).} The attacker controls content the agent processes (e.g., web pages, emails, GitHub issues). Goal: trick the agent into executing unintended tool calls. Example: GitHub MCP breach (May 2025)---prompt injection via public issues hijacked agent to extract private repo data.
 
-\textbf{A2: Compromised or Malicious Tool (Supply Chain).} The attacker controls an MCP server the agent connects to. Goal: exfiltrate data, execute arbitrary code on host, pivot to other tools. Example: Smithery registry breach (Oct 2025)---path traversal exposed Docker credentials for 3{,}000+ servers \citep{authzed2025timeline}.
+\textbf{A2: Compromised or Malicious Tool (Supply Chain).} The attacker controls an MCP server the agent connects to. Goal: exfiltrate data, execute arbitrary code on host, pivot to other tools. Example: Smithery registry vulnerability (disclosed Oct 2025)---path traversal could have exposed Docker credentials for 3{,}000+ servers; no evidence of exploitation \citep{gitguardian2025smithery,authzed2025timeline}.
 
 \textbf{A3: Insider Threat (Over-Privileged Agent).} A legitimate agent with excessive permissions. Goal: unintended data access, credential leakage, destructive operations. Example: Supabase Cursor agent processed support tickets with service-role access, enabling SQL injection.
 
@@ -512,7 +522,7 @@ Each concrete tool averages ${\sim}131$ LOC. The security subsystem uses 27 core
 
 \subsection{Experimental Setup}
 
-\textbf{Environment:} Darwin 25.2.0 arm64, Python 3.14.3, scipy 1.17.0, scikit-learn 1.8.0, detect-secrets 1.5.0. \textbf{Statistical methods:} timing CIs via Student's $t$-distribution ($\text{df} = n{-}1$) with IQR-based outlier filtering (factor = 1.5); detection rates via Clopper--Pearson exact binomial 95\% CIs; 50 warmup iterations before each measurement loop; GC disabled during measurement. \textbf{Date:} 2026-02-11.
+\textbf{Environment:} Darwin 25.2.0 arm64, Python 3.14.3 (pre-release; final release expected Oct 2026), scipy 1.17.0, scikit-learn 1.8.0, detect-secrets 1.5.0. \textbf{Statistical methods:} timing CIs via Student's $t$-distribution ($\text{df} = n{-}1$) with IQR-based outlier filtering (factor = 1.5); detection rates via Clopper--Pearson exact binomial 95\% CIs; 50 warmup iterations before each measurement loop; GC disabled during measurement. \textbf{Date:} 2026-02-11.
 
 \subsubsection{Evaluation Methodology and Scope}
 
@@ -521,6 +531,10 @@ All benchmarks use \textbf{synthetic test data created alongside the implementat
 \subsubsection{Benchmark Infrastructure}
 
 All benchmarks exercise the real security modules directly (no Docker, no mocking). Performance benchmarks measure \textbf{gateway logic overhead only}---the time spent in security module Python code paths. They do not include container-level overhead (Docker image pull, container creation, health check, HTTP round-trip). For cross-run reproducibility, \texttt{benchmarks/run\_multi.py} invokes the suite $N$ times independently and computes cross-run 95\% CIs using the $t$-distribution over per-run means.
+
+\subsubsection{Statistical Methodology Notes}
+
+Large sample sizes ($n \geq 200$) in performance benchmarks justify the Central Limit Theorem for $t$-based confidence intervals without formal normality testing. IQR-based outlier filtering (factor = 1.5) removes measurement artifacts (GC pauses, OS scheduling jitter); we acknowledge this may underestimate tail latency for workloads sensitive to worst-case performance. No family-wise error correction (e.g., Bonferroni) is applied across multiple metrics; readers should interpret individual CIs accordingly. Independence is justified by separate function calls with fresh inputs and separate process invocations for cross-run measurements.
 
 \subsection{Performance Benchmarks (RQ1)}
 
@@ -787,7 +801,7 @@ The recurring pattern in MCP breaches is clear: protocol-level trust is insuffic
 
 \textbf{Host OS Trust Assumption.} If an attacker has root on the host, container isolation provides no protection. Future work: hardware-enforced isolation (Intel SGX, AMD SEV-SNP).
 
-\textbf{Container Escape.} Recent CVEs underscore this risk: CVE-2024-1086 (99.4\% success rate), CVE-2025-23266 (CVSS 9.0), and three runc escapes in November 2025. Lin et al.\ \citep{lin2018container} found 56.82\% of exploits succeed against default Docker. gVisor mitigates this \citep{jang2022gvisor} but introduces compatibility issues. This reinforces defense-in-depth.
+\textbf{Container Escape.} Recent CVEs underscore this risk: CVE-2024-1086 (99.4\% success on KernelCTF images \citep{cve2024_1086poc}), CVE-2025-23266 (CVSS 9.0), and three runc escapes in November 2025. Lin et al.\ \citep{lin2018container} found 56.82\% of exploits succeed against default Docker. gVisor mitigates this \citep{jang2022gvisor} but introduces compatibility issues. This reinforces defense-in-depth.
 
 \textbf{Adversarial Evasion.} Regex-based scanning is vulnerable to encoding-based evasion: base64-encoded secrets detected at only 3.3\% (CI: [0.001, 0.172]) and Unicode homoglyphs at 33.3\% (CI: [0.173, 0.528]). This is consistent with industry limitations \citep{basak2023secrets,orca2024base64,boucher2023trojan}. Defense paths: Unicode normalization (NFKC) and ML-based scanning \citep{basak2025llmsecrets,wiz2025scanning}.
 
@@ -812,7 +826,7 @@ MicroVMs (Firecracker) provide stronger isolation (separate kernel) at the cost 
 
 \subsection{Comparison with Commercial MCP Gateways}
 
-Our survey of 14 commercial products reveals the market is crowded but shallow on defense-in-depth. Container-per-tool isolation: only Docker MCP Gateway. HITL gates: only 3 products (none combined with containers). Secret scanning: nascent (PII only). Network egress filtering per tool: effectively absent. This gap is structural: existing products evolved from API gateway heritage and lack infrastructure-level security primitives.
+Our survey of 14 commercial and open-source MCP gateway products reveals the market is crowded but shallow on defense-in-depth. Container-per-tool isolation: only Docker MCP Gateway. HITL gates: only 3 products (none combined with containers). Secret scanning: nascent (PII only). Network egress filtering per tool: effectively absent. This gap is structural: existing products evolved from API gateway heritage and lack infrastructure-level security primitives.
 
 % ============================================================
 \section{Conclusion}

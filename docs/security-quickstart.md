@@ -1,6 +1,6 @@
 # Harombe Security Layer - Quick Start Guide
 
-Get the Phase 4.1 security layer running in under 5 minutes.
+Get the Harombe security layer running in under 5 minutes.
 
 ## Prerequisites
 
@@ -135,7 +135,7 @@ curl -X POST http://localhost:8100/mcp \
   }'
 ```
 
-**Note:** This will fail until MCP server implementations are complete (Phase 4.6-4.7), but you'll see the gateway correctly route the request.
+**Note:** This requires MCP server containers to be running. The gateway will route the request to the appropriate container.
 
 ## Common Commands
 
@@ -228,7 +228,7 @@ docker exec harombe-gateway curl http://localhost:8100/health
 1. **Read the Architecture:** [Phase 4.1 Foundation](./security-phase4.1-foundation.md)
 2. **Understand MCP Protocol:** [MCP Gateway Design](./mcp-gateway-design.md)
 3. **Configure Security:** [Phase 4 Implementation Plan](./phases/phase4-implementation-plan.md)
-4. **Wait for MCP Servers:** Browser/Filesystem/Code execution servers coming in Phase 4.6-4.7
+4. **Review Security Features:** All six defense-in-depth layers are implemented (Phases 4.1-4.8)
 
 ## Stopping the Stack
 
@@ -282,10 +282,10 @@ Typical resource consumption:
 ⚗️ Compliance reporting (SOC 2, GDPR) — Heuristic templates, not audit-grade
 ⚗️ Confidential compute — Design only, requires AMD SEV-SNP or Intel TDX hardware
 
-### Not Yet Implemented
+### Implemented (Phases 4.7-4.8)
 
-⏳ Code execution sandbox with gVisor (Phase 4.7)
-⏳ End-to-end security integration testing (Phase 4.8)
+✅ Code execution sandbox with gVisor support (Phase 4.7)
+✅ End-to-end security integration testing (Phase 4.8)
 
 ## Getting Help
 
@@ -293,16 +293,17 @@ Typical resource consumption:
 - **Issues:** https://github.com/smallthinkingmachines/harombe/issues
 - **Docker Help:** `cd docker && make help`
 
-## What's Next?
+## Current Status
 
-This is the **foundation** for the security layer. Complete MCP server implementations and additional security features are coming in:
+All Phase 4 security layers are **implemented**:
 
+- **Phase 4.1:** Foundation (container isolation, gateway)
 - **Phase 4.2:** Audit logging
 - **Phase 4.3:** Secret management
 - **Phase 4.4:** Network isolation
 - **Phase 4.5:** HITL gates
 - **Phase 4.6:** Browser container
-- **Phase 4.7:** Code execution container
-- **Phase 4.8:** Full integration and testing
+- **Phase 4.7:** Code execution sandbox with gVisor
+- **Phase 4.8:** End-to-end integration testing
 
-Track progress in [phase4-implementation-plan.md](./phases/phase4-implementation-plan.md).
+See the [Phase 4 Implementation Plan](./phases/phase4-implementation-plan.md) for details.
