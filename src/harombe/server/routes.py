@@ -9,7 +9,7 @@ from sse_starlette.sse import EventSourceResponse
 from harombe.agent.loop import Agent
 from harombe.config.schema import HarombeConfig
 from harombe.llm.client import Message
-from harombe.llm.ollama import OllamaClient
+from harombe.llm.factory import create_llm_client
 from harombe.tools.registry import get_enabled_tools
 
 # Import tools to register them
@@ -70,12 +70,7 @@ def create_router(config: HarombeConfig, cluster_manager: Any = None) -> APIRout
     router = APIRouter()
 
     # Initialize LLM client
-    llm = OllamaClient(
-        model=config.model.name,
-        base_url=config.ollama.host + "/v1",
-        timeout=config.ollama.timeout,
-        temperature=config.model.temperature,
-    )
+    llm = create_llm_client(config)
 
     # Get enabled tools
     tools = get_enabled_tools(

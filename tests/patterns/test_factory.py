@@ -25,6 +25,7 @@ def _make_config(pattern="none", enabled=False, **overrides):
     config.privacy.audit_routing = False
     config.privacy.reconstruct_responses = True
     config.security.audit.enabled = False
+    config.inference.backend = "ollama"
 
     config.patterns.enabled = enabled
     config.patterns.pattern = pattern

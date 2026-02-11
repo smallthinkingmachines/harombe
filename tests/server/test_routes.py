@@ -11,8 +11,11 @@ from harombe.server.routes import create_router
 
 def _make_app(cluster_manager=None, agent_run_side_effect=None):
     """Create a FastAPI app with mocked LLM and agent."""
+    mock_llm = MagicMock()
+    mock_llm.complete = AsyncMock()
+
     with (
-        patch("harombe.server.routes.OllamaClient") as mock_llm_cls,
+        patch("harombe.server.routes.create_llm_client", return_value=mock_llm),
         patch("harombe.server.routes.Agent") as mock_agent_cls,
         patch(
             "harombe.server.routes.get_enabled_tools",
@@ -21,14 +24,15 @@ def _make_app(cluster_manager=None, agent_run_side_effect=None):
     ):
         mock_agent = MagicMock()
         if agent_run_side_effect:
-            mock_agent.run = AsyncMock(side_effect=agent_run_side_effect)
+            exc = agent_run_side_effect
+
+            async def _raise(*_args: object, **_kwargs: object) -> str:
+                raise exc
+
+            mock_agent.run = _raise
         else:
             mock_agent.run = AsyncMock(return_value="Hello from agent!")
         mock_agent_cls.return_value = mock_agent
-
-        mock_llm = MagicMock()
-        mock_llm.complete = AsyncMock()
-        mock_llm_cls.return_value = mock_llm
 
         config = HarombeConfig()
         router = create_router(config, cluster_manager=cluster_manager)
@@ -99,10 +103,19 @@ def test_chat_stream_endpoint():
 
 def test_chat_stream_error():
     """POST /chat/stream yields error event on exception."""
-    app, _llm = _make_app(agent_run_side_effect=RuntimeError("Stream failed"))
+    from sse_starlette.sse import AppStatus
+
+    app, _llm = _make_app(agent_run_side_effect=ValueError("Stream failed"))
     client = TestClient(app)
 
-    response = client.post("/chat/stream", json={"message": "Hi"})
+    # Prevent sse_starlette from creating an anyio.Event for shutdown
+    # signaling — the Event binds to the wrong event loop under TestClient.
+    original = AppStatus.should_exit
+    AppStatus.should_exit = True
+    try:
+        response = client.post("/chat/stream", json={"message": "Hi"})
+    finally:
+        AppStatus.should_exit = original
 
     assert response.status_code == 200
     body = response.text

@@ -365,6 +365,7 @@ class TestCreatePrivacyRouter:
         config.ollama.host = "http://localhost:11434"
         config.ollama.timeout = 120
         config.model.temperature = 0.7
+        config.inference.backend = "ollama"
 
         from harombe.llm.ollama import OllamaClient
 
@@ -379,6 +380,7 @@ class TestCreatePrivacyRouter:
         config.ollama.host = "http://localhost:11434"
         config.ollama.timeout = 120
         config.model.temperature = 0.7
+        config.inference.backend = "ollama"
 
         from harombe.llm.ollama import OllamaClient
 
@@ -402,6 +404,7 @@ class TestCreatePrivacyRouter:
         config.ollama.host = "http://localhost:11434"
         config.ollama.timeout = 120
         config.security.audit.enabled = False
+        config.inference.backend = "ollama"
 
         with patch.dict("os.environ", {"TEST_ANTHROPIC_KEY": "sk-test-key"}):
             result = create_privacy_router(config)

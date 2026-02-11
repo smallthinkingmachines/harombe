@@ -7,7 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-10
+
 ### Added
+
+**Multi-Backend Inference Distribution**
+
+- `OpenAICompatibleClient` base class for all OpenAI-compatible inference servers
+- `VLLMClient`: vLLM inference server support (NVIDIA GPU, PagedAttention)
+- `SGLangClient`: SGLang inference server support (NVIDIA GPU, RadixAttention)
+- `LlamaCppClient`: llama.cpp server support (CPU/GPU, GGUF models)
+- `create_llm_client()` factory function for config-driven backend selection
+- `InferenceConfig` with per-backend config models (`VLLMConfig`, `SGLangConfig`, `LlamaCppConfig`)
+- `backend` field on `NodeConfig` for per-node backend specification in clusters
+
+### Changed
+
+- `OllamaClient` now extends `OpenAICompatibleClient` (backward-compatible)
+- `PrivacyRouter` uses `create_llm_client()` factory instead of hardcoded `OllamaClient`
+- Server routes use `create_llm_client()` factory for backend-agnostic initialization
+- `HarombeConfig` now includes `inference` field (defaults to Ollama for backward compatibility)
+
+## [0.2.0] - 2026-02-10
+
+### Added
+
+**Security Hardening**
+
+- Rotation audit logging: `SecretRotationManager._log_rotation()` now writes to `AuditLogger`
+- Container restart after secret rotation: `SecretRotationScheduler` notifies container manager
+- Policy-based automatic rotation: `check_and_rotate()` compares elapsed time against policy interval
+- `set_container_manager()` method on `SecretRotationScheduler` for post-rotation container restarts
 
 **ZKP Audit Proofs (Promoted to Production)**
 
@@ -114,6 +144,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated docs/security-quickstart.md to distinguish production-ready from experimental security features
 - MCP status clarified as "partial (protocol models only)" pending server/client implementation
 - Cluster routing clarified as "untested at scale" pending multi-node integration tests
+
+## [0.1.1] - 2026-02-10
+
+### Added
+
+- PyPI publish workflow with OIDC trusted publishing (`.github/workflows/publish.yml`)
+- Dynamic version single-sourcing via `importlib.metadata`
+- Configurable CORS origins in `ServerConfig.cors_origins`
+- TLS support via `ServerConfig.ssl_certfile` / `ssl_keyfile`, passed through to uvicorn
+- Root `Dockerfile` with multi-stage build (builder + slim runtime)
+
+### Changed
+
+- Pinned upper bounds on all core dependencies to prevent breaking major-version upgrades
+- CORS middleware now reads from config instead of hardcoded `["*"]`
 
 ## [0.1.0] - 2026-02-10
 
