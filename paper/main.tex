@@ -24,8 +24,9 @@
 \usepackage{subcaption}
 \usepackage{url}
 \usepackage{natbib}
-\usepackage{fancyvrb}
 \usepackage{orcidlink}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,arrows.meta,calc,backgrounds}
 
 % ============================================================
 % Styling
@@ -307,33 +308,80 @@ The Capability-Container Pattern is an architectural pattern for securing autono
 
 \begin{figure}[htbp]
 \centering
-\begin{verbatim}
-+---------------------------------------------------------------+
-|                        HOST SYSTEM                            |
-|                                                               |
-|  +-----------+                                                |
-|  | Agent     |--JSON-RPC 2.0-->+-----------------+            |
-|  | Container |                 |  MCP Gateway    |            |
-|  | (isolated)|<----------------|  1. Validate    |            |
-|  +-----------+                 |  2. Classify    |            |
-|                                |  3. HITL gate   |            |
-|                                |  4. Route       |            |
-|                                |  5. Audit       |            |
-|                                |  6. Scan        |            |
-|                                +--+-+-+-+--------+            |
-|                                   | | | |                     |
-|              +--------------------+ | | +-------------+       |
-|              v            v        v v                v       |
-|  +----------+ +--------+ +--------+ +---------+              |
-|  | Browser  | |Filesys | |CodeExec| |WebSearch|              |
-|  | net:*.io | |fs:/x:ro| |fs:/tmp | |net:*.api|              |
-|  | pre-auth | |net:none| |gVisor  | |no-fs    |              |
-|  +----------+ +--------+ +--------+ +---------+              |
-|                                                               |
-|  +--[ Credential Vault (HashiCorp Vault / SOPS) ]----------+ |
-|  +--[ Audit Database (SQLite + WAL, append-only) ]----------+ |
-+---------------------------------------------------------------+
-\end{verbatim}
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=Stealth,
+    every node/.style={font=\sffamily\small},
+    box/.style={draw, rounded corners=3pt, minimum height=1cm,
+                text width=#1, align=center, inner sep=4pt},
+    box/.default=2cm,
+    tool/.style={box=2cm, fill=green!8, draw=green!50!black},
+    infra/.style={draw, rounded corners=2pt, minimum height=0.5cm,
+                  align=center, inner sep=3pt,
+                  font=\sffamily\footnotesize},
+    arrow/.style={-{Stealth[length=5pt]}, thick},
+    biarrow/.style={{Stealth[length=5pt]}-{Stealth[length=5pt]}, thick},
+]
+
+% --- Agent Container ---
+\node[box=2.2cm, fill=blue!8, draw=blue!50!black]
+    (agent) {Agent\\Container\\[-2pt]{\footnotesize(isolated)}};
+
+% --- MCP Gateway ---
+\node[box=2.8cm, fill=orange!10, draw=orange!60!black,
+      right=2.2cm of agent, minimum height=2.4cm]
+    (gw) {\textbf{MCP Gateway}\\[2pt]
+           {\footnotesize
+            1.~Validate\\
+            2.~Classify\\
+            3.~HITL gate\\
+            4.~Route\\
+            5.~Audit\\
+            6.~Scan}};
+
+% --- Bidirectional arrow ---
+\draw[biarrow] (agent.east) -- node[above, font=\sffamily\scriptsize]
+    {JSON-RPC 2.0} (gw.west);
+
+% --- Place tool containers below gateway with enough clearance ---
+% First place two middle tools directly below the gateway, then outer ones
+\node[tool, below=1.4cm of gw.south, xshift=-1.25cm]
+    (fs) {Filesystem\\[-2pt]{\footnotesize\texttt{fs:/x:ro}}\\[-2pt]{\footnotesize\texttt{net:none}}};
+\node[tool, right=0.35cm of fs]
+    (code) {CodeExec\\[-2pt]{\footnotesize\texttt{fs:/tmp}}\\[-2pt]{\footnotesize gVisor}};
+\node[tool, left=0.35cm of fs]
+    (browser) {Browser\\[-2pt]{\footnotesize\texttt{net:*.io}}\\[-2pt]{\footnotesize pre-auth}};
+\node[tool, right=0.35cm of code]
+    (web) {WebSearch\\[-2pt]{\footnotesize\texttt{net:*.api}}\\[-2pt]{\footnotesize no-fs}};
+
+% --- Gateway to tools (single trunk line, then branches) ---
+\coordinate (trunkbase) at ($(gw.south)+(0,-0.55)$);
+\draw[thick] (gw.south) -- (trunkbase);
+\draw[arrow] (trunkbase) -| (browser.north);
+\draw[arrow] (trunkbase) -| (fs.north);
+\draw[arrow] (trunkbase) -| (code.north);
+\draw[arrow] (trunkbase) -| (web.north);
+
+% --- Infrastructure bars (span from browser left to web right) ---
+\node[infra, fill=violet!6, draw=violet!40!black,
+      below=0.45cm of $(browser.south)!0.5!(web.south)$,
+      minimum width={4*2cm+4*8pt+3*0.35cm}]
+    (vault) {Credential Vault\enspace{\footnotesize(HashiCorp Vault\,/\,SOPS)}};
+\node[infra, fill=gray!8, draw=gray!50!black, below=0.2cm of vault,
+      minimum width={4*2cm+4*8pt+3*0.35cm}]
+    (audit) {Audit Database\enspace{\footnotesize(SQLite + WAL, append-only)}};
+
+% --- Host system dashed box ---
+\begin{scope}[on background layer]
+\node[draw=gray!70, dashed, rounded corners=5pt, thick,
+      inner xsep=10pt, inner ysep=14pt,
+      fit=(agent)(gw)(browser)(web)(vault)(audit),
+      label={[font=\sffamily\small, anchor=south, yshift=-2pt]above:Host System}]
+    (host) {};
+\end{scope}
+
+\end{tikzpicture}%
+}
 \caption{Capability-Container Pattern architecture. Each tool runs in an isolated container with scoped capabilities. All communication flows through the MCP Gateway.}
 \label{fig:architecture}
 \end{figure}
