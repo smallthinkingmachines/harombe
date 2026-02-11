@@ -249,10 +249,15 @@ async def hello_world(name: str = "World") -> str:
         }
         mock_ep.load.return_value = mock_module
 
-        with patch(
-            "harombe.plugins.loader.importlib.metadata.entry_points",
-            return_value=[mock_ep],
+        # Force the 3.12+ code path so return_value=[mock_ep] works directly
+        with (
+            patch("harombe.plugins.loader.sys") as mock_sys,
+            patch(
+                "importlib.metadata.entry_points",
+                return_value=[mock_ep],
+            ),
         ):
+            mock_sys.version_info = (3, 12)
             loader = PluginLoader(plugin_dir=str(tmp_path))
             plugins = loader.discover_all()
 
@@ -266,10 +271,14 @@ async def hello_world(name: str = "World") -> str:
         mock_ep = MagicMock()
         mock_ep.name = "blocked_ep"
 
-        with patch(
-            "harombe.plugins.loader.importlib.metadata.entry_points",
-            return_value=[mock_ep],
+        with (
+            patch("harombe.plugins.loader.sys") as mock_sys,
+            patch(
+                "importlib.metadata.entry_points",
+                return_value=[mock_ep],
+            ),
         ):
+            mock_sys.version_info = (3, 12)
             loader = PluginLoader(plugin_dir=str(tmp_path), blocked=["blocked_ep"])
             plugins = loader.discover_all()
 
@@ -282,10 +291,14 @@ async def hello_world(name: str = "World") -> str:
         mock_ep.name = "bad_ep"
         mock_ep.load.side_effect = ImportError("missing dependency")
 
-        with patch(
-            "harombe.plugins.loader.importlib.metadata.entry_points",
-            return_value=[mock_ep],
+        with (
+            patch("harombe.plugins.loader.sys") as mock_sys,
+            patch(
+                "importlib.metadata.entry_points",
+                return_value=[mock_ep],
+            ),
         ):
+            mock_sys.version_info = (3, 12)
             loader = PluginLoader(plugin_dir=str(tmp_path))
             plugins = loader.discover_all()
 
@@ -296,10 +309,14 @@ async def hello_world(name: str = "World") -> str:
 
     def test_discover_entry_points_exception(self, tmp_path: Path):
         """entry_points() itself raises, discovery continues gracefully."""
-        with patch(
-            "harombe.plugins.loader.importlib.metadata.entry_points",
-            side_effect=Exception("metadata error"),
+        with (
+            patch("harombe.plugins.loader.sys") as mock_sys,
+            patch(
+                "importlib.metadata.entry_points",
+                side_effect=Exception("metadata error"),
+            ),
         ):
+            mock_sys.version_info = (3, 12)
             loader = PluginLoader(plugin_dir=str(tmp_path))
             plugins = loader.discover_all()
 
