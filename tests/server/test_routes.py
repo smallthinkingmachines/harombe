@@ -2,7 +2,6 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -102,17 +101,21 @@ def test_chat_stream_endpoint():
     assert "done" in body
 
 
-@pytest.mark.asyncio
-async def test_chat_stream_error():
+def test_chat_stream_error():
     """POST /chat/stream yields error event on exception."""
-    import httpx
+    from sse_starlette.sse import AppStatus
 
     app, _llm = _make_app(agent_run_side_effect=ValueError("Stream failed"))
+    client = TestClient(app)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        response = await client.post("/chat/stream", json={"message": "Hi"})
+    # Prevent sse_starlette from creating an anyio.Event for shutdown
+    # signaling — the Event binds to the wrong event loop under TestClient.
+    original = AppStatus.should_exit
+    AppStatus.should_exit = True
+    try:
+        response = client.post("/chat/stream", json={"message": "Hi"})
+    finally:
+        AppStatus.should_exit = original
 
     assert response.status_code == 200
     body = response.text
