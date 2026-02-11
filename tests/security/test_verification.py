@@ -586,3 +586,89 @@ class TestVerificationIntegration:
             # Run Slack verification
             result_slack = await tester.verify("/secrets/slack", ["slack_token_test"])
             assert result_slack.success
+
+
+class TestVerificationEdgeCases:
+    """Test edge cases for verification framework."""
+
+    @pytest.fixture
+    def mock_vault(self):
+        return MockVaultBackend()
+
+    def test_verification_result_str_failed(self):
+        """Test VerificationResult __str__ for failed case."""
+        result = VerificationResult(
+            success=False,
+            total_tests=3,
+            passed_tests=1,
+            failed_tests=2,
+            duration_ms=300.0,
+            error="2 tests failed",
+        )
+        str_repr = str(result)
+        assert "FAILED" in str_repr
+        assert "1/3" in str_repr
+
+    @pytest.mark.asyncio
+    async def test_stripe_no_vault(self):
+        """Test StripeAPIVerification with no vault backend."""
+        test = StripeAPIVerification(vault_backend=None)
+        result = await test.run("/secrets/stripe")
+        assert not result.success
+        assert "No vault backend" in result.message
+
+    @pytest.mark.asyncio
+    async def test_stripe_secret_not_found(self, mock_vault):
+        """Test StripeAPIVerification when secret is missing."""
+        test = StripeAPIVerification(vault_backend=mock_vault)
+        result = await test.run("/secrets/stripe")
+        assert not result.success
+        assert "not found" in result.message
+
+    @pytest.mark.asyncio
+    async def test_slack_no_vault(self):
+        """Test SlackTokenVerification with no vault backend."""
+        test = SlackTokenVerification(vault_backend=None)
+        result = await test.run("/secrets/slack")
+        assert not result.success
+        assert "No vault backend" in result.message
+
+    @pytest.mark.asyncio
+    async def test_slack_secret_not_found(self, mock_vault):
+        """Test SlackTokenVerification when secret is missing."""
+        test = SlackTokenVerification(vault_backend=mock_vault)
+        result = await test.run("/secrets/slack")
+        assert not result.success
+        assert "not found" in result.message
+
+    @pytest.mark.asyncio
+    async def test_database_no_vault(self):
+        """Test DatabaseConnectionVerification with no vault backend."""
+        test = DatabaseConnectionVerification(vault_backend=None)
+        result = await test.run("/secrets/db")
+        assert not result.success
+        assert "No vault backend" in result.message
+
+    @pytest.mark.asyncio
+    async def test_database_secret_not_found(self, mock_vault):
+        """Test DatabaseConnectionVerification when secret is missing."""
+        test = DatabaseConnectionVerification(vault_backend=mock_vault)
+        result = await test.run("/secrets/db")
+        assert not result.success
+        assert "not found" in result.message
+
+    @pytest.mark.asyncio
+    async def test_aws_no_vault(self):
+        """Test AWSCredentialsVerification with no vault backend."""
+        test = AWSCredentialsVerification(vault_backend=None)
+        result = await test.run("/secrets/aws")
+        assert not result.success
+        assert "No vault backend" in result.message
+
+    @pytest.mark.asyncio
+    async def test_aws_secret_not_found(self, mock_vault):
+        """Test AWSCredentialsVerification when secret is missing."""
+        test = AWSCredentialsVerification(vault_backend=mock_vault)
+        result = await test.run("/secrets/aws")
+        assert not result.success
+        assert "not found" in result.message

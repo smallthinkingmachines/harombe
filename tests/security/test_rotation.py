@@ -1,6 +1,7 @@
 """Tests for automatic credential rotation system."""
 
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -828,3 +829,170 @@ class TestConsumerTracking:
         assert config.old_value == "old_secret"
         assert config.new_value == "new_secret"
         assert len(config.consumers) == 2
+
+
+class TestRotationAdvanced:
+    """Advanced rotation tests for uncovered paths."""
+
+    @pytest.fixture
+    def mock_vault(self):
+        return MockVaultBackend()
+
+    @pytest.fixture
+    def rotation_manager(self, mock_vault):
+        return SecretRotationManager(vault_backend=mock_vault)
+
+    @pytest.mark.asyncio
+    async def test_rotate_with_verification_tester(self, mock_vault):
+        """Test rotation with verification tester configured."""
+        mock_tester = MagicMock()
+        mock_tester.verify = AsyncMock(
+            return_value=MagicMock(
+                success=True,
+                passed_tests=2,
+                total_tests=2,
+                duration_ms=100.0,
+                failed_tests=0,
+                error=None,
+            )
+        )
+        manager = SecretRotationManager(vault_backend=mock_vault, verification_tester=mock_tester)
+        await mock_vault.set_secret("/secrets/test", "old_value")
+        policy = RotationPolicy(
+            name="verified",
+            interval_days=30,
+            strategy=RotationStrategy.STAGED,
+            require_verification=True,
+            verification_tests=["test1", "test2"],
+        )
+        result = await manager.rotate_secret("/secrets/test", policy)
+        assert result.success
+        mock_tester.verify.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_rotate_verification_failure_rollback(self, mock_vault):
+        """Test rotation verification failure triggers rollback."""
+        mock_tester = MagicMock()
+        mock_tester.verify = AsyncMock(
+            return_value=MagicMock(
+                success=False,
+                passed_tests=0,
+                total_tests=1,
+                duration_ms=50.0,
+                failed_tests=1,
+                error="failed",
+            )
+        )
+        manager = SecretRotationManager(vault_backend=mock_vault, verification_tester=mock_tester)
+        await mock_vault.set_secret("/secrets/test", "old_value")
+        policy = RotationPolicy(
+            name="fail_verify",
+            interval_days=30,
+            strategy=RotationStrategy.STAGED,
+            require_verification=True,
+            auto_rollback=True,
+            verification_tests=["test1"],
+        )
+        result = await manager.rotate_secret("/secrets/test", policy)
+        assert not result.success
+        current = await mock_vault.get_secret("/secrets/test")
+        assert current == "old_value"
+
+    @pytest.mark.asyncio
+    async def test_rotate_with_audit_logger(self, mock_vault):
+        """Test rotation calls _log_rotation when audit_logger is set."""
+        audit_logger = MagicMock()
+        manager = SecretRotationManager(vault_backend=mock_vault, audit_logger=audit_logger)
+        await mock_vault.set_secret("/secrets/audit", "value")
+        policy = RotationPolicy(
+            name="audited",
+            interval_days=30,
+            strategy=RotationStrategy.IMMEDIATE,
+            require_verification=False,
+        )
+        with patch.object(manager, "_log_rotation", new_callable=AsyncMock) as mock_log:
+            result = await manager.rotate_secret("/secrets/audit", policy)
+            assert result.success
+            mock_log.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_rotate_default_policy(self, mock_vault):
+        """Test rotate_secret with policy=None uses default policy."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/default", "old")
+        result = await manager.rotate_secret("/secrets/default", policy=None)
+        assert result.success
+        assert result.status == RotationStatus.SUCCESS
+        new_val = await mock_vault.get_secret("/secrets/default")
+        assert new_val != "old"
+
+    def test_unknown_generator_type(self):
+        """Test SecretGenerator raises ValueError for unknown type."""
+        generator = SecretGenerator(generator_type="custom_unknown")
+        with pytest.raises(ValueError, match="Unknown generator type"):
+            generator.generate()
+
+    @pytest.mark.asyncio
+    async def test_failed_scheduled_rotation_reschedule(self, mock_vault):
+        """Test failed scheduled rotation is rescheduled in ~1 hour."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/retry", "val")
+        policy = RotationPolicy(
+            name="retry_pol",
+            interval_days=30,
+            strategy=RotationStrategy.STAGED,
+            require_verification=False,
+        )
+        schedule = manager.schedule_rotation("/secrets/retry", policy)
+        schedule.next_rotation = datetime.utcnow() - timedelta(hours=1)
+        with patch.object(
+            manager,
+            "rotate_secret",
+            new_callable=AsyncMock,
+            return_value=RotationResult(
+                success=False,
+                secret_path="/secrets/retry",
+                status=RotationStatus.FAILED,
+                started_at=datetime.utcnow(),
+                error="boom",
+            ),
+        ):
+            await manager.process_scheduled_rotations()
+        updated = manager.get_schedule("/secrets/retry")
+        assert updated.next_rotation > datetime.utcnow()
+        assert updated.next_rotation < datetime.utcnow() + timedelta(hours=2)
+        assert updated.rotation_count == 0
+
+    @pytest.mark.asyncio
+    async def test_statistics_with_failures(self, mock_vault):
+        """Test failed_rotations counter incremented on failure."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        await mock_vault.set_secret("/secrets/fail", "val")
+        manager._verify_secret = AsyncMock(return_value=False)
+        policy = RotationPolicy(
+            name="fail_stats",
+            interval_days=30,
+            strategy=RotationStrategy.STAGED,
+            require_verification=True,
+            auto_rollback=True,
+            verification_tests=["t1"],
+        )
+        await manager.rotate_secret("/secrets/fail", policy)
+        stats = manager.get_statistics()
+        assert stats["failed_rotations"] >= 1
+
+    @pytest.mark.asyncio
+    async def test_rotate_secret_exception_handling(self, mock_vault):
+        """Test rotate_secret handles vault exceptions gracefully."""
+        manager = SecretRotationManager(vault_backend=mock_vault)
+        with patch.object(mock_vault, "get_secret", side_effect=RuntimeError("vault down")):
+            policy = RotationPolicy(
+                name="exc",
+                interval_days=30,
+                strategy=RotationStrategy.STAGED,
+                require_verification=False,
+            )
+            result = await manager.rotate_secret("/secrets/exc", policy)
+        assert not result.success
+        assert result.status == RotationStatus.FAILED
+        assert "vault down" in result.error

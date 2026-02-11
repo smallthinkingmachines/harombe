@@ -1,5 +1,9 @@
 """Tests for container-based plugin isolation."""
 
+from __future__ import annotations
+
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from harombe.plugins.container import (
@@ -75,6 +79,17 @@ class TestRunningPluginContainer:
 
 
 class TestPluginContainerManager:
+    def test_init(self):
+        manager = PluginContainerManager()
+        assert manager._docker is None
+        assert manager._running == {}
+        assert manager._next_port == BASE_PORT
+
+    def test_init_with_docker(self):
+        mock_docker = MagicMock()
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        assert manager._docker is mock_docker
+
     def test_port_allocation(self):
         manager = PluginContainerManager()
         port1 = manager._allocate_port()
@@ -88,6 +103,12 @@ class TestPluginContainerManager:
         for _ in range(MAX_CONTAINERS):
             manager._allocate_port()
         with pytest.raises(RuntimeError, match="Maximum number"):
+            manager._allocate_port()
+
+    def test_port_allocation_max_boundary(self):
+        manager = PluginContainerManager()
+        manager._next_port = BASE_PORT + MAX_CONTAINERS
+        with pytest.raises(RuntimeError):
             manager._allocate_port()
 
     def test_generate_dockerfile_basic(self):
@@ -115,6 +136,41 @@ class TestPluginContainerManager:
         dockerfile = manager._generate_dockerfile(config)
         assert "pip install --no-cache-dir requests beautifulsoup4" in dockerfile
 
+    def test_generate_dockerfile_no_packages(self):
+        manager = PluginContainerManager()
+        config = PluginContainerConfig(
+            plugin_name="test",
+            plugin_path="/path/to/plugin.py",
+            port=3100,
+        )
+        dockerfile = manager._generate_dockerfile(config)
+        # Should not have extra pip install line (beyond fastapi/uvicorn)
+        lines = dockerfile.strip().split("\n")
+        pip_lines = [line for line in lines if "pip install" in line]
+        # Only the fastapi uvicorn install
+        assert any("fastapi" in line for line in pip_lines)
+
+    def test_generate_dockerfile_custom_base_image(self):
+        manager = PluginContainerManager()
+        config = PluginContainerConfig(
+            plugin_name="test",
+            plugin_path="/path/to/plugin.py",
+            port=3200,
+            base_image="python:3.13-slim",
+        )
+        dockerfile = manager._generate_dockerfile(config)
+        assert "FROM python:3.13-slim" in dockerfile
+        assert "EXPOSE 3200" in dockerfile
+
+    def test_generate_dockerfile_default_port(self):
+        manager = PluginContainerManager()
+        config = PluginContainerConfig(
+            plugin_name="test",
+            plugin_path="/path/to/plugin.py",
+        )
+        dockerfile = manager._generate_dockerfile(config)
+        assert f"EXPOSE {BASE_PORT}" in dockerfile
+
     def test_generate_scaffold(self):
         manager = PluginContainerManager()
         scaffold = manager._generate_scaffold("my-plugin", 3100)
@@ -126,6 +182,12 @@ class TestPluginContainerManager:
         assert "tools/call" in scaffold
         assert "__tool_meta__" in scaffold
         assert "3100" in scaffold
+
+    def test_generate_scaffold_different_port(self):
+        manager = PluginContainerManager()
+        scaffold = manager._generate_scaffold("other-plugin", 4500)
+        assert "other-plugin" in scaffold
+        assert "4500" in scaffold
 
     def test_route_lookup_missing(self):
         manager = PluginContainerManager()
@@ -171,6 +233,79 @@ class TestPluginContainerManager:
         assert result is False
 
     @pytest.mark.asyncio
+    async def test_health_check_success(self):
+        manager = PluginContainerManager()
+        manager._running["healthy"] = RunningPluginContainer(
+            name="healthy",
+            container_id="h1",
+            host="localhost:3100",
+            port=3100,
+        )
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = AsyncMock()
+        mock_client.get.return_value = mock_response
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+
+        mock_httpx = MagicMock()
+        mock_httpx.AsyncClient.return_value = mock_client
+
+        with patch.dict("sys.modules", {"httpx": mock_httpx}):
+            result = await manager.health_check("healthy")
+
+        assert result is True
+        mock_client.get.assert_called_once_with("http://localhost:3100/health", timeout=5.0)
+
+    @pytest.mark.asyncio
+    async def test_health_check_failure(self):
+        manager = PluginContainerManager()
+        manager._running["sick"] = RunningPluginContainer(
+            name="sick",
+            container_id="s1",
+            host="localhost:3100",
+            port=3100,
+        )
+        mock_client = AsyncMock()
+        mock_client.get.side_effect = ConnectionError("refused")
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+
+        mock_httpx = MagicMock()
+        mock_httpx.AsyncClient.return_value = mock_client
+
+        with patch.dict("sys.modules", {"httpx": mock_httpx}):
+            result = await manager.health_check("sick")
+
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_health_check_non_200(self):
+        manager = PluginContainerManager()
+        manager._running["bad"] = RunningPluginContainer(
+            name="bad",
+            container_id="b1",
+            host="localhost:3100",
+            port=3100,
+        )
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+
+        mock_client = AsyncMock()
+        mock_client.get.return_value = mock_response
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+
+        mock_httpx = MagicMock()
+        mock_httpx.AsyncClient.return_value = mock_client
+
+        with patch.dict("sys.modules", {"httpx": mock_httpx}):
+            result = await manager.health_check("bad")
+
+        assert result is False
+
+    @pytest.mark.asyncio
     async def test_start_plugin_no_docker(self):
         manager = PluginContainerManager(docker_manager=None)
         config = PluginContainerConfig(
@@ -189,6 +324,142 @@ class TestPluginContainerManager:
         )
         with pytest.raises(RuntimeError, match="Docker manager not available"):
             await manager.build_image(config)
+
+    @pytest.mark.asyncio
+    async def test_stop_plugin_no_docker(self):
+        """stop_plugin with no docker returns early without error."""
+        manager = PluginContainerManager(docker_manager=None)
+        manager._running["orphan"] = RunningPluginContainer(
+            name="orphan",
+            container_id="o1",
+            host="localhost:3100",
+            port=3100,
+        )
+        # With docker=None, stop_plugin returns immediately (no-op)
+        await manager.stop_plugin("orphan")
+        # The plugin remains in _running since docker was None
+        assert "orphan" in manager._running
+
+    @pytest.mark.asyncio
+    async def test_stop_plugin_with_docker(self):
+        """stop_plugin calls docker stop and remove."""
+        mock_docker = AsyncMock()
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        manager._running["stopper"] = RunningPluginContainer(
+            name="stopper",
+            container_id="st1",
+            host="localhost:3100",
+            port=3100,
+        )
+        await manager.stop_plugin("stopper")
+        mock_docker.stop_container.assert_awaited_once_with("harombe-plugin-stopper")
+        mock_docker.remove_container.assert_awaited_once_with("harombe-plugin-stopper", force=True)
+        assert "stopper" not in manager._running
+
+    @pytest.mark.asyncio
+    async def test_stop_plugin_docker_error(self):
+        """stop_plugin handles docker errors gracefully."""
+        mock_docker = AsyncMock()
+        mock_docker.stop_container.side_effect = ValueError("not found")
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        manager._running["bad_stop"] = RunningPluginContainer(
+            name="bad_stop",
+            container_id="bs1",
+            host="localhost:3100",
+            port=3100,
+        )
+        # Should not raise
+        await manager.stop_plugin("bad_stop")
+        assert "bad_stop" not in manager._running
+
+    @pytest.mark.asyncio
+    async def test_cleanup_all(self):
+        """cleanup_all stops all running containers."""
+        mock_docker = AsyncMock()
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        manager._running["a"] = RunningPluginContainer(
+            name="a", container_id="a1", host="localhost:3100", port=3100
+        )
+        manager._running["b"] = RunningPluginContainer(
+            name="b", container_id="b1", host="localhost:3101", port=3101
+        )
+        await manager.cleanup_all()
+        assert manager._running == {}
+        assert mock_docker.stop_container.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_cleanup_all_empty(self):
+        """cleanup_all on empty manager is a no-op."""
+        manager = PluginContainerManager()
+        await manager.cleanup_all()
+        assert manager._running == {}
+
+    @pytest.mark.asyncio
+    async def test_build_image_with_docker(self, tmp_path):
+        """build_image builds a Docker image using the docker manager."""
+        plugin_file = tmp_path / "test_plugin.py"
+        plugin_file.write_text("x = 1\n")
+
+        mock_client = MagicMock()
+        mock_client.images.build.return_value = (MagicMock(), [])
+
+        mock_docker = MagicMock()
+        mock_docker._get_client.return_value = mock_client
+
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        config = PluginContainerConfig(
+            plugin_name="build-test",
+            plugin_path=str(plugin_file),
+        )
+        image_tag = await manager.build_image(config)
+        assert image_tag == "harombe-plugin-build-test:latest"
+        mock_client.images.build.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_start_plugin_with_docker(self, tmp_path):
+        """start_plugin builds image and starts container."""
+        plugin_file = tmp_path / "start_plugin.py"
+        plugin_file.write_text("x = 1\n")
+
+        mock_client = MagicMock()
+        mock_client.images.build.return_value = (MagicMock(), [])
+
+        mock_docker = AsyncMock()
+        mock_docker._get_client = MagicMock(return_value=mock_client)
+        mock_docker.create_container.return_value = "container-id-123"
+
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        config = PluginContainerConfig(
+            plugin_name="start-test",
+            plugin_path=str(plugin_file),
+        )
+        running = await manager.start_plugin(config)
+        assert running.name == "start-test"
+        assert running.container_id == "container-id-123"
+        assert running.port >= BASE_PORT
+        assert "start-test" in manager._running
+
+    @pytest.mark.asyncio
+    async def test_start_plugin_with_network_domains(self, tmp_path):
+        """start_plugin with network_domains logs domain info."""
+        plugin_file = tmp_path / "net_plugin.py"
+        plugin_file.write_text("x = 1\n")
+
+        mock_client = MagicMock()
+        mock_client.images.build.return_value = (MagicMock(), [])
+
+        mock_docker = AsyncMock()
+        mock_docker._get_client = MagicMock(return_value=mock_client)
+        mock_docker.create_container.return_value = "net-container-id"
+
+        manager = PluginContainerManager(docker_manager=mock_docker)
+        config = PluginContainerConfig(
+            plugin_name="net-test",
+            plugin_path=str(plugin_file),
+            network_domains=["api.example.com"],
+        )
+        running = await manager.start_plugin(config)
+        assert running.name == "net-test"
 
 
 class TestCreateContainerConfigFromPermissions:
