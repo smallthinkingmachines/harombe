@@ -47,11 +47,11 @@ See [`examples/`](examples/) for more.
 
 ## What is harombe?
 
-Harombe manages the full stack for AI agents — hardware detection, tool execution (in containers), security (network-level), I/O (voice + CLI + API), memory (SQLite + vector search), and networking (multi-node clusters with service discovery). Think of it as an operating system for AI agents — as a `pip install`.
+harombe manages the full stack for AI agents — hardware detection, tool execution (in containers), security (network-level), I/O (voice + CLI + API), memory (SQLite + vector search), and networking (multi-node clusters with service discovery). Think of it as an operating system for AI agents — as a `pip install`.
 
 ### Security
 
-Harombe's security is infrastructure-level, not bolt-on:
+harombe's security is infrastructure-level, not bolt-on:
 
 - Every tool runs in its own Docker container with resource limits
 - Per-container network egress filtering (iptables, DNS allowlists)
@@ -98,7 +98,7 @@ Each layer only talks to its neighbors. Security (Layer 3) wraps every tool invo
 
 ## Security Deep Dive
 
-Harombe enforces the **Capability-Container Pattern**: agents never execute tools directly. Every tool call goes through the MCP Gateway, which routes it to an isolated Docker container.
+harombe enforces the **Capability-Container Pattern**: agents never execute tools directly. Every tool call goes through the MCP Gateway, which routes it to an isolated Docker container.
 
 ```
 Agent  ──→  MCP Gateway  ──→  [ Container: shell ]
