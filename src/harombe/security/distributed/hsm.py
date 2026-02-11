@@ -312,10 +312,10 @@ class SoftwareHSM(HSMBackend):
             private_key = ec.generate_private_key(ec.SECP384R1())
             self._keys[key_id] = private_key
         elif key_type == HSMKeyType.AES_128:
-            key_bytes = AESGCM.generate_key(bit_length=128)
+            key_bytes = AESGCM.generate_key(128)
             self._keys[key_id] = key_bytes
         elif key_type == HSMKeyType.AES_256:
-            key_bytes = AESGCM.generate_key(bit_length=256)
+            key_bytes = AESGCM.generate_key(256)
             self._keys[key_id] = key_bytes
         elif key_type == HSMKeyType.HMAC_SHA256:
             key_bytes = os.urandom(32)

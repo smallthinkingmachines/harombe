@@ -178,6 +178,7 @@ module = [
     "harombe.channels.slack",
     "harombe.channels.discord",
     "harombe.mcp.server",
+    "harombe.security.distributed.hsm",
 ]
 warn_unused_ignores = false
 

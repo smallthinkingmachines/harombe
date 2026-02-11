@@ -24,7 +24,12 @@ def _make_app(cluster_manager=None, agent_run_side_effect=None):
     ):
         mock_agent = MagicMock()
         if agent_run_side_effect:
-            mock_agent.run = AsyncMock(side_effect=agent_run_side_effect)
+            exc = agent_run_side_effect
+
+            async def _raise(*_args: object, **_kwargs: object) -> str:
+                raise exc
+
+            mock_agent.run = _raise
         else:
             mock_agent.run = AsyncMock(return_value="Hello from agent!")
         mock_agent_cls.return_value = mock_agent
@@ -98,7 +103,7 @@ def test_chat_stream_endpoint():
 
 def test_chat_stream_error():
     """POST /chat/stream yields error event on exception."""
-    app, _llm = _make_app(agent_run_side_effect=RuntimeError("Stream failed"))
+    app, _llm = _make_app(agent_run_side_effect=ValueError("Stream failed"))
     client = TestClient(app)
 
     response = client.post("/chat/stream", json={"message": "Hi"})
