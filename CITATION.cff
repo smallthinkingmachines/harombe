@@ -5,7 +5,7 @@ title: "Harombe: Self-hosted Agent Framework for Distributed AI"
 authors:
   - family-names: Ledan
     given-names: Ricardo
-version: 0.1.0
+version: 0.3.0
 date-released: 2026-02-10
 license: Apache-2.0
 url: "https://github.com/smallthinkingmachines/harombe"

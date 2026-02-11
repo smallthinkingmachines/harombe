@@ -85,7 +85,7 @@ def create_router(config: HarombeConfig, cluster_manager: Any = None) -> APIRout
         tools=tools,
         max_steps=config.agent.max_steps,
         system_prompt=config.agent.system_prompt,
-        confirm_dangerous=False,  # Auto-approve in server mode
+        confirm_dangerous=config.tools.confirm_dangerous,
     )
 
     @router.get("/health", response_model=HealthResponse)
