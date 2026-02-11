@@ -16,4 +16,4 @@ Key modules:
 - :mod:`harombe.coordination` - Cluster management, smart routing, health monitoring
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"

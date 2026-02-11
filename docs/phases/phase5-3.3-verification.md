@@ -18,7 +18,7 @@ Successfully implemented a comprehensive credential rotation verification framew
 - **FAILED**: Test failed
 - **SKIPPED**: Test was skipped
 
-### 2. TestResult Model
+### 2. CheckResult Model
 
 **Purpose**: Result of a single verification test
 
@@ -50,7 +50,7 @@ Successfully implemented a comprehensive credential rotation verification framew
 **Usage**:
 
 ```python
-from harombe.security.verification import VerificationTest, TestResult
+from harombe.security.verification import VerificationTest, CheckResult
 
 class CustomAPIVerification(VerificationTest):
     """Verify custom API credentials."""
@@ -58,7 +58,7 @@ class CustomAPIVerification(VerificationTest):
     def __init__(self, vault_backend=None):
         super().__init__(name="custom_api_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test custom API credentials."""
         # Get secret from vault
         api_key = await self.vault.get_secret(secret_path)
@@ -66,14 +66,14 @@ class CustomAPIVerification(VerificationTest):
         # Test API call
         try:
             response = await make_api_call(api_key)
-            return TestResult(
+            return CheckResult(
                 success=True,
                 message="API key valid",
                 duration_ms=150.0,
                 metadata={"account_id": response.account_id}
             )
         except Exception as e:
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"API test failed: {str(e)}",
                 duration_ms=150.0
@@ -319,7 +319,7 @@ class JiraAPIVerification(VerificationTest):
     def __init__(self, vault_backend=None):
         super().__init__(name="jira_api_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test Jira API credentials."""
         import httpx
 
@@ -336,13 +336,13 @@ class JiraAPIVerification(VerificationTest):
 
             if response.status_code == 200:
                 user_data = response.json()
-                return TestResult(
+                return CheckResult(
                     success=True,
                     message=f"Token valid for user: {user_data['displayName']}",
                     metadata={"user_id": user_data["accountId"]}
                 )
             else:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message=f"API returned status {response.status_code}"
                 )
@@ -384,7 +384,7 @@ if not result.success and result.rollback_performed:
    - VerificationStatus values
 
 2. **Model Tests** (5 tests)
-   - TestResult creation and defaults
+   - CheckResult creation and defaults
    - VerificationResult creation, failure, and string representation
 
 3. **RotationVerificationTester Tests** (7 tests)

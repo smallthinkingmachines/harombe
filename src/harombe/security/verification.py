@@ -28,7 +28,7 @@ class VerificationStatus(StrEnum):
     SKIPPED = "skipped"
 
 
-class TestResult(BaseModel):
+class CheckResult(BaseModel):
     """Result of a single verification test.
 
     Attributes:
@@ -91,7 +91,7 @@ class VerificationTest(ABC):
         self.vault = vault_backend
 
     @abstractmethod
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Run the verification test.
 
         Args:
@@ -215,7 +215,7 @@ class AnthropicAPIVerification(VerificationTest):
         """Initialize Anthropic API verification test."""
         super().__init__(name="anthropic_api_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test Anthropic API key.
 
         Args:
@@ -229,7 +229,7 @@ class AnthropicAPIVerification(VerificationTest):
         try:
             # Get API key
             if self.vault is None:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="No vault backend configured",
                     duration_ms=0.0,
@@ -237,7 +237,7 @@ class AnthropicAPIVerification(VerificationTest):
 
             api_key = await self.vault.get_secret(secret_path)
             if not api_key:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="API key not found in vault",
                     duration_ms=0.0,
@@ -247,7 +247,7 @@ class AnthropicAPIVerification(VerificationTest):
             try:
                 import anthropic
             except ImportError:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="anthropic package not installed",
                     duration_ms=0.0,
@@ -265,14 +265,14 @@ class AnthropicAPIVerification(VerificationTest):
             duration_ms = (completed_at - started_at).total_seconds() * 1000
 
             if response and response.content:
-                return TestResult(
+                return CheckResult(
                     success=True,
                     message="API key valid, test message sent successfully",
                     duration_ms=duration_ms,
                     metadata={"model": response.model, "usage": response.usage},
                 )
             else:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="API call succeeded but response was empty",
                     duration_ms=duration_ms,
@@ -281,7 +281,7 @@ class AnthropicAPIVerification(VerificationTest):
         except Exception as e:
             completed_at = datetime.utcnow()
             duration_ms = (completed_at - started_at).total_seconds() * 1000
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"API test failed: {e!s}",
                 duration_ms=duration_ms,
@@ -295,7 +295,7 @@ class GitHubAPIVerification(VerificationTest):
         """Initialize GitHub API verification test."""
         super().__init__(name="github_api_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test GitHub token.
 
         Args:
@@ -309,7 +309,7 @@ class GitHubAPIVerification(VerificationTest):
         try:
             # Get token
             if self.vault is None:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="No vault backend configured",
                     duration_ms=0.0,
@@ -317,7 +317,7 @@ class GitHubAPIVerification(VerificationTest):
 
             token = await self.vault.get_secret(secret_path)
             if not token:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="Token not found in vault",
                     duration_ms=0.0,
@@ -341,14 +341,14 @@ class GitHubAPIVerification(VerificationTest):
 
                 if response.status_code == 200:
                     user_data = response.json()
-                    return TestResult(
+                    return CheckResult(
                         success=True,
                         message=f"Token valid for user: {user_data.get('login', 'unknown')}",
                         duration_ms=duration_ms,
                         metadata={"user": user_data.get("login"), "id": user_data.get("id")},
                     )
                 else:
-                    return TestResult(
+                    return CheckResult(
                         success=False,
                         message=f"API returned status {response.status_code}",
                         duration_ms=duration_ms,
@@ -357,7 +357,7 @@ class GitHubAPIVerification(VerificationTest):
         except Exception as e:
             completed_at = datetime.utcnow()
             duration_ms = (completed_at - started_at).total_seconds() * 1000
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"API test failed: {e!s}",
                 duration_ms=duration_ms,
@@ -371,7 +371,7 @@ class StripeAPIVerification(VerificationTest):
         """Initialize Stripe API verification test."""
         super().__init__(name="stripe_api_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test Stripe API key.
 
         Args:
@@ -385,7 +385,7 @@ class StripeAPIVerification(VerificationTest):
         try:
             # Get API key
             if self.vault is None:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="No vault backend configured",
                     duration_ms=0.0,
@@ -393,7 +393,7 @@ class StripeAPIVerification(VerificationTest):
 
             api_key = await self.vault.get_secret(secret_path)
             if not api_key:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="API key not found in vault",
                     duration_ms=0.0,
@@ -414,7 +414,7 @@ class StripeAPIVerification(VerificationTest):
 
                 if response.status_code == 200:
                     account_data = response.json()
-                    return TestResult(
+                    return CheckResult(
                         success=True,
                         message=f"API key valid for account: {account_data.get('id', 'unknown')}",
                         duration_ms=duration_ms,
@@ -424,7 +424,7 @@ class StripeAPIVerification(VerificationTest):
                         },
                     )
                 else:
-                    return TestResult(
+                    return CheckResult(
                         success=False,
                         message=f"API returned status {response.status_code}",
                         duration_ms=duration_ms,
@@ -433,7 +433,7 @@ class StripeAPIVerification(VerificationTest):
         except Exception as e:
             completed_at = datetime.utcnow()
             duration_ms = (completed_at - started_at).total_seconds() * 1000
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"API test failed: {e!s}",
                 duration_ms=duration_ms,
@@ -447,7 +447,7 @@ class AWSCredentialsVerification(VerificationTest):
         """Initialize AWS credentials verification test."""
         super().__init__(name="aws_credentials_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test AWS credentials.
 
         Args:
@@ -461,7 +461,7 @@ class AWSCredentialsVerification(VerificationTest):
         try:
             # Get credentials (expects JSON with access_key_id and secret_access_key)
             if self.vault is None:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="No vault backend configured",
                     duration_ms=0.0,
@@ -469,7 +469,7 @@ class AWSCredentialsVerification(VerificationTest):
 
             credentials_json = await self.vault.get_secret(secret_path)
             if not credentials_json:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="Credentials not found in vault",
                     duration_ms=0.0,
@@ -488,7 +488,7 @@ class AWSCredentialsVerification(VerificationTest):
                 secret_access_key = None
 
             if not access_key_id:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="Access key ID not found in credentials",
                     duration_ms=0.0,
@@ -518,7 +518,7 @@ class AWSCredentialsVerification(VerificationTest):
                     completed_at = datetime.utcnow()
                     duration_ms = (completed_at - started_at).total_seconds() * 1000
 
-                    return TestResult(
+                    return CheckResult(
                         success=True,
                         message=f"Credentials valid for account: {identity['Account']}",
                         duration_ms=duration_ms,
@@ -531,7 +531,7 @@ class AWSCredentialsVerification(VerificationTest):
                     # boto3 not available, return partial success
                     completed_at = datetime.utcnow()
                     duration_ms = (completed_at - started_at).total_seconds() * 1000
-                    return TestResult(
+                    return CheckResult(
                         success=True,
                         message="Credentials format valid (boto3 not available for full test)",
                         duration_ms=duration_ms,
@@ -540,7 +540,7 @@ class AWSCredentialsVerification(VerificationTest):
         except Exception as e:
             completed_at = datetime.utcnow()
             duration_ms = (completed_at - started_at).total_seconds() * 1000
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"Credentials test failed: {e!s}",
                 duration_ms=duration_ms,
@@ -554,7 +554,7 @@ class DatabaseConnectionVerification(VerificationTest):
         """Initialize database connection verification test."""
         super().__init__(name="database_connection_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test database connection.
 
         Args:
@@ -568,7 +568,7 @@ class DatabaseConnectionVerification(VerificationTest):
         try:
             # Get connection info
             if self.vault is None:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="No vault backend configured",
                     duration_ms=0.0,
@@ -576,7 +576,7 @@ class DatabaseConnectionVerification(VerificationTest):
 
             connection_info = await self.vault.get_secret(secret_path)
             if not connection_info:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="Connection info not found in vault",
                     duration_ms=0.0,
@@ -611,14 +611,14 @@ class DatabaseConnectionVerification(VerificationTest):
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
 
                 if result_code == 0:
-                    return TestResult(
+                    return CheckResult(
                         success=True,
                         message=f"Database reachable at {host}:{port}",
                         duration_ms=duration_ms,
                         metadata={"host": host, "port": port, "database": database},
                     )
                 else:
-                    return TestResult(
+                    return CheckResult(
                         success=False,
                         message=f"Cannot reach database at {host}:{port}",
                         duration_ms=duration_ms,
@@ -626,7 +626,7 @@ class DatabaseConnectionVerification(VerificationTest):
             except Exception as e:
                 completed_at = datetime.utcnow()
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message=f"Connection test failed: {e!s}",
                     duration_ms=duration_ms,
@@ -635,7 +635,7 @@ class DatabaseConnectionVerification(VerificationTest):
         except Exception as e:
             completed_at = datetime.utcnow()
             duration_ms = (completed_at - started_at).total_seconds() * 1000
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"Database test failed: {e!s}",
                 duration_ms=duration_ms,
@@ -649,7 +649,7 @@ class SlackTokenVerification(VerificationTest):
         """Initialize Slack token verification test."""
         super().__init__(name="slack_token_test", vault_backend=vault_backend)
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Test Slack token.
 
         Args:
@@ -663,7 +663,7 @@ class SlackTokenVerification(VerificationTest):
         try:
             # Get token
             if self.vault is None:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="No vault backend configured",
                     duration_ms=0.0,
@@ -671,7 +671,7 @@ class SlackTokenVerification(VerificationTest):
 
             token = await self.vault.get_secret(secret_path)
             if not token:
-                return TestResult(
+                return CheckResult(
                     success=False,
                     message="Token not found in vault",
                     duration_ms=0.0,
@@ -693,20 +693,20 @@ class SlackTokenVerification(VerificationTest):
                 if response.status_code == 200:
                     data = response.json()
                     if data.get("ok"):
-                        return TestResult(
+                        return CheckResult(
                             success=True,
                             message=f"Token valid for team: {data.get('team', 'unknown')}",
                             duration_ms=duration_ms,
                             metadata={"team": data.get("team"), "user": data.get("user")},
                         )
                     else:
-                        return TestResult(
+                        return CheckResult(
                             success=False,
                             message=f"Slack API error: {data.get('error', 'unknown')}",
                             duration_ms=duration_ms,
                         )
                 else:
-                    return TestResult(
+                    return CheckResult(
                         success=False,
                         message=f"API returned status {response.status_code}",
                         duration_ms=duration_ms,
@@ -715,7 +715,7 @@ class SlackTokenVerification(VerificationTest):
         except Exception as e:
             completed_at = datetime.utcnow()
             duration_ms = (completed_at - started_at).total_seconds() * 1000
-            return TestResult(
+            return CheckResult(
                 success=False,
                 message=f"API test failed: {e!s}",
                 duration_ms=duration_ms,

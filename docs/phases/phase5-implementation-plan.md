@@ -856,7 +856,7 @@ class RotationVerificationTester:
 class AnthropicAPIVerification(VerificationTest):
     """Verify Anthropic API key works."""
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         # Get new API key
         api_key = await vault.get_secret(secret_path)
 
@@ -868,9 +868,9 @@ class AnthropicAPIVerification(VerificationTest):
                 max_tokens=10,
                 messages=[{"role": "user", "content": "Test"}],
             )
-            return TestResult(success=True, message="API key valid")
+            return CheckResult(success=True, message="API key valid")
         except Exception as e:
-            return TestResult(success=False, message=f"API test failed: {e}")
+            return CheckResult(success=False, message=f"API test failed: {e}")
 ```
 
 #### 4. Emergency Rotation Triggers

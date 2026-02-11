@@ -7,12 +7,12 @@ import pytest
 from harombe.security.verification import (
     AnthropicAPIVerification,
     AWSCredentialsVerification,
+    CheckResult,
     DatabaseConnectionVerification,
     GitHubAPIVerification,
     RotationVerificationTester,
     SlackTokenVerification,
     StripeAPIVerification,
-    TestResult,
     VerificationResult,
     VerificationStatus,
     VerificationTest,
@@ -56,12 +56,12 @@ class TestVerificationStatus:
         assert VerificationStatus.SKIPPED == "skipped"
 
 
-class TestTestResult:
-    """Test TestResult model."""
+class TestCheckResult:
+    """Test CheckResult model."""
 
     def test_result_creation(self):
         """Test creating test result."""
-        result = TestResult(
+        result = CheckResult(
             success=True,
             message="Test passed successfully",
             duration_ms=150.5,
@@ -75,7 +75,7 @@ class TestTestResult:
 
     def test_result_defaults(self):
         """Test result default values."""
-        result = TestResult(success=False, message="Failed")
+        result = CheckResult(success=False, message="Failed")
 
         assert not result.success
         assert result.duration_ms is None
@@ -141,12 +141,12 @@ class MockVerificationTest(VerificationTest):
         super().__init__(name=name, vault_backend=vault_backend)
         self.should_pass = should_pass
 
-    async def run(self, secret_path: str) -> TestResult:
+    async def run(self, secret_path: str) -> CheckResult:
         """Run mock test."""
         if self.should_pass:
-            return TestResult(success=True, message=f"{self.name} passed", duration_ms=100.0)
+            return CheckResult(success=True, message=f"{self.name} passed", duration_ms=100.0)
         else:
-            return TestResult(success=False, message=f"{self.name} failed", duration_ms=100.0)
+            return CheckResult(success=False, message=f"{self.name} failed", duration_ms=100.0)
 
 
 class TestRotationVerificationTester:
@@ -243,7 +243,7 @@ class TestRotationVerificationTester:
 
         # Create test that raises exception
         class FailingTest(VerificationTest):
-            async def run(self, secret_path: str) -> TestResult:
+            async def run(self, secret_path: str) -> CheckResult:
                 raise ValueError("Test error")
 
         test = FailingTest(name="failing_test")
