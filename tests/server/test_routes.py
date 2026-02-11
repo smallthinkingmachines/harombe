@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -101,12 +102,17 @@ def test_chat_stream_endpoint():
     assert "done" in body
 
 
-def test_chat_stream_error():
+@pytest.mark.asyncio
+async def test_chat_stream_error():
     """POST /chat/stream yields error event on exception."""
-    app, _llm = _make_app(agent_run_side_effect=ValueError("Stream failed"))
-    client = TestClient(app)
+    import httpx
 
-    response = client.post("/chat/stream", json={"message": "Hi"})
+    app, _llm = _make_app(agent_run_side_effect=ValueError("Stream failed"))
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.post("/chat/stream", json={"message": "Hi"})
 
     assert response.status_code == 200
     body = response.text
