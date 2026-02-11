@@ -24,6 +24,42 @@ class OllamaConfig(BaseModel):
     timeout: int = Field(default=120, description="Request timeout in seconds", ge=1)
 
 
+class VLLMConfig(BaseModel):
+    """vLLM inference server configuration."""
+
+    base_url: str = Field(default="http://localhost:8000", description="vLLM server URL")
+    timeout: int = Field(default=120, description="Request timeout in seconds", ge=1)
+    api_key: str | None = Field(default=None, description="API key (if vLLM auth enabled)")
+
+
+class SGLangConfig(BaseModel):
+    """SGLang inference server configuration."""
+
+    base_url: str = Field(default="http://localhost:30000", description="SGLang server URL")
+    timeout: int = Field(default=120, description="Request timeout in seconds", ge=1)
+    api_key: str | None = Field(default=None, description="API key (if auth enabled)")
+
+
+class LlamaCppConfig(BaseModel):
+    """llama.cpp server configuration."""
+
+    base_url: str = Field(default="http://localhost:8080", description="llama.cpp server URL")
+    timeout: int = Field(default=120, description="Request timeout in seconds", ge=1)
+
+
+class InferenceConfig(BaseModel):
+    """Inference backend configuration."""
+
+    backend: Literal["ollama", "vllm", "sglang", "llamacpp"] = Field(
+        default="ollama",
+        description="Inference backend to use",
+    )
+    ollama: OllamaConfig = Field(default_factory=OllamaConfig)
+    vllm: VLLMConfig = Field(default_factory=VLLMConfig)
+    sglang: SGLangConfig = Field(default_factory=SGLangConfig)
+    llamacpp: LlamaCppConfig = Field(default_factory=LlamaCppConfig)
+
+
 class AgentConfig(BaseModel):
     """Agent loop configuration."""
 
@@ -55,6 +91,12 @@ class ServerConfig(BaseModel):
 
     host: str = Field(default="127.0.0.1", description="Server bind address")
     port: int = Field(default=8000, description="Server port", ge=1, le=65535)
+    cors_origins: list[str] = Field(
+        default=["http://localhost:3000", "http://localhost:8000"],
+        description="Allowed CORS origins (use ['*'] for development only)",
+    )
+    ssl_certfile: str | None = Field(default=None, description="Path to SSL certificate file")
+    ssl_keyfile: str | None = Field(default=None, description="Path to SSL private key file")
 
 
 class NodeConfig(BaseModel):
@@ -65,6 +107,10 @@ class NodeConfig(BaseModel):
     port: int = Field(default=8000, description="Port number", ge=1, le=65535)
     model: str = Field(description="Model running on this node")
     tier: int = Field(description="User-declared tier: 0=fast, 1=medium, 2=powerful", ge=0, le=2)
+    backend: Literal["ollama", "vllm", "sglang", "llamacpp"] = Field(
+        default="ollama",
+        description="Inference backend running on this node",
+    )
 
     # Optional fields
     auth_token: str | None = Field(
@@ -688,6 +734,7 @@ class HarombeConfig(BaseModel):
 
     model: ModelConfig = Field(default_factory=ModelConfig)
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
+    inference: InferenceConfig = Field(default_factory=InferenceConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)

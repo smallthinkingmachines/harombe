@@ -14,7 +14,8 @@ if TYPE_CHECKING:
 
 from harombe.llm.anthropic import AnthropicClient
 from harombe.llm.client import CompletionResponse, Message
-from harombe.llm.ollama import OllamaClient
+from harombe.llm.factory import create_llm_client
+from harombe.llm.openai_compat import OpenAICompatibleClient
 
 from .audit import PrivacyAuditLogger
 from .classifier import SensitivityClassifier
@@ -55,12 +56,12 @@ class PrivacyRouter:
     """LLM client that routes queries based on privacy classification.
 
     Implements the LLMClient protocol so it can be used as a drop-in
-    replacement for OllamaClient or any other LLM client.
+    replacement for any local LLM client.
     """
 
     def __init__(
         self,
-        local_client: OllamaClient,
+        local_client: OpenAICompatibleClient,
         cloud_client: AnthropicClient,
         mode: RoutingMode = RoutingMode.HYBRID,
         classifier: SensitivityClassifier | None = None,
@@ -253,25 +254,22 @@ class PrivacyRouter:
         }
 
 
-def create_privacy_router(config: "HarombeConfig") -> OllamaClient | PrivacyRouter:
+def create_privacy_router(
+    config: "HarombeConfig",
+) -> OpenAICompatibleClient | PrivacyRouter:
     """Factory function that creates the appropriate LLM client.
 
-    If mode is "local-only" (the default), returns a raw OllamaClient
-    with zero overhead. Otherwise wraps OllamaClient + AnthropicClient
+    If mode is "local-only" (the default), returns a raw local LLM client
+    with zero overhead. Otherwise wraps the local client + AnthropicClient
     in a PrivacyRouter.
 
     Args:
         config: HarombeConfig instance
 
     Returns:
-        An LLM client (OllamaClient or PrivacyRouter)
+        An LLM client (OpenAICompatibleClient or PrivacyRouter)
     """
-    local_client = OllamaClient(
-        model=config.model.name,
-        base_url=config.ollama.host + "/v1",
-        timeout=config.ollama.timeout,
-        temperature=config.model.temperature,
-    )
+    local_client = create_llm_client(config)
 
     privacy_config = config.privacy
 

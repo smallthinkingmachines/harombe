@@ -79,7 +79,7 @@ def _build_pattern_kwargs(
     from the config. For the base_client returned by create_privacy_router,
     we use it as the local_client and create a fresh cloud client if needed.
     """
-    from harombe.llm.ollama import OllamaClient
+    from harombe.llm.openai_compat import OpenAICompatibleClient
     from harombe.privacy.router import PrivacyRouter
 
     patterns_config = config.patterns
@@ -90,7 +90,7 @@ def _build_pattern_kwargs(
     if isinstance(base_client, PrivacyRouter):
         local_client = base_client.local_client
         cloud_client = base_client.cloud_client
-    elif isinstance(base_client, OllamaClient):
+    elif isinstance(base_client, OpenAICompatibleClient):
         local_client = base_client
         # Try to create a cloud client
         cloud_client = _try_create_cloud_client(config)

@@ -11,8 +11,11 @@ from harombe.server.routes import create_router
 
 def _make_app(cluster_manager=None, agent_run_side_effect=None):
     """Create a FastAPI app with mocked LLM and agent."""
+    mock_llm = MagicMock()
+    mock_llm.complete = AsyncMock()
+
     with (
-        patch("harombe.server.routes.OllamaClient") as mock_llm_cls,
+        patch("harombe.server.routes.create_llm_client", return_value=mock_llm),
         patch("harombe.server.routes.Agent") as mock_agent_cls,
         patch(
             "harombe.server.routes.get_enabled_tools",
@@ -25,10 +28,6 @@ def _make_app(cluster_manager=None, agent_run_side_effect=None):
         else:
             mock_agent.run = AsyncMock(return_value="Hello from agent!")
         mock_agent_cls.return_value = mock_agent
-
-        mock_llm = MagicMock()
-        mock_llm.complete = AsyncMock()
-        mock_llm_cls.return_value = mock_llm
 
         config = HarombeConfig()
         router = create_router(config, cluster_manager=cluster_manager)
