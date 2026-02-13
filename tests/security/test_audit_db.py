@@ -1,7 +1,7 @@
 """Tests for audit database."""
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -154,7 +154,7 @@ def test_get_events_by_session(temp_db):
 
 def test_get_tool_calls_by_time_range(temp_db):
     """Test querying tool calls by time range."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
 
     # Log calls at different times
     old_call = ToolCallRecord(
@@ -269,7 +269,7 @@ def test_retention_policy():
         actor="agent",
         action="test",
         status="success",
-        timestamp=datetime.utcnow() - timedelta(days=2),
+        timestamp=datetime.now(UTC).replace(tzinfo=None) - timedelta(days=2),
     )
     db.log_event(old_event)
 
@@ -387,7 +387,7 @@ def test_log_audit_proof(temp_db):
 
 def test_get_audit_proofs_filtered(temp_db):
     """Test filtered queries for audit proofs."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
 
     # Log proofs with different claim types and times
     for i, claim_type in enumerate(["operation_count", "time_range", "operation_count"]):
@@ -421,7 +421,7 @@ def test_get_audit_proofs_filtered(temp_db):
 
 def test_get_events_by_time_range(temp_db):
     """Test querying events by time range."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
 
     # Log events at different times
     for i in range(5):
@@ -461,7 +461,7 @@ def test_get_events_by_time_range(temp_db):
 
 def test_get_security_decisions_by_time_range(temp_db):
     """Test time-range filtering on security decisions."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
 
     # Log decisions at different times
     for i in range(4):

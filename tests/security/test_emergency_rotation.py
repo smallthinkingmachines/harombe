@@ -1,6 +1,6 @@
 """Tests for emergency credential rotation system."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -29,7 +29,7 @@ class MockRotationManager:
             old_version="old123",
             new_version="new456",
             status=RotationStatus.SUCCESS,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC).replace(tzinfo=None),
         )
 
 
@@ -110,7 +110,7 @@ class TestSecurityEvent:
             description="API key leaked on GitHub",
             affected_resources=["/secrets/api_key"],
             source_ip="203.0.113.1",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"repository": "user/repo", "commit": "abc123"},
         )
 
@@ -130,15 +130,15 @@ class TestEmergencyRotationResult:
             event_type=CompromiseIndicator.MANUAL_TRIGGER,
             threat_level=ThreatLevel.HIGH,
             description="Manual rotation",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         result = EmergencyRotationResult(
             success=True,
             secret_path="/secrets/test",
             trigger_event=event,
-            rotation_started_at=datetime.utcnow(),
-            rotation_completed_at=datetime.utcnow(),
+            rotation_started_at=datetime.now(UTC).replace(tzinfo=None),
+            rotation_completed_at=datetime.now(UTC).replace(tzinfo=None),
             duration_ms=150.0,
             notifications_sent=1,
         )
@@ -167,7 +167,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.CRITICAL,
             description="Critical security breach",
             affected_resources=["/secrets/api_key"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -185,7 +185,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Credential leaked",
             affected_resources=["/secrets/leaked"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -201,7 +201,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Manual emergency rotation",
             affected_resources=["/secrets/manual"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -217,7 +217,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.MEDIUM,
             description="Failed auth spike",
             affected_resources=["/secrets/auth"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"failed_count": 15},  # Above default threshold of 10
         )
 
@@ -234,7 +234,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.MEDIUM,
             description="Small auth spike",
             affected_resources=["/secrets/auth"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"failed_count": 5},  # Below threshold
         )
 
@@ -250,7 +250,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.MEDIUM,
             description="Rate limit violations",
             affected_resources=["/secrets/api"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"violation_count": 150},  # Above default threshold of 100
         )
 
@@ -266,7 +266,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.LOW,
             description="Low threat event",
             affected_resources=["/secrets/test"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -282,7 +282,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Multiple keys exposed",
             affected_resources=["/secrets/key1", "/secrets/key2", "/secrets/key3"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -298,7 +298,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Test rotation",
             affected_resources=["/secrets/test"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -320,7 +320,7 @@ class TestEmergencyRotationTrigger:
                 success=False,
                 secret_path=secret_path,
                 status=RotationStatus.FAILED,
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(UTC).replace(tzinfo=None),
                 error="Rotation failed",
             )
 
@@ -336,7 +336,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Test",
             affected_resources=["/secrets/test"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await trigger.on_security_event(event)
@@ -367,7 +367,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Test",
             affected_resources=["/secrets/test"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await trigger.on_security_event(event)
@@ -384,7 +384,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Suspicious access",
             affected_resources=[],  # No resources
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         results = await emergency_trigger.on_security_event(event)
@@ -399,7 +399,7 @@ class TestEmergencyRotationTrigger:
             event_type=CompromiseIndicator.MANUAL_TRIGGER,
             threat_level=ThreatLevel.HIGH,
             description="Test",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"secret_path": "/secrets/from_metadata"},
         )
 
@@ -426,7 +426,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.HIGH,
             description="Test",
             affected_resources=["/secrets/test1", "/secrets/test2"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         await emergency_trigger.on_security_event(event)
@@ -455,7 +455,7 @@ class TestEmergencyRotationTrigger:
             threat_level=ThreatLevel.CRITICAL,
             description="Credential leaked",
             source_ip="203.0.113.1",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"repository": "test/repo"},
         )
 
@@ -526,7 +526,7 @@ class TestEmergencyRotationIntegration:
             threat_level=ThreatLevel.CRITICAL,
             description="API key found in public repository",
             affected_resources=["/secrets/production_api_key"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             metadata={"repository": "user/sensitive-repo", "commit": "abc123def"},
         )
 
@@ -563,7 +563,7 @@ class TestEmergencyRotationIntegration:
             threat_level=ThreatLevel.CRITICAL,
             description="Credential leaked",
             affected_resources=["/secrets/key1"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         # Event 2: Brute force attack
@@ -572,7 +572,7 @@ class TestEmergencyRotationIntegration:
             threat_level=ThreatLevel.HIGH,
             description="Brute force detected",
             affected_resources=["/secrets/key2", "/secrets/key3"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         # Process both events

@@ -9,7 +9,7 @@ Phase 5.3.3 Implementation
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -140,7 +140,7 @@ class RotationVerificationTester:
         Returns:
             Verification result with all test results
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
         results: list[tuple[str, bool, str]] = []
 
         # Determine which tests to run
@@ -181,7 +181,7 @@ class RotationVerificationTester:
                 results.append((test.name, False, f"Exception: {e!s}"))
 
         # Calculate results
-        completed_at = datetime.utcnow()
+        completed_at = datetime.now(UTC).replace(tzinfo=None)
         duration_ms = (completed_at - started_at).total_seconds() * 1000
 
         total_tests = len(results)
@@ -224,7 +224,7 @@ class AnthropicAPIVerification(VerificationTest):
         Returns:
             Test result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
 
         try:
             # Get API key
@@ -261,7 +261,7 @@ class AnthropicAPIVerification(VerificationTest):
                 messages=[{"role": "user", "content": "Test"}],
             )
 
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
 
             if response and response.content:
@@ -279,7 +279,7 @@ class AnthropicAPIVerification(VerificationTest):
                 )
 
         except Exception as e:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
             return CheckResult(
                 success=False,
@@ -304,7 +304,7 @@ class GitHubAPIVerification(VerificationTest):
         Returns:
             Test result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
 
         try:
             # Get token
@@ -336,7 +336,7 @@ class GitHubAPIVerification(VerificationTest):
                     timeout=10.0,
                 )
 
-                completed_at = datetime.utcnow()
+                completed_at = datetime.now(UTC).replace(tzinfo=None)
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
 
                 if response.status_code == 200:
@@ -355,7 +355,7 @@ class GitHubAPIVerification(VerificationTest):
                     )
 
         except Exception as e:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
             return CheckResult(
                 success=False,
@@ -380,7 +380,7 @@ class StripeAPIVerification(VerificationTest):
         Returns:
             Test result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
 
         try:
             # Get API key
@@ -409,7 +409,7 @@ class StripeAPIVerification(VerificationTest):
                     timeout=10.0,
                 )
 
-                completed_at = datetime.utcnow()
+                completed_at = datetime.now(UTC).replace(tzinfo=None)
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
 
                 if response.status_code == 200:
@@ -431,7 +431,7 @@ class StripeAPIVerification(VerificationTest):
                     )
 
         except Exception as e:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
             return CheckResult(
                 success=False,
@@ -456,7 +456,7 @@ class AWSCredentialsVerification(VerificationTest):
         Returns:
             Test result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
 
         try:
             # Get credentials (expects JSON with access_key_id and secret_access_key)
@@ -515,7 +515,7 @@ class AWSCredentialsVerification(VerificationTest):
                     )
                     identity = sts.get_caller_identity()
 
-                    completed_at = datetime.utcnow()
+                    completed_at = datetime.now(UTC).replace(tzinfo=None)
                     duration_ms = (completed_at - started_at).total_seconds() * 1000
 
                     return CheckResult(
@@ -529,7 +529,7 @@ class AWSCredentialsVerification(VerificationTest):
                     )
                 except ImportError:
                     # boto3 not available, return partial success
-                    completed_at = datetime.utcnow()
+                    completed_at = datetime.now(UTC).replace(tzinfo=None)
                     duration_ms = (completed_at - started_at).total_seconds() * 1000
                     return CheckResult(
                         success=True,
@@ -538,7 +538,7 @@ class AWSCredentialsVerification(VerificationTest):
                     )
 
         except Exception as e:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
             return CheckResult(
                 success=False,
@@ -563,7 +563,7 @@ class DatabaseConnectionVerification(VerificationTest):
         Returns:
             Test result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
 
         try:
             # Get connection info
@@ -607,7 +607,7 @@ class DatabaseConnectionVerification(VerificationTest):
                 result_code = sock.connect_ex((host, int(port)))
                 sock.close()
 
-                completed_at = datetime.utcnow()
+                completed_at = datetime.now(UTC).replace(tzinfo=None)
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
 
                 if result_code == 0:
@@ -624,7 +624,7 @@ class DatabaseConnectionVerification(VerificationTest):
                         duration_ms=duration_ms,
                     )
             except Exception as e:
-                completed_at = datetime.utcnow()
+                completed_at = datetime.now(UTC).replace(tzinfo=None)
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
                 return CheckResult(
                     success=False,
@@ -633,7 +633,7 @@ class DatabaseConnectionVerification(VerificationTest):
                 )
 
         except Exception as e:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
             return CheckResult(
                 success=False,
@@ -658,7 +658,7 @@ class SlackTokenVerification(VerificationTest):
         Returns:
             Test result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
 
         try:
             # Get token
@@ -687,7 +687,7 @@ class SlackTokenVerification(VerificationTest):
                     timeout=10.0,
                 )
 
-                completed_at = datetime.utcnow()
+                completed_at = datetime.now(UTC).replace(tzinfo=None)
                 duration_ms = (completed_at - started_at).total_seconds() * 1000
 
                 if response.status_code == 200:
@@ -713,7 +713,7 @@ class SlackTokenVerification(VerificationTest):
                     )
 
         except Exception as e:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
             return CheckResult(
                 success=False,

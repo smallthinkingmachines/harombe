@@ -6,7 +6,7 @@ and compliance reporting.
 
 import csv
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -181,7 +181,7 @@ def query_tools(
         start_time = None
         end_time = None
         if hours:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(UTC).replace(tzinfo=None)
             start_time = end_time - timedelta(hours=hours)
 
         # Get tool calls
@@ -354,7 +354,7 @@ def stats(
         start_time = None
         end_time = None
         if hours:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(UTC).replace(tzinfo=None)
             start_time = end_time - timedelta(hours=hours)
 
         # Get statistics
@@ -452,7 +452,7 @@ def export(
         start_time = None
         end_time = None
         if hours:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(UTC).replace(tzinfo=None)
             start_time = end_time - timedelta(hours=hours)
 
         # Collect all data
@@ -466,7 +466,7 @@ def export(
                 "events": events,
                 "tool_calls": tool_calls,
                 "security_decisions": decisions,
-                "exported_at": datetime.utcnow().isoformat(),
+                "exported_at": datetime.now(UTC).replace(tzinfo=None).isoformat(),
             }
 
             with open(output_path, "w") as f:

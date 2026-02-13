@@ -13,7 +13,7 @@ Validates security properties of Phase 5 components:
 """
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -169,8 +169,8 @@ class TestSQLInjectionPrevention:
 
         # Database should still work
         stats = temp_db.get_statistics(
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow(),
+            start_time=datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=1),
+            end_time=datetime.now(UTC).replace(tzinfo=None),
         )
         assert "tools" in stats
 
@@ -480,7 +480,7 @@ class TestMLModelSecurity:
             events.append(
                 {
                     "event_type": "tool_call",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 2,
                     "duration_ms": 50,
                     "success": True,
@@ -491,7 +491,7 @@ class TestMLModelSecurity:
             events.append(
                 {
                     "event_type": "extremely_rare_event",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 999,
                     "duration_ms": 99999,
                     "success": False,
@@ -507,7 +507,7 @@ class TestMLModelSecurity:
             "agent-poison",
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 2,
                 "duration_ms": 50,
                 "success": True,
@@ -522,7 +522,7 @@ class TestMLModelSecurity:
         events = [
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow() - timedelta(hours=i),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                 "resource_count": 1,
                 "duration_ms": 50,
                 "success": True,
@@ -535,21 +535,21 @@ class TestMLModelSecurity:
         extreme_events = [
             {
                 "event_type": "x",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 999999,
                 "duration_ms": 999999,
                 "success": True,
             },
             {
                 "event_type": "x",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": -1,
                 "duration_ms": -1,
                 "success": False,
             },
             {
                 "event_type": "",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 0,
                 "duration_ms": 0,
                 "success": True,
@@ -569,7 +569,7 @@ class TestMLModelSecurity:
         events = [
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 1,
                 "duration_ms": 50,
                 "success": True,
@@ -589,7 +589,7 @@ class TestMLModelSecurity:
             "unknown-agent",
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 1,
                 "duration_ms": 50,
                 "success": True,
@@ -621,7 +621,7 @@ class TestTrafficAnomalyEvasionResistance:
                 bytes_received=max(1, int(rng.normal(5000, 500))),
                 duration_s=max(0.01, float(rng.normal(0.5, 0.1))),
                 packet_count=max(1, int(rng.normal(20, 3))),
-                timestamp=datetime.utcnow() - timedelta(minutes=i),
+                timestamp=datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=i),
             )
             detector.record_connection(conn)
 
@@ -638,7 +638,7 @@ class TestTrafficAnomalyEvasionResistance:
             bytes_received=100,
             duration_s=30.0,  # Long connection
             packet_count=500,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         result = trained_traffic_detector.detect(exfil_conn)
@@ -655,7 +655,7 @@ class TestTrafficAnomalyEvasionResistance:
             bytes_received=5000,
             duration_s=0.5,
             packet_count=20,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         result = trained_traffic_detector.detect(unusual_port_conn)
@@ -672,7 +672,7 @@ class TestTrafficAnomalyEvasionResistance:
             bytes_received=0,
             duration_s=0.001,
             packet_count=1,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         result = trained_traffic_detector.detect(zero_conn)
@@ -691,7 +691,7 @@ class TestTrafficAnomalyEvasionResistance:
             bytes_received=5000,
             duration_s=0.5,
             packet_count=20,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
         result = detector.detect(conn)
@@ -715,7 +715,7 @@ class TestBaselineLearnerSecurity:
                 "agent-bl",
                 {
                     "event_type": "tool_call",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 2,
                     "duration_ms": 50,
                 },
@@ -727,7 +727,7 @@ class TestBaselineLearnerSecurity:
                 "agent-bl",
                 {
                     "event_type": "rare_attack",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 999,
                     "duration_ms": 99999,
                 },
@@ -750,7 +750,7 @@ class TestBaselineLearnerSecurity:
                 "agent-small",
                 {
                     "event_type": "tool_call",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 1,
                     "duration_ms": 30,
                 },
@@ -767,7 +767,7 @@ class TestBaselineLearnerSecurity:
             "nonexistent-agent",
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 1,
                 "duration_ms": 50,
             },

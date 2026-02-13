@@ -1,6 +1,6 @@
 """Tests for automatic credential rotation system."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -148,7 +148,7 @@ class TestRotationResult:
 
     def test_result_creation(self):
         """Test creating rotation result."""
-        started = datetime.utcnow()
+        started = datetime.now(UTC).replace(tzinfo=None)
         result = RotationResult(
             success=True,
             secret_path="/secrets/test",
@@ -259,7 +259,7 @@ class TestSecretRotationManager:
             success=False,
             secret_path="/secrets/concurrent",
             status=RotationStatus.IN_PROGRESS,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC).replace(tzinfo=None),
         )
 
         # Try second rotation
@@ -304,7 +304,7 @@ class TestSecretRotationManager:
 
         assert schedule.secret_path == "/secrets/scheduled"
         assert schedule.policy == sample_policy
-        assert schedule.next_rotation > datetime.utcnow()
+        assert schedule.next_rotation > datetime.now(UTC).replace(tzinfo=None)
         assert schedule.enabled
         assert schedule.rotation_count == 0
 
@@ -363,7 +363,7 @@ class TestSecretRotationManager:
 
         # Schedule with past due time
         schedule = rotation_manager.schedule_rotation("/secrets/due", sample_policy)
-        schedule.next_rotation = datetime.utcnow() - timedelta(hours=1)
+        schedule.next_rotation = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=1)
 
         # Process
         results = await rotation_manager.process_scheduled_rotations()
@@ -376,7 +376,7 @@ class TestSecretRotationManager:
         updated_schedule = rotation_manager.get_schedule("/secrets/due")
         assert updated_schedule.last_rotation is not None
         assert updated_schedule.rotation_count == 1
-        assert updated_schedule.next_rotation > datetime.utcnow()
+        assert updated_schedule.next_rotation > datetime.now(UTC).replace(tzinfo=None)
 
     @pytest.mark.asyncio
     async def test_process_scheduled_rotations_not_due(
@@ -387,7 +387,7 @@ class TestSecretRotationManager:
 
         # Schedule in future
         schedule = rotation_manager.schedule_rotation("/secrets/not_due", sample_policy)
-        schedule.next_rotation = datetime.utcnow() + timedelta(days=1)
+        schedule.next_rotation = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=1)
 
         # Process
         results = await rotation_manager.process_scheduled_rotations()
@@ -402,7 +402,7 @@ class TestSecretRotationManager:
 
         # Schedule and disable
         schedule = rotation_manager.schedule_rotation("/secrets/disabled", sample_policy)
-        schedule.next_rotation = datetime.utcnow() - timedelta(hours=1)
+        schedule.next_rotation = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=1)
         schedule.enabled = False
 
         # Process
@@ -481,7 +481,7 @@ class TestRotationIntegration:
         assert schedule.enabled
 
         # Set as due
-        schedule.next_rotation = datetime.utcnow() - timedelta(minutes=1)
+        schedule.next_rotation = datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=1)
 
         # Process scheduled rotations
         results = await manager.process_scheduled_rotations()
@@ -517,7 +517,7 @@ class TestRotationIntegration:
 
         for secret in secrets:
             schedule = manager.schedule_rotation(secret, policy)
-            schedule.next_rotation = datetime.utcnow() - timedelta(hours=1)
+            schedule.next_rotation = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=1)
 
         # Process all
         results = await manager.process_scheduled_rotations()
@@ -752,7 +752,7 @@ class TestZeroDowntimeRotation:
             success=False,
             secret_path="/secrets/concurrent_dw",
             status=RotationStatus.IN_PROGRESS,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC).replace(tzinfo=None),
         )
 
         # Try second rotation
@@ -794,7 +794,7 @@ class TestConsumerTracking:
         status = ConsumerStatus(
             consumer_id="service-1",
             secret_version="old",
-            last_heartbeat=datetime.utcnow(),
+            last_heartbeat=datetime.now(UTC).replace(tzinfo=None),
             migration_status="pending",
         )
 
@@ -810,19 +810,19 @@ class TestConsumerTracking:
             ConsumerStatus(
                 consumer_id="svc1",
                 secret_version="old",
-                last_heartbeat=datetime.utcnow(),
+                last_heartbeat=datetime.now(UTC).replace(tzinfo=None),
             ),
             ConsumerStatus(
                 consumer_id="svc2",
                 secret_version="new",
-                last_heartbeat=datetime.utcnow(),
+                last_heartbeat=datetime.now(UTC).replace(tzinfo=None),
             ),
         ]
 
         config = DualModeConfig(
             old_value="old_secret",
             new_value="new_secret",
-            enabled_at=datetime.utcnow(),
+            enabled_at=datetime.now(UTC).replace(tzinfo=None),
             consumers=consumers,
         )
 
@@ -944,7 +944,7 @@ class TestRotationAdvanced:
             require_verification=False,
         )
         schedule = manager.schedule_rotation("/secrets/retry", policy)
-        schedule.next_rotation = datetime.utcnow() - timedelta(hours=1)
+        schedule.next_rotation = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=1)
         with patch.object(
             manager,
             "rotate_secret",
@@ -953,14 +953,14 @@ class TestRotationAdvanced:
                 success=False,
                 secret_path="/secrets/retry",
                 status=RotationStatus.FAILED,
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(UTC).replace(tzinfo=None),
                 error="boom",
             ),
         ):
             await manager.process_scheduled_rotations()
         updated = manager.get_schedule("/secrets/retry")
-        assert updated.next_rotation > datetime.utcnow()
-        assert updated.next_rotation < datetime.utcnow() + timedelta(hours=2)
+        assert updated.next_rotation > datetime.now(UTC).replace(tzinfo=None)
+        assert updated.next_rotation < datetime.now(UTC).replace(tzinfo=None) + timedelta(hours=2)
         assert updated.rotation_count == 0
 
     @pytest.mark.asyncio

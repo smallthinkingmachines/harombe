@@ -35,7 +35,7 @@ Example:
 import logging
 import time
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
@@ -313,7 +313,7 @@ class TrafficAnomalyDetector:
 
         baseline = TrafficBaseline(
             source_id=source_id,
-            learned_at=datetime.utcnow(),
+            learned_at=datetime.now(UTC).replace(tzinfo=None),
             connection_count=total,
             avg_bytes_sent=float(np.mean(bytes_sent)),
             std_bytes_sent=float(np.std(bytes_sent)),

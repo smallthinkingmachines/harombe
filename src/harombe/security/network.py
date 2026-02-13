@@ -29,7 +29,7 @@ import re
 import subprocess
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -546,7 +546,7 @@ class NetworkMonitor:
                     context={
                         "destination": destination,
                         "port": port,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
                     },
                 )
 
@@ -626,7 +626,7 @@ class NetworkMonitor:
                 context={
                     "pattern": pattern,
                     "details": details,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
                 },
             )
 

@@ -1,7 +1,7 @@
 """Integration tests for ZKP audit proofs with AuditDatabase and AuditLogger."""
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -64,7 +64,7 @@ class TestProofRoundTrip:
 
     def test_filter_by_time_range(self, temp_db):
         """Proofs can be filtered by time range."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         temp_db.log_audit_proof(
             AuditProofRecord(
@@ -209,7 +209,7 @@ class TestRetentionCleanup:
         old_proof = AuditProofRecord(
             claim_type="old",
             description="old proof",
-            created_at=datetime.utcnow() - timedelta(days=2),
+            created_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(days=2),
         )
         db.log_audit_proof(old_proof)
 

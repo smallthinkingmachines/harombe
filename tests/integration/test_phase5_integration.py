@@ -10,7 +10,7 @@ Tests that verify all Phase 5 components work together end-to-end:
 """
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import AsyncMock
 
@@ -148,7 +148,7 @@ class TestAnomalyToAlertToSIEM:
                 "agent_id": "agent-0",
                 "tool_name": "filesystem",
                 "action": "read_file",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 1,
                 "duration_ms": 50,
                 "success": True,
@@ -375,7 +375,7 @@ class TestMLPipeline:
         normal_events = [
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow() - timedelta(hours=i),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                 "resource_count": 1,
                 "duration_ms": 50 + (i % 10),
                 "success": True,
@@ -390,7 +390,7 @@ class TestMLPipeline:
             "agent-test",
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 1,
                 "duration_ms": 55,
                 "success": True,
@@ -410,7 +410,7 @@ class TestMLPipeline:
                 "agent-bl",
                 {
                     "event_type": "tool_call",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 1,
                     "duration_ms": 50 + (i % 10),
                 },
@@ -438,7 +438,7 @@ class TestMLPipeline:
                 bytes_received=max(1, int(rng.normal(5000, 500))),
                 duration_s=max(0.01, float(rng.normal(0.5, 0.1))),
                 packet_count=max(1, int(rng.normal(20, 3))),
-                timestamp=datetime.utcnow() - timedelta(minutes=i),
+                timestamp=datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=i),
             )
             detector.record_connection(conn)
 
@@ -456,7 +456,7 @@ class TestMLPipeline:
             bytes_received=5000,
             duration_s=0.5,
             packet_count=20,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
         result = detector.detect(normal_conn)
         assert result is not None

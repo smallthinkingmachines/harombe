@@ -8,7 +8,7 @@ Phase 5.3.1 Implementation
 
 import contextlib
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -241,7 +241,7 @@ class SecretRotationManager:
         Returns:
             Rotation result with status and details
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
         self.stats["total_rotations"] += 1
 
         # Use default policy if not provided
@@ -260,7 +260,7 @@ class SecretRotationManager:
                 secret_path=secret_path,
                 status=RotationStatus.FAILED,
                 started_at=started_at,
-                completed_at=datetime.utcnow(),
+                completed_at=datetime.now(UTC).replace(tzinfo=None),
                 error="Rotation already in progress",
             )
 
@@ -301,7 +301,7 @@ class SecretRotationManager:
                 raise NotImplementedError(f"Strategy {policy.strategy} not implemented")
 
             # Update result
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
 
             result.success = success
@@ -332,7 +332,7 @@ class SecretRotationManager:
             logger.exception(f"Error rotating {secret_path}: {e}")
             self.stats["failed_rotations"] += 1
 
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
 
             result.success = False
@@ -822,7 +822,9 @@ class SecretRotationManager:
             Rotation schedule
         """
         # Calculate next rotation time
-        next_rotation = datetime.utcnow() + timedelta(days=policy.interval_days)
+        next_rotation = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+            days=policy.interval_days
+        )
 
         schedule = RotationSchedule(
             secret_path=secret_path,
@@ -859,7 +861,7 @@ class SecretRotationManager:
         Returns:
             List of rotation results
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         results = []
 
         for secret_path, schedule in list(self.schedules.items()):

@@ -2,7 +2,7 @@
 
 import tempfile
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -251,7 +251,7 @@ class TestMetricsCache:
 
 class TestTrendPoint:
     def test_basic_point(self):
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         point = TrendPoint(timestamp=now, value=42)
         assert point.value == 42
 
@@ -266,7 +266,7 @@ class TestMetricTrend:
         assert len(trend.points) == 0
 
     def test_trend_with_points(self):
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         points = [TrendPoint(timestamp=now - timedelta(hours=i), value=i * 10) for i in range(24)]
         trend = MetricTrend(metric_name="events", points=points, period_hours=24)
         assert len(trend.points) == 24

@@ -1,6 +1,6 @@
 """Tests for TLS certificate pinning."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from cryptography import x509
@@ -45,8 +45,8 @@ def test_cert():
         .issuer_name(issuer)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=365))
+        .not_valid_before(datetime.now(UTC).replace(tzinfo=None))
+        .not_valid_after(datetime.now(UTC).replace(tzinfo=None) + timedelta(days=365))
         .sign(private_key, hashes.SHA256(), default_backend())
     )
 
@@ -99,7 +99,7 @@ def test_certificate_pin_creation():
 
 def test_certificate_pin_with_expiration():
     """Test CertificatePin with expiration date."""
-    expires = datetime.utcnow() + timedelta(days=90)
+    expires = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=90)
     pin = CertificatePin(
         domain="api.example.com",
         pin="sha256/abc123",
@@ -316,7 +316,7 @@ def test_verify_certificate_backup_pin_matches(cert_pinner, test_cert, test_cert
 def test_verify_certificate_expired_pin_ignored(cert_pinner, test_cert_bytes):
     """Test that expired pins are ignored during verification."""
     # Add expired pin
-    expired = datetime.utcnow() - timedelta(days=1)
+    expired = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
     cert_pinner.add_pin(
         "api.example.com",
         "sha256/expiredpin==",

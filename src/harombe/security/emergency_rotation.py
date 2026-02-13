@@ -8,7 +8,7 @@ Phase 5.3.4 Implementation
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -264,7 +264,7 @@ class EmergencyRotationTrigger:
         Returns:
             Emergency rotation result
         """
-        started_at = datetime.utcnow()
+        started_at = datetime.now(UTC).replace(tzinfo=None)
         self.stats["emergency_rotations"] += 1
 
         logger.critical(
@@ -294,7 +294,7 @@ class EmergencyRotationTrigger:
             # Perform rotation
             rotation_result = await self.rotation_manager.rotate_secret(secret_path, policy)
 
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
 
             if rotation_result.success:
@@ -339,7 +339,7 @@ class EmergencyRotationTrigger:
             self.stats["failed_rotations"] += 1
             logger.exception(f"Emergency rotation raised exception: {secret_path} - {e}")
 
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(UTC).replace(tzinfo=None)
             duration_ms = (completed_at - started_at).total_seconds() * 1000
 
             # Alert on failure
@@ -493,7 +493,7 @@ class EmergencyRotationTrigger:
 
         try:
             # Query recent audit events
-            since = datetime.utcnow() - timedelta(minutes=lookback_minutes)
+            since = datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=lookback_minutes)
             events = await self._query_recent_events(since)
 
             # Analyze events for compromise indicators
@@ -544,7 +544,7 @@ class EmergencyRotationTrigger:
                     event_type=CompromiseIndicator.FAILED_AUTH_SPIKE,
                     threat_level=ThreatLevel.HIGH,
                     description=f"Failed authentication spike: {len(failed_auth_events)} attempts",
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC).replace(tzinfo=None),
                     metadata={"failed_count": len(failed_auth_events)},
                 )
             )
@@ -557,7 +557,7 @@ class EmergencyRotationTrigger:
                     event_type=CompromiseIndicator.RATE_LIMIT_EXCEEDED,
                     threat_level=ThreatLevel.MEDIUM,
                     description=f"Rate limit violations: {len(rate_limit_events)} occurrences",
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC).replace(tzinfo=None),
                     metadata={"violation_count": len(rate_limit_events)},
                 )
             )

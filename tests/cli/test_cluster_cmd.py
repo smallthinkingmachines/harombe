@@ -30,14 +30,14 @@ def _make_cluster_config() -> ClusterConfig:
 
 def _make_health(name: str, status: NodeStatus, latency: float = 10.0) -> NodeHealth:
     """Create a NodeHealth instance."""
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     return NodeHealth(
         name=name,
         status=status,
         load=0.3,
         latency_ms=latency,
-        last_check=datetime.utcnow(),
+        last_check=datetime.now(UTC).replace(tzinfo=None),
     )
 
 

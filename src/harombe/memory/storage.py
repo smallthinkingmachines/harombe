@@ -2,7 +2,7 @@
 
 import json
 import sqlite3
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -76,7 +76,7 @@ class MemoryStorage:
         if metadata is None:
             metadata = SessionMetadata()
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         session = SessionRecord(
             id=session_id,
             created_at=now,
@@ -137,7 +137,7 @@ class MemoryStorage:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "UPDATE sessions SET updated_at = ? WHERE id = ?",
-                (datetime.utcnow().isoformat(), session_id),
+                (datetime.now(UTC).replace(tzinfo=None).isoformat(), session_id),
             )
             conn.commit()
 
@@ -305,7 +305,7 @@ class MemoryStorage:
         Returns:
             Number of sessions deleted
         """
-        cutoff = datetime.utcnow().timestamp() - (days * 24 * 60 * 60)
+        cutoff = datetime.now(UTC).replace(tzinfo=None).timestamp() - (days * 24 * 60 * 60)
         cutoff_dt = datetime.fromtimestamp(cutoff)
 
         with sqlite3.connect(self.db_path) as conn:

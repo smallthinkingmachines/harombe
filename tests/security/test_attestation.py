@@ -1,6 +1,6 @@
 """Tests for the hardware-backed attestation module."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -286,7 +286,7 @@ async def test_verifier_fails_expired_report():
     report = await generator.generate_report(nonce=nonce)
 
     # Make the report appear old
-    report.timestamp = datetime.utcnow() - timedelta(seconds=600)
+    report.timestamp = datetime.now(UTC).replace(tzinfo=None) - timedelta(seconds=600)
 
     policy = AttestationPolicy(
         policy_id="test",
@@ -563,7 +563,7 @@ async def test_remote_service_cleanup_expired_nonces():
 
     # Create a challenge and backdate its nonce
     challenge = await service.create_challenge()
-    old_time = datetime.utcnow() - timedelta(seconds=700)
+    old_time = datetime.now(UTC).replace(tzinfo=None) - timedelta(seconds=700)
     service._nonce_cache[challenge["nonce"]] = old_time
 
     removed = await service.cleanup_expired_nonces(max_age_seconds=600)

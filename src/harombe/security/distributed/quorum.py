@@ -30,7 +30,7 @@ Example:
 
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -252,7 +252,7 @@ class QuorumManager:
             The newly created :class:`QuorumRequest`.
         """
         effective_policy = policy or self._default_policy
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         expires_at = now + timedelta(seconds=effective_policy.timeout_seconds)
 
         request = QuorumRequest(
@@ -427,7 +427,7 @@ class QuorumManager:
         Returns:
             List of request IDs that were expired.
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         expired_ids: list[str] = []
 
         for request in self._requests.values():

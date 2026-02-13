@@ -14,7 +14,7 @@ Features:
 """
 
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -264,7 +264,7 @@ class SecurityDashboard:
 
     def _compute_metrics(self) -> DashboardMetrics:
         """Compute all dashboard metrics from the database."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         one_hour_ago = now - timedelta(hours=1)
         one_day_ago = now - timedelta(hours=24)
 
@@ -361,7 +361,7 @@ class SecurityDashboard:
 
     def _compute_trend(self, metric_name: str, hours: int) -> MetricTrend:
         """Compute hourly trend for a metric."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         points: list[TrendPoint] = []
 
         for hour_offset in range(hours, 0, -1):

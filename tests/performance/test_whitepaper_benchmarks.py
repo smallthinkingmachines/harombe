@@ -789,7 +789,7 @@ def _write_results() -> None:
 
     # Populate metadata
     _RESULTS["metadata"] = {
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
         "python_version": platform.python_version(),
         "platform": f"{platform.system()} {platform.release()} {platform.machine()}",
         "cpu": platform.processor(),

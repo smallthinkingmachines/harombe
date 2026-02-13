@@ -32,7 +32,7 @@ Example:
 import base64
 import hashlib
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -235,7 +235,7 @@ class CertificatePinner:
         domain_pins = self.pins.get(domain, [])
 
         # Filter out expired pins
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         active_pins = [p for p in domain_pins if p.expires_at is None or p.expires_at > now]
 
         if not active_pins:

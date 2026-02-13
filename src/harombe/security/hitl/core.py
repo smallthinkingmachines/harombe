@@ -53,7 +53,7 @@ class ApprovalDecision:
 
     decision: ApprovalStatus
     user: str | None = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
     reason: str | None = None
     timeout_seconds: int | None = None
     approval_id: str | None = None
@@ -233,7 +233,7 @@ class PendingApproval:
             # Timeout: auto-deny
             decision = ApprovalDecision(
                 decision=ApprovalStatus.TIMEOUT,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(UTC).replace(tzinfo=None),
                 timeout_seconds=self.timeout,
                 approval_id=self.approval_id,
             )
@@ -297,7 +297,7 @@ class HITLGate:
             return ApprovalDecision(
                 decision=ApprovalStatus.AUTO_APPROVED,
                 user=user,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(UTC).replace(tzinfo=None),
                 reason="Low risk operation",
             )
 
@@ -306,7 +306,7 @@ class HITLGate:
             return ApprovalDecision(
                 decision=ApprovalStatus.AUTO_APPROVED,
                 user=user,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(UTC).replace(tzinfo=None),
                 reason="Approval not required by policy",
             )
 
@@ -354,7 +354,7 @@ class HITLGate:
             pending.set_decision(
                 ApprovalDecision(
                     decision=ApprovalStatus.DENIED,
-                    timestamp=datetime.now(UTC),
+                    timestamp=datetime.now(UTC).replace(tzinfo=None),
                     reason=f"Error prompting user: {e}",
                     approval_id=pending.approval_id,
                 )
@@ -389,7 +389,7 @@ class HITLGate:
         decision = ApprovalDecision(
             decision=ApprovalStatus.APPROVED,
             user=user,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             reason=reason,
             approval_id=approval_id,
         )
@@ -422,7 +422,7 @@ class HITLGate:
         decision = ApprovalDecision(
             decision=ApprovalStatus.DENIED,
             user=user,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             reason=reason,
             approval_id=approval_id,
         )

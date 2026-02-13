@@ -39,7 +39,7 @@ Example:
 import logging
 import os
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -301,9 +301,9 @@ class HardwareKeyHierarchy:
         new_material = hkdf.derive(parent.derived_key)
 
         node.derived_key = new_material
-        node.created_at = datetime.utcnow()
+        node.created_at = datetime.now(UTC).replace(tzinfo=None)
         node.metadata["rotated"] = True
-        node.metadata["rotation_time"] = datetime.utcnow().isoformat()
+        node.metadata["rotation_time"] = datetime.now(UTC).replace(tzinfo=None).isoformat()
 
         logger.info(f"Rotated key {key_id}")
         return node

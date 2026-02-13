@@ -32,11 +32,11 @@ Example:
 
 import logging
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from harombe.security.secrets import SecretScanner
 
@@ -170,8 +170,7 @@ class MaliciousPattern(BaseModel):
     description: str
     enabled: bool = True
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class DeepPacketInspector:
@@ -340,7 +339,7 @@ class DeepPacketInspector:
         Returns:
             InspectionResult with issues found and allow/block decision
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC).replace(tzinfo=None)
         self.stats["total_inspections"] += 1
 
         issues: list[SecurityIssue] = []
@@ -356,7 +355,8 @@ class DeepPacketInspector:
             return InspectionResult(
                 allowed=True,
                 issues=[],
-                duration_ms=(datetime.utcnow() - start_time).total_seconds() * 1000,
+                duration_ms=(datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
+                * 1000,
             )
 
         # Decode payload for text-based inspection
@@ -400,7 +400,7 @@ class DeepPacketInspector:
             )
 
         # Calculate duration
-        duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+        duration_ms = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds() * 1000
 
         return InspectionResult(
             allowed=allowed,

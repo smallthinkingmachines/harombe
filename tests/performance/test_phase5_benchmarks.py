@@ -14,7 +14,7 @@ Validates that Phase 5 features meet performance targets:
 import statistics
 import tempfile
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import AsyncMock
 
@@ -138,7 +138,7 @@ class TestAnomalyDetectionPerformance:
         events = [
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow() - timedelta(hours=i),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                 "resource_count": 1 + (i % 5),
                 "duration_ms": 50 + (i % 30),
                 "success": True,
@@ -156,7 +156,7 @@ class TestAnomalyDetectionPerformance:
         for _i in range(500):
             event = {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 2,
                 "duration_ms": 60,
                 "success": True,
@@ -186,7 +186,7 @@ class TestAnomalyDetectionPerformance:
         events = [
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow() - timedelta(minutes=i),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=i),
                 "resource_count": 1 + (i % 10),
                 "duration_ms": 30 + (i % 50),
                 "success": i % 20 != 0,
@@ -212,7 +212,7 @@ class TestAnomalyDetectionPerformance:
         events = [
             {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": i % 5,
                 "duration_ms": 40 + (i % 20),
                 "success": True,
@@ -656,7 +656,7 @@ class TestTrafficAnomalyPerformance:
                 bytes_received=max(1, int(rng.normal(5000, 500))),
                 duration_s=max(0.01, float(rng.normal(0.5, 0.1))),
                 packet_count=max(1, int(rng.normal(20, 3))),
-                timestamp=datetime.utcnow() - timedelta(minutes=i),
+                timestamp=datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=i),
             )
             detector.record_connection(conn)
 
@@ -677,7 +677,7 @@ class TestTrafficAnomalyPerformance:
                 bytes_received=5000 + (i % 500),
                 duration_s=0.5,
                 packet_count=20,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC).replace(tzinfo=None),
             )
             start = time.perf_counter()
             trained_traffic_detector.detect(conn)
@@ -709,7 +709,7 @@ class TestTrafficAnomalyPerformance:
                 bytes_received=max(1, int(rng.normal(8000, 1000))),
                 duration_s=max(0.01, float(rng.normal(1.0, 0.3))),
                 packet_count=max(1, int(rng.normal(30, 5))),
-                timestamp=datetime.utcnow() - timedelta(seconds=i),
+                timestamp=datetime.now(UTC).replace(tzinfo=None) - timedelta(seconds=i),
             )
             detector.record_connection(conn)
 
@@ -737,7 +737,7 @@ class TestTrafficAnomalyPerformance:
                 bytes_received=5000,
                 duration_s=0.5,
                 packet_count=20,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC).replace(tzinfo=None),
             )
             for _ in range(num_connections)
         ]
@@ -773,7 +773,7 @@ class TestBaselineLearnerPerformance:
                 "agent-speed",
                 {
                     "event_type": "tool_call",
-                    "timestamp": datetime.utcnow() - timedelta(minutes=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=i),
                     "resource_count": 1 + (i % 10),
                     "duration_ms": 30 + (i % 80),
                 },
@@ -800,7 +800,7 @@ class TestBaselineLearnerPerformance:
                 "agent-cmp",
                 {
                     "event_type": "tool_call",
-                    "timestamp": datetime.utcnow() - timedelta(hours=i),
+                    "timestamp": datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=i),
                     "resource_count": 2,
                     "duration_ms": 50,
                 },
@@ -811,7 +811,7 @@ class TestBaselineLearnerPerformance:
         for _ in range(1000):
             event = {
                 "event_type": "tool_call",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC).replace(tzinfo=None),
                 "resource_count": 2,
                 "duration_ms": 50,
             }

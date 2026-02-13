@@ -41,7 +41,7 @@ import os
 import platform
 import sys
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -450,7 +450,7 @@ class AttestationVerifier:
         Returns:
             True if the report is fresh enough, False otherwise.
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         age = (now - report.timestamp).total_seconds()
         if age > policy.min_freshness_seconds:
             logger.debug(
@@ -590,7 +590,7 @@ class RemoteAttestationService:
         nonce = await self._generator.generate_nonce()
 
         self._challenge_nonces[challenge_id] = nonce
-        self._nonce_cache[nonce] = datetime.utcnow()
+        self._nonce_cache[nonce] = datetime.now(UTC).replace(tzinfo=None)
 
         logger.info(f"Created attestation challenge {challenge_id}")
         return {"challenge_id": challenge_id, "nonce": nonce}
@@ -676,7 +676,7 @@ class RemoteAttestationService:
         Returns:
             Number of nonces removed.
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         cutoff = now - timedelta(seconds=max_age_seconds)
 
         expired_nonces: list[str] = [

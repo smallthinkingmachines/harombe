@@ -19,7 +19,7 @@ Retention Policy:
 import json
 import sqlite3
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -317,7 +317,7 @@ class AuditDatabase:
         if self.retention_days <= 0:
             return
 
-        cutoff_date = datetime.utcnow() - timedelta(days=self.retention_days)
+        cutoff_date = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=self.retention_days)
         conn = self._get_connection()
         try:
             # Clean up old events
