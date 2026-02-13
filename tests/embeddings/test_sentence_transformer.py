@@ -1,8 +1,13 @@
-"""Tests for sentence-transformers embedding client."""
+"""Tests for sentence-transformers embedding client.
+
+These are integration tests — they download and run a real model from HuggingFace.
+"""
 
 import pytest
 
 from harombe.embeddings.sentence_transformer import SentenceTransformerEmbedding
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture

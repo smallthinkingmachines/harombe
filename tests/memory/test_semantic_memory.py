@@ -5,6 +5,14 @@ from pathlib import Path
 
 import pytest
 
+try:
+    import chromadb  # noqa: F401
+except Exception:
+    pytest.skip(
+        "chromadb not compatible with this Python version",
+        allow_module_level=True,
+    )
+
 from harombe.embeddings.sentence_transformer import SentenceTransformerEmbedding
 from harombe.llm.client import Message
 from harombe.memory.manager import MemoryManager

@@ -6,6 +6,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+try:
+    import chromadb  # noqa: F401
+except Exception:
+    pytest.skip(
+        "chromadb not compatible with this Python version",
+        allow_module_level=True,
+    )
+
 from harombe.agent.loop import Agent
 from harombe.embeddings.sentence_transformer import SentenceTransformerEmbedding
 from harombe.llm.client import CompletionResponse, Message

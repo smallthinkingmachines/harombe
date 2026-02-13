@@ -4,7 +4,15 @@ import tempfile
 
 import pytest
 
-from harombe.vector.chromadb import ChromaDBVectorStore
+try:
+    import chromadb  # noqa: F401
+
+    from harombe.vector.chromadb import ChromaDBVectorStore
+except Exception:
+    pytest.skip(
+        "chromadb not compatible with this Python version",
+        allow_module_level=True,
+    )
 
 
 @pytest.fixture
