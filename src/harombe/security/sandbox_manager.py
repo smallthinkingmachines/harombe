@@ -77,7 +77,7 @@ class SandboxManager:
     def __init__(
         self,
         docker_manager: DockerManager,
-        runtime: str = "runsc",
+        runtime: str | None = None,
         max_memory_mb: int = 512,
         max_cpu_cores: float = 0.5,
         max_disk_mb: int = 1024,
@@ -88,7 +88,8 @@ class SandboxManager:
 
         Args:
             docker_manager: Docker manager instance
-            runtime: Container runtime (default: runsc for gVisor)
+            runtime: Container runtime. None = auto-detect based on engine
+                     (Docker → "runsc" for gVisor, Podman → "crun")
             max_memory_mb: Maximum memory per sandbox (MB)
             max_cpu_cores: Maximum CPU cores per sandbox
             max_disk_mb: Maximum disk space per sandbox (MB)
@@ -96,7 +97,21 @@ class SandboxManager:
             max_output_bytes: Maximum output size (bytes)
         """
         self.docker_manager = docker_manager
-        self.runtime = runtime
+
+        # Auto-detect runtime based on container engine
+        if runtime is not None:
+            self.runtime = runtime
+        else:
+            engine_info = docker_manager.engine_info
+            if engine_info and engine_info.name == "podman":
+                self.runtime = "crun"
+                if not engine_info.supports_gvisor:
+                    logger.info(
+                        "Podman detected — using '%s' runtime (gVisor not available)",
+                        self.runtime,
+                    )
+            else:
+                self.runtime = "runsc"
         self.max_memory_mb = max_memory_mb
         self.max_cpu_cores = max_cpu_cores
         self.max_disk_mb = max_disk_mb

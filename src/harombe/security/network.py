@@ -34,6 +34,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from harombe.container_engine import EngineInfo, get_container_client
+
 from .audit_db import SecurityDecision
 from .audit_logger import AuditLogger
 
@@ -686,12 +688,14 @@ class NetworkIsolationManager:
         self,
         audit_logger: AuditLogger | None = None,
         enable_iptables: bool = True,
+        engine: str | None = None,
     ):
         """Initialize network isolation manager.
 
         Args:
             audit_logger: Audit logger for security decisions
             enable_iptables: Enable iptables rules (requires root)
+            engine: Container engine override ("docker", "podman", or "auto"/None)
         """
         self.audit_logger = audit_logger
         self.enable_iptables = enable_iptables
@@ -708,25 +712,25 @@ class NetworkIsolationManager:
         self._networks: dict[str, str] = {}
 
         self._docker: Any = None
+        self._engine_override = engine
+        self._engine_info: EngineInfo | None = None
 
     def _get_docker_client(self) -> Any:
-        """Get Docker client.
+        """Get container client (Docker or Podman).
 
         Returns:
-            Docker client
+            Docker-compatible client
 
         Raises:
             ImportError: If docker package not installed
+            ConnectionError: If no container engine is available
         """
         if self._docker is None:
-            try:
-                import docker
-
-                self._docker = docker.from_env()  # type: ignore[attr-defined]
-                logger.info("Connected to Docker daemon for network management")
-            except ImportError as e:
-                msg = "Docker SDK not installed. Install with: pip install 'harombe[docker]'"
-                raise ImportError(msg) from e
+            self._docker, self._engine_info = get_container_client(self._engine_override)
+            logger.info(
+                "Connected to %s for network management",
+                self._engine_info.name,
+            )
 
         return self._docker
 
@@ -762,14 +766,18 @@ class NetworkIsolationManager:
                 pass
 
             # Create network with isolation
+            network_options: dict[str, str] = {}
+            if self._engine_info is None or self._engine_info.name == "docker":
+                # Docker: set explicit bridge name (max 15 chars for Linux interface)
+                network_options["com.docker.network.bridge.name"] = network_name[:15]
+            # Podman (netavark): auto-names bridges; Docker-specific options are ignored
+
             client.networks.create(
                 name=network_name,
                 driver="bridge",
                 internal=False,  # Allow external connections (filtered by iptables)
                 enable_ipv6=False,  # IPv6 support optional
-                options={
-                    "com.docker.network.bridge.name": network_name[:15],  # Max 15 chars
-                },
+                options=network_options,
             )
 
             logger.info(f"Created isolated network: {network_name}")
@@ -811,10 +819,18 @@ class NetworkIsolationManager:
             network = client.networks.get(network_name)
             network_info = network.attrs
 
-            # Extract bridge interface (typically br-<network_id>)
-            bridge_name = network_info.get("Options", {}).get(
-                "com.docker.network.bridge.name", f"br-{network_info['Id'][:12]}"
-            )
+            # Extract bridge interface name (engine-dependent)
+            if self._engine_info and self._engine_info.name == "podman":
+                # Podman (netavark): bridge name from network attrs or
+                # standard podman naming convention
+                bridge_name = network_info.get(
+                    "NetworkInterface", f"podman{network_info['Id'][:8]}"
+                )
+            else:
+                # Docker: explicit bridge option or standard br-<id> naming
+                bridge_name = network_info.get("Options", {}).get(
+                    "com.docker.network.bridge.name", f"br-{network_info['Id'][:12]}"
+                )
 
             logger.info(f"Applying iptables rules for {network_name} on {bridge_name}")
 

@@ -1,4 +1,4 @@
-"""Docker Container Manager for MCP capability containers.
+"""Container Manager for MCP capability containers.
 
 Manages the lifecycle of isolated capability containers, including:
 - Container creation and deletion
@@ -6,12 +6,16 @@ Manages the lifecycle of isolated capability containers, including:
 - Resource limits (CPU, memory, network)
 - Health monitoring
 - Volume mounting
+
+Supports both Docker and Podman via the container engine factory.
 """
 
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
+
+from harombe.container_engine import EngineInfo, get_container_client
 
 logger = logging.getLogger(__name__)
 
@@ -101,48 +105,53 @@ class ContainerConfig:
 
 
 class DockerManager:
-    """Manages Docker containers for MCP capability isolation."""
+    """Manages containers for MCP capability isolation.
 
-    def __init__(self) -> None:
-        """Initialize Docker manager."""
+    Works with both Docker and Podman via the container engine factory.
+    """
+
+    def __init__(self, engine: str | None = None) -> None:
+        """Initialize container manager.
+
+        Args:
+            engine: Container engine override ("docker", "podman", or "auto"/None).
+        """
         self._docker: Any = None  # docker.DockerClient
+        self._engine_override = engine
+        self._engine_info: EngineInfo | None = None
         self._containers: dict[str, Any] = {}  # name -> container object
 
     @property
     def client(self) -> Any:
-        """Public accessor for the Docker client. Lazily initializes."""
+        """Public accessor for the container client. Lazily initializes."""
         return self._get_client()
 
+    @property
+    def engine_info(self) -> EngineInfo | None:
+        """Engine information (available after first client access)."""
+        return self._engine_info
+
     async def start(self) -> None:
-        """Initialize Docker client connection."""
+        """Initialize container client connection."""
         self._get_client()
 
     async def stop(self) -> None:
-        """Close Docker client connection."""
+        """Close container client connection."""
         self.close()
 
     def _get_client(self) -> Any:
-        """Get or create Docker client.
+        """Get or create container client.
 
         Returns:
-            Docker client instance
+            Docker-compatible client instance
 
         Raises:
             ImportError: If docker package not installed
-            Exception: If Docker daemon not available
+            ConnectionError: If no container engine is available
         """
         if self._docker is None:
-            try:
-                import docker
-
-                self._docker = docker.from_env()  # type: ignore[attr-defined]
-                logger.info("Connected to Docker daemon")
-            except ImportError as e:
-                msg = "Docker SDK not installed. " "Install with: pip install 'harombe[docker]'"
-                raise ImportError(msg) from e
-            except Exception as e:
-                logger.error(f"Failed to connect to Docker daemon: {e}")
-                raise
+            self._docker, self._engine_info = get_container_client(self._engine_override)
+            logger.info("Connected to %s engine", self._engine_info.name)
 
         return self._docker
 
@@ -446,7 +455,7 @@ class DockerManager:
         logger.info("Cleaned up all containers")
 
     def close(self) -> None:
-        """Close Docker client connection."""
+        """Close container client connection."""
         if self._docker:
             self._docker.close()
-            logger.info("Closed Docker client")
+            logger.info("Closed container client")

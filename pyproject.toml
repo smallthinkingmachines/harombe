@@ -60,7 +60,7 @@ coqui = [
     "TTS>=0.22; python_version < '3.11'",
 ]
 
-# Docker support for Phase 4 (Security Layer)
+# Container engine support for Phase 4 (Security Layer) — works with both Docker and Podman
 docker = [
     "docker>=7.0",
 ]

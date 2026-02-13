@@ -258,8 +258,8 @@ class PluginContainerManager:
 
                 shutil.copytree(plugin_path, plugin_dir, dirs_exist_ok=True)
 
-            # Build image
-            client = self._docker._get_client()
+            # Build image via the container manager's client
+            client = self._docker.client
             client.images.build(path=str(build_path), tag=image_tag, rm=True)
 
         logger.info("Built image %s", image_tag)

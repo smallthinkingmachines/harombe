@@ -703,6 +703,10 @@ class SecurityConfig(BaseModel):
         default=False,
         description="Enable security layer with capability containers",
     )
+    container_engine: Literal["auto", "docker", "podman"] = Field(
+        default="auto",
+        description="Container engine: 'auto' (detect), 'docker', or 'podman'",
+    )
     isolation: Literal["docker", "gvisor"] = Field(
         default="docker",
         description="Container isolation technology: 'docker' (standard) or 'gvisor' (enhanced)",

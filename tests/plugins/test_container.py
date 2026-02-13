@@ -404,7 +404,7 @@ class TestPluginContainerManager:
         mock_client.images.build.return_value = (MagicMock(), [])
 
         mock_docker = MagicMock()
-        mock_docker._get_client.return_value = mock_client
+        mock_docker.client = mock_client
 
         manager = PluginContainerManager(docker_manager=mock_docker)
         config = PluginContainerConfig(
@@ -425,7 +425,7 @@ class TestPluginContainerManager:
         mock_client.images.build.return_value = (MagicMock(), [])
 
         mock_docker = AsyncMock()
-        mock_docker._get_client = MagicMock(return_value=mock_client)
+        mock_docker.client = mock_client
         mock_docker.create_container.return_value = "container-id-123"
 
         manager = PluginContainerManager(docker_manager=mock_docker)
@@ -449,7 +449,7 @@ class TestPluginContainerManager:
         mock_client.images.build.return_value = (MagicMock(), [])
 
         mock_docker = AsyncMock()
-        mock_docker._get_client = MagicMock(return_value=mock_client)
+        mock_docker.client = mock_client
         mock_docker.create_container.return_value = "net-container-id"
 
         manager = PluginContainerManager(docker_manager=mock_docker)
