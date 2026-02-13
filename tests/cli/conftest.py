@@ -15,45 +15,49 @@ def tmp_config_path(tmp_path: Path) -> Path:
 @pytest.fixture
 def mock_ollama_running():
     """Mock Ollama as running."""
-    with patch(
-        "harombe.hardware.detect.check_ollama_running",
-        new_callable=AsyncMock,
-        return_value=True,
-    ) as m:
-        yield m
+    mock = AsyncMock(return_value=True)
+    with (
+        patch("harombe.hardware.detect.check_ollama_running", mock),
+        patch("harombe.cli.init_cmd.check_ollama_running", mock),
+        patch("harombe.cli.doctor.check_ollama_running", mock),
+    ):
+        yield mock
 
 
 @pytest.fixture
 def mock_ollama_not_running():
     """Mock Ollama as not running."""
-    with patch(
-        "harombe.hardware.detect.check_ollama_running",
-        new_callable=AsyncMock,
-        return_value=False,
-    ) as m:
-        yield m
+    mock = AsyncMock(return_value=False)
+    with (
+        patch("harombe.hardware.detect.check_ollama_running", mock),
+        patch("harombe.cli.init_cmd.check_ollama_running", mock),
+        patch("harombe.cli.doctor.check_ollama_running", mock),
+    ):
+        yield mock
 
 
 @pytest.fixture
 def mock_ollama_models():
     """Mock Ollama models list."""
-    with patch(
-        "harombe.hardware.detect.get_ollama_models",
-        new_callable=AsyncMock,
-        return_value=["qwen2.5:7b", "llama3:8b", "codellama:7b", "mistral:7b"],
-    ) as m:
-        yield m
+    mock = AsyncMock(return_value=["qwen2.5:7b", "llama3:8b", "codellama:7b", "mistral:7b"])
+    with (
+        patch("harombe.hardware.detect.get_ollama_models", mock),
+        patch("harombe.cli.init_cmd.get_ollama_models", mock),
+        patch("harombe.cli.doctor.get_ollama_models", mock),
+    ):
+        yield mock
 
 
 @pytest.fixture
 def mock_ollama_no_models():
     """Mock Ollama with no models."""
-    with patch(
-        "harombe.hardware.detect.get_ollama_models",
-        new_callable=AsyncMock,
-        return_value=[],
-    ) as m:
-        yield m
+    mock = AsyncMock(return_value=[])
+    with (
+        patch("harombe.hardware.detect.get_ollama_models", mock),
+        patch("harombe.cli.init_cmd.get_ollama_models", mock),
+        patch("harombe.cli.doctor.get_ollama_models", mock),
+    ):
+        yield mock
 
 
 @pytest.fixture
