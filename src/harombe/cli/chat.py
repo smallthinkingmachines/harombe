@@ -135,6 +135,8 @@ async def _async_chat(config: HarombeConfig) -> None:
             console.print("\n[yellow]Interrupted[/yellow]")
             if Confirm.ask("Exit chat?", default=False):
                 break
+        except EOFError:
+            break
         except Exception as e:
             console.print(f"\n[red]Error: {e}[/red]")
 

@@ -17,6 +17,46 @@ from harombe.hardware.detect import (
 
 console = Console()
 
+# Models ranked by general capability (larger = better), used to pick best installed model
+_MODEL_RANK = [
+    "qwen2.5:72b",
+    "llama3.1:70b",
+    "llama3:70b",
+    "deepseek-v2:70b",
+    "qwen2.5:32b",
+    "llama3.1:32b",
+    "qwen2.5:14b",
+    "qwen2.5:7b",
+    "llama3.1:8b",
+    "llama3:8b",
+    "mistral:7b",
+    "gemma2:9b",
+    "qwen2.5:3b",
+    "llama3.2:3b",
+    "phi3:3.8b",
+    "qwen2.5:1.5b",
+    "llama3.2:1b",
+    "phi3:mini",
+    "gemma2:2b",
+    "qwen2.5:0.5b",
+]
+
+
+def _pick_best_installed(installed: list[str]) -> str | None:
+    """Pick the best model from what's already installed in Ollama.
+
+    Args:
+        installed: List of installed model names
+
+    Returns:
+        Best model name, or None if nothing recognizable is installed
+    """
+    for model in _MODEL_RANK:
+        if model in installed:
+            return model
+    # If nothing matches the ranked list, just use the first installed model
+    return installed[0] if installed else None
+
 
 def init_command(
     force: bool = False, non_interactive: bool = False, model: str | None = None
@@ -89,19 +129,28 @@ async def _async_init(non_interactive: bool = False, model_override: str | None 
         if models:
             console.print(f"  Available models: {', '.join(models[:5])}")
 
-            # Check if recommended model is available
-            if recommended_model not in models:
-                console.print(
-                    f"\n  [yellow]Recommended model '{recommended_model}' not found[/yellow]"
-                )
-                console.print(
-                    f"  [yellow]→[/yellow] Pull with: [bold]ollama pull {recommended_model}[/bold]"
-                )
+            # If recommended model is not installed, pick the best installed one
+            if recommended_model not in models and not model_override:
+                best_installed = _pick_best_installed(models)
+                if best_installed:
+                    console.print(
+                        f"\n  [yellow]Recommended '{recommended_model}' not installed[/yellow]"
+                    )
+                    console.print(f"  [green]Using installed model:[/green] {best_installed}")
+                    recommended_model = best_installed
+                else:
+                    console.print(
+                        f"\n  [yellow]Recommended model '{recommended_model}' not found[/yellow]"
+                    )
+                    console.print(
+                        f"  [yellow]→[/yellow] Pull with: "
+                        f"[bold]ollama pull {recommended_model}[/bold]"
+                    )
 
-                if not non_interactive and Confirm.ask(
-                    f"Pull {recommended_model} now?", default=True
-                ):
-                    console.print("  (This may take several minutes)")
+                    if not non_interactive and Confirm.ask(
+                        f"Pull {recommended_model} now?", default=True
+                    ):
+                        console.print("  (This may take several minutes)")
         else:
             console.print("  [yellow]No models found. You'll need to pull one:[/yellow]")
             console.print(f"  [bold]ollama pull {recommended_model}[/bold]")

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 import typer
 
-from harombe.cli.init_cmd import _async_init, init_command
+from harombe.cli.init_cmd import _async_init, _pick_best_installed, init_command
 from harombe.config.schema import HarombeConfig
 
 
@@ -59,10 +59,10 @@ async def test_async_init_model_override(
 
 
 @pytest.mark.asyncio
-async def test_async_init_model_not_in_ollama(
+async def test_async_init_model_not_in_ollama_falls_back_to_installed(
     mock_ollama_running,
 ):
-    """Test init when recommended model is not in Ollama."""
+    """Test init picks best installed model when recommendation is missing."""
     with (
         patch("harombe.cli.init_cmd.recommend_model", return_value=("qwen2.5:14b", "GPU detected")),
         patch(
@@ -70,9 +70,12 @@ async def test_async_init_model_not_in_ollama(
             new_callable=AsyncMock,
             return_value=["qwen2.5:7b"],
         ),
-        patch("harombe.cli.init_cmd.save_config"),
+        patch("harombe.cli.init_cmd.save_config") as mock_save,
     ):
         await _async_init(non_interactive=True)
+
+        config = mock_save.call_args[0][0]
+        assert config.model.name == "qwen2.5:7b"  # fell back to installed
 
 
 @pytest.mark.asyncio
@@ -213,3 +216,26 @@ async def test_async_init_interactive_invalid_max_steps(
         ),
     ):
         await _async_init(non_interactive=False)
+
+
+# ── _pick_best_installed ─────────────────────────────────────────────────────
+
+
+class TestPickBestInstalled:
+    def test_picks_largest_ranked_model(self):
+        installed = ["qwen2.5:3b", "llama3.2:3b", "qwen2.5:7b"]
+        assert _pick_best_installed(installed) == "qwen2.5:7b"
+
+    def test_picks_from_small_models(self):
+        installed = ["llama3.2:1b", "qwen2.5:0.5b"]
+        assert _pick_best_installed(installed) == "llama3.2:1b"
+
+    def test_falls_back_to_first_if_unranked(self):
+        installed = ["custom-model:latest"]
+        assert _pick_best_installed(installed) == "custom-model:latest"
+
+    def test_empty_list_returns_none(self):
+        assert _pick_best_installed([]) is None
+
+    def test_single_ranked_model(self):
+        assert _pick_best_installed(["mistral:7b"]) == "mistral:7b"
