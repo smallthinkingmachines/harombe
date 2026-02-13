@@ -79,7 +79,7 @@ def start_command(config_path: str | None = None, detach: bool = False) -> None:
             "info",
         ]
         log_path = Path.home() / ".harombe" / "server.log"
-        log_file = log_path.open("a")
+        log_file = open(log_path, "a")  # noqa: SIM115
         proc = subprocess.Popen(
             cmd,
             stdout=log_file,
